@@ -30,28 +30,28 @@
 #include "engines/util.h"
 #include "graphics/palette.h"
 
-namespace Topgun {
+namespace TopGun {
 
-TopgunEngine *g_engine;
+TopGunEngine *g_engine;
 
-TopgunEngine::TopgunEngine(OSystem *syst, const ADGameDescription *gameDesc) : Engine(syst),
-	_gameDescription(gameDesc), _randomSource("Topgun") {
+TopGunEngine::TopGunEngine(OSystem *syst, const ADGameDescription *gameDesc) : Engine(syst),
+	_gameDescription(gameDesc), _randomSource("Topgun"), _debug(true) {
 	g_engine = this;
 }
 
-TopgunEngine::~TopgunEngine() {
+TopGunEngine::~TopGunEngine() {
 	delete _screen;
 }
 
-uint32 TopgunEngine::getFeatures() const {
+uint32 TopGunEngine::getFeatures() const {
 	return _gameDescription->flags;
 }
 
-Common::String TopgunEngine::getGameId() const {
+Common::String TopGunEngine::getGameId() const {
 	return _gameDescription->gameId;
 }
 
-Common::Error TopgunEngine::run() {
+Common::Error TopGunEngine::run() {
 	// Initialize 320x200 paletted graphics mode
 	initGraphics(320, 200);
 	_screen = new Graphics::Screen();
@@ -73,6 +73,8 @@ Common::Error TopgunEngine::run() {
 	// TODO: Init Audio
 	// TODO: Init Sprite
 	// TODO: Set MessageProc, MovieProc, ServiceProc
+
+	SceneIn("tama.bin");
 
 	// Simple event handling loop
 	byte pal[256 * 3] = { 0 };
@@ -98,7 +100,7 @@ Common::Error TopgunEngine::run() {
 	return Common::kNoError;
 }
 
-Common::Error TopgunEngine::syncGame(Common::Serializer &s) {
+Common::Error TopGunEngine::syncGame(Common::Serializer &s) {
 	// The Serializer has methods isLoading() and isSaving()
 	// if you need to specific steps; for example setting
 	// an array size after reading it's length, whereas
@@ -107,6 +109,10 @@ Common::Error TopgunEngine::syncGame(Common::Serializer &s) {
 	s.syncAsUint32LE(dummy);
 
 	return Common::kNoError;
+}
+
+void TopGunEngine::SceneIn(const Common::String& name) {
+
 }
 
 } // End of namespace Topgun

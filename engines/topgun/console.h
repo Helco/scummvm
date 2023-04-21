@@ -25,7 +25,7 @@
 
 #include "gui/debugger.h"
 
-namespace Topgun {
+namespace TopGun {
 
 class Console : public GUI::Debugger {
 private:

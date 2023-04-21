@@ -25,7 +25,7 @@
 #include "topgun/detection.h"
 #include "topgun/topgun.h"
 
-namespace Topgun {
+namespace TopGun {
 
 static const ADExtraGuiOptionsMap optionsList[] = {
 	{
@@ -44,20 +44,20 @@ static const ADExtraGuiOptionsMap optionsList[] = {
 
 } // End of namespace Topgun
 
-const char *TopgunMetaEngine::getName() const {
+const char *TopGunMetaEngine::getName() const {
 	return "topgun";
 }
 
-const ADExtraGuiOptionsMap *TopgunMetaEngine::getAdvancedExtraGuiOptions() const {
-	return Topgun::optionsList;
+const ADExtraGuiOptionsMap *TopGunMetaEngine::getAdvancedExtraGuiOptions() const {
+	return TopGun::optionsList;
 }
 
-Common::Error TopgunMetaEngine::createInstance(OSystem *syst, Engine **engine, const ADGameDescription *desc) const {
-	*engine = new Topgun::TopgunEngine(syst, desc);
+Common::Error TopGunMetaEngine::createInstance(OSystem *syst, Engine **engine, const ADGameDescription *desc) const {
+	*engine = new TopGun::TopGunEngine(syst, desc);
 	return Common::kNoError;
 }
 
-bool TopgunMetaEngine::hasFeature(MetaEngineFeature f) const {
+bool TopGunMetaEngine::hasFeature(MetaEngineFeature f) const {
 	return checkExtendedSaves(f) ||
 		(f == kSupportsLoadingDuringStartup);
 }
@@ -65,5 +65,5 @@ bool TopgunMetaEngine::hasFeature(MetaEngineFeature f) const {
 #if PLUGIN_ENABLED_DYNAMIC(TOPGUN)
 REGISTER_PLUGIN_DYNAMIC(TOPGUN, PLUGIN_TYPE_ENGINE, TopgunMetaEngine);
 #else
-REGISTER_PLUGIN_STATIC(TOPGUN, PLUGIN_TYPE_ENGINE, TopgunMetaEngine);
+REGISTER_PLUGIN_STATIC(TOPGUN, PLUGIN_TYPE_ENGINE, TopGunMetaEngine);
 #endif

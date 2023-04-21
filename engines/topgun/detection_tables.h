@@ -19,7 +19,7 @@
  *
  */
 
-namespace Topgun {
+namespace TopGun {
 
 const PlainGameDescriptor topgunGames[] = {
 	{ "tama", "Tamagotchi CD-ROM" },

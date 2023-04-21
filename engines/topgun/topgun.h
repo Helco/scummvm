@@ -36,11 +36,11 @@
 
 #include "topgun/detection.h"
 
-namespace Topgun {
+namespace TopGun {
 
 struct TopgunGameDescription;
 
-class TopgunEngine : public Engine {
+class TopGunEngine : public Engine {
 private:
 	const ADGameDescription *_gameDescription;
 	Common::RandomSource _randomSource;
@@ -50,8 +50,8 @@ protected:
 public:
 	Graphics::Screen *_screen = nullptr;
 public:
-	TopgunEngine(OSystem *syst, const ADGameDescription *gameDesc);
-	~TopgunEngine() override;
+	TopGunEngine(OSystem *syst, const ADGameDescription *gameDesc);
+	~TopGunEngine() override;
 
 	uint32 getFeatures() const;
 
@@ -95,10 +95,16 @@ public:
 		Common::Serializer s(stream, nullptr);
 		return syncGame(s);
 	}
+
+public:
+	void SceneIn(const Common::String &name);
+
+private:
+	bool _debug;
 };
 
-extern TopgunEngine *g_engine;
-#define SHOULD_QUIT ::Topgun::g_engine->shouldQuit()
+extern TopGunEngine *g_engine;
+#define SHOULD_QUIT ::TopGun::g_engine->shouldQuit()
 
 } // End of namespace Topgun
 

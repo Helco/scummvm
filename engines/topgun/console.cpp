@@ -21,7 +21,7 @@
 
 #include "topgun/console.h"
 
-namespace Topgun {
+namespace TopGun {
 
 Console::Console() : GUI::Debugger() {
 	registerCmd("test",   WRAP_METHOD(Console, Cmd_test));

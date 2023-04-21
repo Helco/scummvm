@@ -24,7 +24,7 @@
 
 #include "engines/advancedDetector.h"
 
-class TopgunMetaEngine : public AdvancedMetaEngine {
+class TopGunMetaEngine : public AdvancedMetaEngine {
 public:
 	const char *getName() const override;
 

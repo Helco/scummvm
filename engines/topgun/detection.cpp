@@ -29,17 +29,17 @@
 #include "topgun/detection.h"
 #include "topgun/detection_tables.h"
 
-const DebugChannelDef TopgunMetaEngineDetection::debugFlagList[] = {
-	{ Topgun::kDebugGraphics, "Graphics", "Graphics debug level" },
-	{ Topgun::kDebugPath, "Path", "Pathfinding debug level" },
-	{ Topgun::kDebugFilePath, "FilePath", "File path debug level" },
-	{ Topgun::kDebugScan, "Scan", "Scan for unrecognised games" },
-	{ Topgun::kDebugScript, "Script", "Enable debug script dump" },
+const DebugChannelDef TopGunMetaEngineDetection::debugFlagList[] = {
+	{ TopGun::kDebugGraphics, "Graphics", "Graphics debug level" },
+	{ TopGun::kDebugPath, "Path", "Pathfinding debug level" },
+	{ TopGun::kDebugFilePath, "FilePath", "File path debug level" },
+	{ TopGun::kDebugScan, "Scan", "Scan for unrecognised games" },
+	{ TopGun::kDebugScript, "Script", "Enable debug script dump" },
 	DEBUG_CHANNEL_END
 };
 
-TopgunMetaEngineDetection::TopgunMetaEngineDetection() : AdvancedMetaEngineDetection(Topgun::gameDescriptions,
-	sizeof(ADGameDescription), Topgun::topgunGames) {
+TopGunMetaEngineDetection::TopGunMetaEngineDetection() : AdvancedMetaEngineDetection(TopGun::gameDescriptions,
+	sizeof(ADGameDescription), TopGun::topgunGames) {
 }
 
-REGISTER_PLUGIN_STATIC(TOPGUN_DETECTION, PLUGIN_TYPE_ENGINE_DETECTION, TopgunMetaEngineDetection);
+REGISTER_PLUGIN_STATIC(TOPGUN_DETECTION, PLUGIN_TYPE_ENGINE_DETECTION, TopGunMetaEngineDetection);

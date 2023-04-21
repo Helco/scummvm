@@ -24,7 +24,7 @@
 
 #include "engines/advancedDetector.h"
 
-namespace Topgun {
+namespace TopGun {
 
 enum TopgunDebugChannels {
 	kDebugGraphics = 1 << 0,
@@ -42,12 +42,12 @@ extern const ADGameDescription gameDescriptions[];
 
 } // End of namespace Topgun
 
-class TopgunMetaEngineDetection : public AdvancedMetaEngineDetection {
+class TopGunMetaEngineDetection : public AdvancedMetaEngineDetection {
 	static const DebugChannelDef debugFlagList[];
 
 public:
-	TopgunMetaEngineDetection();
-	~TopgunMetaEngineDetection() override {}
+	TopGunMetaEngineDetection();
+	~TopGunMetaEngineDetection() override {}
 
 	const char *getName() const override {
 		return "topgun";

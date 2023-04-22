@@ -27,11 +27,16 @@
 namespace TopGun {
 
 enum TopgunDebugChannels {
-	kDebugGraphics = 1 << 0,
-	kDebugPath     = 1 << 1,
-	kDebugScan     = 1 << 2,
-	kDebugFilePath = 1 << 3,
-	kDebugScript   = 1 << 4,
+	kDebugRuntime  = 1 << 0,
+	kDebugScript   = 1 << 1,
+	kDebugSprite   = 1 << 2,
+	kDebugResource = 1 << 3,
+	kDebugAudio    = 1 << 4,
+};
+
+enum TopgunDebugLevel {
+	kInfo = 0,
+	kTrace
 };
 
 extern const PlainGameDescriptor topgunGames[];
@@ -54,11 +59,11 @@ public:
 	}
 
 	const char *getEngineName() const override {
-		return "Topgun";
+		return "TopGun";
 	}
 
 	const char *getOriginalCopyright() const override {
-		return "Topgun (C)";
+		return "TopGun (C) Copyright 1996 7th Level, Inc.";
 	}
 
 	const DebugChannelDef *getDebugChannels() const override {

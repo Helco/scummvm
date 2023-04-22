@@ -30,11 +30,11 @@
 #include "topgun/detection_tables.h"
 
 const DebugChannelDef TopGunMetaEngineDetection::debugFlagList[] = {
-	{ TopGun::kDebugGraphics, "Graphics", "Graphics debug level" },
-	{ TopGun::kDebugPath, "Path", "Pathfinding debug level" },
-	{ TopGun::kDebugFilePath, "FilePath", "File path debug level" },
-	{ TopGun::kDebugScan, "Scan", "Scan for unrecognised games" },
-	{ TopGun::kDebugScript, "Script", "Enable debug script dump" },
+	{ TopGun::kDebugRuntime, "Runtime", "Runtime debug logs" },
+	{ TopGun::kDebugScript, "Script", "Script debug logs" },
+	{ TopGun::kDebugSprite, "Sprite", "Sprite debug logs" },
+	{ TopGun::kDebugResource, "Resource", "Resource debug logs" },
+	{ TopGun::kDebugAudio, "Audio", "Audio debug logs" },
 	DEBUG_CHANNEL_END
 };
 

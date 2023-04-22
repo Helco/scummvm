@@ -29,18 +29,28 @@
 #include "common/system.h"
 #include "engines/util.h"
 #include "graphics/palette.h"
+#include "graphics/wincursor.h"
 
 namespace TopGun {
 
 TopGunEngine *g_engine;
 
 TopGunEngine::TopGunEngine(OSystem *syst, const ADGameDescription *gameDesc) : Engine(syst),
-	_gameDescription(gameDesc), _randomSource("Topgun"), _debug(true) {
+	_gameDescription(gameDesc),
+	_randomSource("Topgun"),
+	_busyWinCursor(Graphics::makeBusyWinCursor()),
+	_debug(true) {
 	g_engine = this;
+
+	gDebugLevel = kTrace;
+	DebugMan.enableAllDebugChannels();
 }
 
 TopGunEngine::~TopGunEngine() {
 	delete _screen;
+	delete _busyWinCursor;
+	delete _resFile;
+	g_engine = nullptr;
 }
 
 uint32 TopGunEngine::getFeatures() const {
@@ -74,7 +84,9 @@ Common::Error TopGunEngine::run() {
 	// TODO: Init Sprite
 	// TODO: Set MessageProc, MovieProc, ServiceProc
 
-	SceneIn("tama.bin");
+	if (!sceneIn("tama.bin"))
+		return Common::kUnknownError;
+
 
 	// Simple event handling loop
 	byte pal[256 * 3] = { 0 };
@@ -111,8 +123,14 @@ Common::Error TopGunEngine::syncGame(Common::Serializer &s) {
 	return Common::kNoError;
 }
 
-void TopGunEngine::SceneIn(const Common::String& name) {
+bool TopGunEngine::sceneIn(const Common::String &name) {
+	debugC(kInfo, kDebugRuntime, "SceneIn: %s", name.c_str());
 
+	_resFile = new ResourceFile();
+	if (!_resFile->load(name))
+		return false;
+
+	return true;
 }
 
 } // End of namespace Topgun

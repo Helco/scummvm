@@ -33,8 +33,10 @@
 #include "engines/engine.h"
 #include "engines/savestate.h"
 #include "graphics/screen.h"
+#include "graphics/cursorman.h"
 
 #include "topgun/detection.h"
+#include "topgun/ResourceFile.h"
 
 namespace TopGun {
 
@@ -97,10 +99,12 @@ public:
 	}
 
 public:
-	void SceneIn(const Common::String &name);
+	bool sceneIn(const Common::String &name);
 
 private:
 	bool _debug;
+	Graphics::Cursor *_busyWinCursor;
+	ResourceFile *_resFile;
 };
 
 extern TopGunEngine *g_engine;

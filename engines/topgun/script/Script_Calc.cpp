@@ -69,7 +69,7 @@ int32 Script::runCalc(Common::SeekableReadStream &stream) {
 			const auto procId = _stack[_stack.size() - argCount - 1];
 
 			_localScope += scopeSize;
-			const auto result = runProcedure(procId, &_stack[_stack.size() - argCount - 1], argCount);
+			const auto result = runProcedure(procId, _stack.data() + _stack.size() - argCount, argCount);
 			_localScope -= scopeSize;
 
 			_stack.resize(_stack.size() - argCount - 1);
@@ -83,6 +83,7 @@ int32 Script::runCalc(Common::SeekableReadStream &stream) {
 
 			_scriptResult = 0;
 			_localScope += scopeSize;
+			setupLocalArguments(_stack.data() + _stack.size() - argCount, argCount);
 			run(scriptIndex);
 			_localScope -= scopeSize;
 

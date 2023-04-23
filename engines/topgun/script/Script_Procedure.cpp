@@ -23,11 +23,25 @@
 
 namespace TopGun {
 
+static void checkArgCount(uint32 actual, uint32 expected) {
+	if (actual != expected)
+		error("Invalid number of procedure arguments, expected %d but got %d", expected, actual);
+}
+
 int32 Script::runInternalProcedure(uint32 procId, const int32 *args, uint32 argCount) {
-	switch (procId) {
+	switch ((ScriptOp)procId) {
+	case ScriptOp::kSetCursor:
+		checkArgCount(argCount, 1);
+		_engine->getSpriteCtx()->setCursor(args[0]);
+		break;
+	case ScriptOp::kStopFade:
+		// TODO: Implement, was postponed because non-essential
+		break;
 	default:
 		error("Unknown or unimplemented internal procedure: %d", procId);
 	}
+
+	return static_cast<int32>(procId);
 }
 
 }

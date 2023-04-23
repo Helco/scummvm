@@ -27,6 +27,9 @@ void Script::runSingleRootInstruction(Common::MemorySeekableReadWriteStream &str
 	const auto op = (ScriptOp)stream.readUint16LE();
 	debugCN(kSuperVerbose, kDebugScript, "root instruction %d\n", op);
 	switch (op) {
+	case ScriptOp::kSetCursor:
+		_engine->getSpriteCtx()->setCursor(stream.readSint16LE());
+		break;
 	case ScriptOp::kRunCalc: {
 		auto calcStream = stream.readStream(readUint(stream) - 2 - 4);
 		runCalc(*calcStream);

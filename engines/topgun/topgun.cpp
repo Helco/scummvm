@@ -117,6 +117,8 @@ Common::Error TopGunEngine::syncGame(Common::Serializer &s) {
 bool TopGunEngine::sceneIn(const Common::String &name) {
 	debugC(kInfo, kDebugRuntime, "SceneIn: %s", name.c_str());
 
+	_spriteCtx->setCursor(SpriteContext::kSystemBusyCursor);
+
 	_resFile.reset(new ResourceFile());
 	if (!_resFile->load(name))
 		return false;
@@ -125,7 +127,7 @@ bool TopGunEngine::sceneIn(const Common::String &name) {
 	Common::fill(_resources.begin(), _resources.end(), nullptr);
 	_scenes.push_back(new Scene(this, name));
 
-	_spriteCtx->SetPaletteFromResourceFile();
+	_spriteCtx->setPaletteFromResourceFile();
 	_script->runEntry();
 
 	return true;

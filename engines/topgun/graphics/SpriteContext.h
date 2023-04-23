@@ -26,29 +26,41 @@
 #include "common/ptr.h"
 #include "graphics/screen.h"
 #include "graphics/cursorman.h"
+#include "graphics/wincursor.h"
 
+using Common::Array;
 using Common::ScopedPtr;
 
 namespace TopGun {
 
 class TopGunEngine;
 class SpriteContext {
+public:
+	static constexpr int32 kSystemBusyCursor = 0;
+	static constexpr int32 kCursorCount = 9;
+	static constexpr uint32 kCursorGroupResourceID = 1001;
 	static constexpr size_t kPaletteSize = 256;
 	static constexpr size_t kLowSystemColors = 10;
 	static constexpr size_t kHighSystemColors = 246;
 
-public:
 	SpriteContext(TopGunEngine *engine);
+	~SpriteContext();
 
-	void SetPaletteFromResourceFile();
-	void FadePalette(uint32 t, uint32 maxT, byte colorOffset, byte colorCount);
+	void setPaletteFromResourceFile();
+	void fadePalette(uint32 t, uint32 maxT, byte colorOffset, byte colorCount);
+	void setCursor(int32 id);
 
+private:
+	void loadCursors();
 
 private:
 	TopGunEngine *_engine;
 
 	ScopedPtr<Graphics::Screen> _screen = nullptr;
-	ScopedPtr<Graphics::Cursor> _busyWinCursor;
+	Array<Graphics::Cursor *> _cursors; // unowned pointers
+	ScopedPtr<Graphics::Cursor> _busyCursor;
+	ScopedPtr<Graphics::Cursor> _defaultCursor;
+	Array<Graphics::WinCursorGroup *> _cursorGroups;
 
 	byte _targetPalette[kPaletteSize * 3];
 	byte _currentPalette[kPaletteSize * 3];

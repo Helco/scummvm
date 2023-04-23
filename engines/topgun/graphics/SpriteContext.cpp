@@ -20,6 +20,7 @@
  */
 
 #include "common/system.h"
+#include "common/formats/winexe.h"
 #include "graphics/wincursor.h"
 #include "graphics/palette.h"
 
@@ -35,23 +36,28 @@ static uint32 roundingFractionMul(uint32 v, uint32 num, uint32 denom) {
 SpriteContext::SpriteContext(TopGunEngine *engine) :
 	_engine(engine),
 	_screen(new Graphics::Screen()),
-	_busyWinCursor(Graphics::makeBusyWinCursor()),
 	_currentPalette{0},
 	_targetPalette{0} {
 
+	loadCursors();
 }
 
-void SpriteContext::SetPaletteFromResourceFile() {
+SpriteContext::~SpriteContext() {
+	for (auto cursorGroup : _cursorGroups)
+		delete cursorGroup;
+}
+
+void SpriteContext::setPaletteFromResourceFile() {
 	auto& resFilePalette = _engine->getResourceFile()->_palette;
 	const size_t maxCopyBytes = kHighSystemColors - kLowSystemColors - _engine->getResourceFile()->_maxTransColors;
 	const size_t copyBytes = MIN(maxCopyBytes, (size_t)resFilePalette.size());
 	Common::copy(resFilePalette.begin(), resFilePalette.begin() + copyBytes, _targetPalette + kLowSystemColors * 3);
 
 	g_system->getPaletteManager()->setPalette(_targetPalette, 0, kPaletteSize);
-	FadePalette(1, 1, kLowSystemColors, _engine->getResourceFile()->_maxFadeColors);
+	fadePalette(1, 1, kLowSystemColors, _engine->getResourceFile()->_maxFadeColors);
 }
 
-void SpriteContext::FadePalette(uint32 t, uint32 maxT, byte colorOffset, byte colorCount) {
+void SpriteContext::fadePalette(uint32 t, uint32 maxT, byte colorOffset, byte colorCount) {
 	assert(colorOffset + colorCount <= kPaletteSize);
 
 	if (maxT == 0)
@@ -63,6 +69,31 @@ void SpriteContext::FadePalette(uint32 t, uint32 maxT, byte colorOffset, byte co
 	for (size_t i = byteOffset; i < byteOffset + byteCount; i++)
 		_currentPalette[i] = roundingFractionMul(_targetPalette[i], t, maxT);
 	g_system->getPaletteManager()->setPalette(_currentPalette + byteOffset, colorOffset, colorCount);
+}
+
+void SpriteContext::loadCursors() {
+	_cursorGroups.reserve(kCursorCount - 2);
+	_cursors.reserve(kCursorCount);
+	_busyCursor.reset(Graphics::makeBusyWinCursor());
+	_defaultCursor.reset(Graphics::makeDefaultWinCursor());
+	_cursors.push_back(_busyCursor.get());
+	_cursors.push_back(_defaultCursor.get());
+
+	auto winResource = Common::WinResources::createFromEXE("RTLIB32.DLL");
+	if (winResource == nullptr)
+		error("Could not open RTLIB32.DLL to load cursor groups");
+	for (size_t i = 0; i < kCursorCount - 2; i++) {
+		_cursorGroups.push_back(Graphics::WinCursorGroup::createCursorGroup(winResource, kCursorGroupResourceID + i));
+		_cursors.push_back(_cursorGroups[i]->cursors[0].cursor);
+	}
+	delete winResource;
+
+	// FIXME: Why does CursorMan have a replaceCursor(Cursor*) method but not a pushCursor(Cursor*) one?
+	CursorMan.pushCursor(NULL, 0, 0, 0, 0, 0);
+}
+
+void SpriteContext::setCursor(int id) {
+	CursorMan.replaceCursor(_cursors[id]);
 }
 
 }

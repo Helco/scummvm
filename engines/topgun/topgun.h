@@ -37,6 +37,9 @@
 
 #include "topgun/detection.h"
 #include "topgun/ResourceFile.h"
+#include "topgun/graphics/SpriteContext.h"
+
+using Common::ScopedPtr;
 
 namespace TopGun {
 
@@ -47,10 +50,7 @@ private:
 	const ADGameDescription *_gameDescription;
 	Common::RandomSource _randomSource;
 protected:
-	// Engine APIs
 	Common::Error run() override;
-public:
-	Graphics::Screen *_screen = nullptr;
 public:
 	TopGunEngine(OSystem *syst, const ADGameDescription *gameDesc);
 	~TopGunEngine() override;
@@ -61,13 +61,6 @@ public:
 	 * Returns the game Id
 	 */
 	Common::String getGameId() const;
-
-	/**
-	 * Gets a random number
-	 */
-	uint32 getRandomNumber(uint maxNum) {
-		return _randomSource.getRandomNumber(maxNum);
-	}
 
 	bool hasFeature(EngineFeature f) const override {
 		return
@@ -98,13 +91,20 @@ public:
 		return syncGame(s);
 	}
 
+	inline SpriteContext *getSpriteCtx() {
+		return _spriteCtx.get();
+	}
+	inline ResourceFile* getResourceFile() {
+		return _resFile.get();
+	}
+
 public:
 	bool sceneIn(const Common::String &name);
 
 private:
 	bool _debug;
-	Graphics::Cursor *_busyWinCursor;
-	ResourceFile *_resFile;
+	ScopedPtr<ResourceFile> _resFile;
+	ScopedPtr<SpriteContext> _spriteCtx;
 };
 
 extern TopGunEngine *g_engine;

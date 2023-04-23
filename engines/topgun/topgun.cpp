@@ -29,7 +29,6 @@
 #include "common/system.h"
 #include "engines/util.h"
 #include "graphics/palette.h"
-#include "graphics/wincursor.h"
 
 namespace TopGun {
 
@@ -38,7 +37,6 @@ TopGunEngine *g_engine;
 TopGunEngine::TopGunEngine(OSystem *syst, const ADGameDescription *gameDesc) : Engine(syst),
 	_gameDescription(gameDesc),
 	_randomSource("Topgun"),
-	_busyWinCursor(Graphics::makeBusyWinCursor()),
 	_debug(true) {
 	g_engine = this;
 
@@ -47,9 +45,6 @@ TopGunEngine::TopGunEngine(OSystem *syst, const ADGameDescription *gameDesc) : E
 }
 
 TopGunEngine::~TopGunEngine() {
-	delete _screen;
-	delete _busyWinCursor;
-	delete _resFile;
 	g_engine = nullptr;
 }
 
@@ -62,9 +57,8 @@ Common::String TopGunEngine::getGameId() const {
 }
 
 Common::Error TopGunEngine::run() {
-	// Initialize 320x200 paletted graphics mode
-	initGraphics(320, 200);
-	_screen = new Graphics::Screen();
+	initGraphics(800, 600);
+	_spriteCtx.reset(new SpriteContext(this));
 
 	// Set the engine's debugger console
 	setDebugger(new Console());
@@ -74,11 +68,6 @@ Common::Error TopGunEngine::run() {
 	if (saveSlot != -1)
 		(void)loadGameState(saveSlot);
 
-	// Draw a series of boxes on screen as a sample
-	for (int i = 0; i < 100; ++i)
-		_screen->frameRect(Common::Rect(i, i, 320 - i, 200 - i), i);
-	_screen->update();
-
 	// TODO: Load Cursors
 	// TODO: Init Audio
 	// TODO: Init Sprite
@@ -86,7 +75,6 @@ Common::Error TopGunEngine::run() {
 
 	if (!sceneIn("tama.bin"))
 		return Common::kUnknownError;
-
 
 	// Simple event handling loop
 	byte pal[256 * 3] = { 0 };
@@ -102,7 +90,6 @@ Common::Error TopGunEngine::run() {
 		for (int i = 0; i < 256; ++i)
 			pal[i * 3 + 1] = (i + offset) % 256;
 		g_system->getPaletteManager()->setPalette(pal, 0, 256);
-		_screen->update();
 
 		// Delay for a bit. All events loops should have a delay
 		// to prevent the system being unduly loaded
@@ -126,9 +113,11 @@ Common::Error TopGunEngine::syncGame(Common::Serializer &s) {
 bool TopGunEngine::sceneIn(const Common::String &name) {
 	debugC(kInfo, kDebugRuntime, "SceneIn: %s", name.c_str());
 
-	_resFile = new ResourceFile();
+	_resFile.reset(new ResourceFile());
 	if (!_resFile->load(name))
 		return false;
+
+	_spriteCtx->SetPaletteFromResourceFile();
 
 	return true;
 }

@@ -65,7 +65,7 @@ bool ResourceFile::load(const Common::String &filename) {
 		_pluginProcedures.size() != _pluginIndexPerProcedure.size())
 		return false;
 
-	return file.err();
+	return !file.err();
 }
 
 bool ResourceFile::readTitles(Common::SeekableReadStream &stream) {

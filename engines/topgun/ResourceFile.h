@@ -25,12 +25,19 @@
 #include "common/scummsys.h"
 #include "common/str.h"
 #include "common/array.h"
+#include "common/hashmap.h"
+#include "common/file.h"
 
 namespace TopGun {
 enum class Architecture : uint16 {
 	kBits16 = 0x3631,
 	kBits32 = 0x3233,
 	kGrail2 = 2 ///< also a 16-bit architecture
+};
+
+enum class ResourceFileVersion : uint16 {
+	kOnlyMainFile = 2,
+	kUseExtensionFiles = 258
 };
 
 enum class KeyResource {
@@ -104,7 +111,10 @@ struct VariableEntry {
 
 class ResourceFile {
 public:
+	~ResourceFile();
 	bool load(const Common::String &filename);
+
+	Common::Array<byte> loadResource(uint32 index);
 
 private:
 	bool readTitles(Common::SeekableReadStream &stream);
@@ -119,12 +129,13 @@ private:
 
 public:
 	Architecture _architecture;
-	uint16 _version;
+	ResourceFileVersion _version;
 	Common::String _title, _subTitle;
 	uint32 _entryId,
 		_staticResources,
 		_dynamicResources,
 		_totalResources,
+		_dynamicStringCount,
 		_maxFadeColors,
 		_maxTransColors,
 		_maxScrMsg;
@@ -138,6 +149,10 @@ public:
 	Common::Array<Common::String> _plugins;
 	Common::Array<Common::String> _pluginProcedures;
 	Common::Array<uint32> _pluginIndexPerProcedure;
+
+	Common::File _mainFile;
+	Common::HashMap<byte, Common::File*> _extensionFiles;
+	Common::String _baseExtensionPath;
 };
 
 }

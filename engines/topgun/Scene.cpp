@@ -19,31 +19,37 @@
  *
  */
 
+#include "topgun/topgun.h"
+
 namespace TopGun {
 
-const PlainGameDescriptor topgunGames[] = {
-	{ "tama", "Tamagotchi CD-ROM" },
-	{ 0, 0 }
-};
+Scene::Scene(TopGunEngine *engine, const Common::String &name) : _name(name) {
+	auto resFile = engine->getResourceFile();
+	_variables.resize(engine->getGameDesc()->_varTableSize);
+	for (const auto kv : resFile->_variables)
+		_variables[kv._key] = kv._value;
 
-const TopGunGameDescription gameDescriptions[] = {
-	{
-		{
-			"tama",
-			nullptr,
-			AD_ENTRY1s("tama.bin", "903ca3bedb95a703a1b67d069fe62977", 180505),
-			Common::EN_ANY,
-			Common::kPlatformWindows,
-			ADGF_UNSTABLE | ADGF_CD,
-			GUIO1(GUIO_NONE)
-		},
-		5001 // varTableSize
-	},
+	_dynamicStrings.resize(resFile->_dynamicStringCount);
+}
 
-	{
-		AD_TABLE_END_MARKER,
-		0
-	}
-};
+const Common::String &Scene::getName() const {
+	return _name;
+}
 
-} // End of namespace Topgun
+int32 Scene::getVariable(int32 index) const {
+	return _variables[index];
+}
+
+void Scene::setVariable(int32 index, int32 value) {
+	_variables[index] = value;
+}
+
+Common::String &Scene::getDynamicString(int32 index) {
+	return _dynamicStrings[index];
+}
+
+void Scene::setDynamicString(int32 index, const Common::String &string) {
+	_dynamicStrings[index] = string;
+}
+
+}

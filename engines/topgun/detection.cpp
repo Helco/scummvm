@@ -39,7 +39,7 @@ const DebugChannelDef TopGunMetaEngineDetection::debugFlagList[] = {
 };
 
 TopGunMetaEngineDetection::TopGunMetaEngineDetection() : AdvancedMetaEngineDetection(TopGun::gameDescriptions,
-	sizeof(ADGameDescription), TopGun::topgunGames) {
+	sizeof(TopGun::TopGunGameDescription), TopGun::topgunGames) {
 }
 
 REGISTER_PLUGIN_STATIC(TOPGUN_DETECTION, PLUGIN_TYPE_ENGINE_DETECTION, TopGunMetaEngineDetection);

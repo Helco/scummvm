@@ -53,7 +53,7 @@ const ADExtraGuiOptionsMap *TopGunMetaEngine::getAdvancedExtraGuiOptions() const
 }
 
 Common::Error TopGunMetaEngine::createInstance(OSystem *syst, Engine **engine, const ADGameDescription *desc) const {
-	*engine = new TopGun::TopGunEngine(syst, desc);
+	*engine = new TopGun::TopGunEngine(syst, (const TopGun::TopGunGameDescription *)desc);
 	return Common::kNoError;
 }
 

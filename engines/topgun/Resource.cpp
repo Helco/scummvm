@@ -19,31 +19,22 @@
  *
  */
 
+#include "topgun/Resource.h"
+
 namespace TopGun {
 
-const PlainGameDescriptor topgunGames[] = {
-	{ "tama", "Tamagotchi CD-ROM" },
-	{ 0, 0 }
-};
+IResource::IResource(ResourceType type, uint32 index) : _type(type), _index(index) {
+}
 
-const TopGunGameDescription gameDescriptions[] = {
-	{
-		{
-			"tama",
-			nullptr,
-			AD_ENTRY1s("tama.bin", "903ca3bedb95a703a1b67d069fe62977", 180505),
-			Common::EN_ANY,
-			Common::kPlatformWindows,
-			ADGF_UNSTABLE | ADGF_CD,
-			GUIO1(GUIO_NONE)
-		},
-		5001 // varTableSize
-	},
+RawDataResource::RawDataResource(ResourceType type, uint32 index) : IResource(type, index) {
+}
 
-	{
-		AD_TABLE_END_MARKER,
-		0
-	}
-};
+bool RawDataResource::load(Common::Array<byte> &&data) {
+	_data = Common::move(data);
+	return true;
+}
 
-} // End of namespace Topgun
+ScriptResource::ScriptResource(uint32 index) : RawDataResource(ResourceType::kScript, index) {
+}
+
+}

@@ -34,7 +34,7 @@ namespace TopGun {
 
 TopGunEngine *g_engine;
 
-TopGunEngine::TopGunEngine(OSystem *syst, const ADGameDescription *gameDesc) : Engine(syst),
+TopGunEngine::TopGunEngine(OSystem *syst, const TopGunGameDescription *gameDesc) : Engine(syst),
 	_gameDescription(gameDesc),
 	_randomSource("Topgun"),
 	_debug(true) {
@@ -45,15 +45,18 @@ TopGunEngine::TopGunEngine(OSystem *syst, const ADGameDescription *gameDesc) : E
 }
 
 TopGunEngine::~TopGunEngine() {
+	for (size_t i = 0; i < _scenes.size(); i++)
+		delete _scenes[i];
+	_scenes.clear();
 	g_engine = nullptr;
 }
 
 uint32 TopGunEngine::getFeatures() const {
-	return _gameDescription->flags;
+	return _gameDescription->_baseDescription.flags;
 }
 
 Common::String TopGunEngine::getGameId() const {
-	return _gameDescription->gameId;
+	return _gameDescription->_baseDescription.gameId;
 }
 
 Common::Error TopGunEngine::run() {
@@ -117,9 +120,45 @@ bool TopGunEngine::sceneIn(const Common::String &name) {
 	if (!_resFile->load(name))
 		return false;
 
+	_resources.resize(_resFile->_totalResources);
+	Common::fill(_resources.begin(), _resources.end(), nullptr);
+	_scenes.push_back(new Scene(this, name));
+
 	_spriteCtx->SetPaletteFromResourceFile();
 
+	auto res = loadResource(_resFile->_entryId);
+
 	return true;
+}
+
+bool TopGunEngine::isResourceLoaded(uint32 index) const {
+	return _resources[index] != nullptr;
+}
+
+SharedPtr<IResource> TopGunEngine::loadResource(uint32 index) {
+	if (isResourceLoaded(index))
+		return _resources[index];
+	debugCN(kTrace, kDebugResource, "Loading resource %d", index);
+
+	auto resourceLocation = _resFile->_resources[index];
+	switch (resourceLocation._type) {
+	case ResourceType::kScript:
+		_resources[index].reset(new ScriptResource(index));
+		break;
+
+	default:
+		error("Unsupported resource type: %d", resourceLocation._type);
+	}
+
+	auto data = _resFile->loadResource(index);
+	if (!_resources[index]->load(Common::move(data)))
+		error("Could not load resource %d (type %d)", index, resourceLocation._type);
+
+	return _resources[index];
+}
+
+void TopGunEngine::freeResource(uint32 index) {
+	_resources[index] = nullptr;
 }
 
 } // End of namespace Topgun

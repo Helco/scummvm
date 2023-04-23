@@ -41,7 +41,12 @@ enum TopgunDebugLevel {
 
 extern const PlainGameDescriptor topgunGames[];
 
-extern const ADGameDescription gameDescriptions[];
+struct TopGunGameDescription {
+	ADGameDescription _baseDescription;
+	size_t _varTableSize;
+};
+
+extern const TopGunGameDescription gameDescriptions[];
 
 #define GAMEOPTION_ORIGINAL_SAVELOAD GUIO_GAMEOPTIONS1
 

@@ -20,52 +20,59 @@
  */
 
 #include "common/file.h"
-
-#include "topgun/ResourceFile.h"
+#include "common/debug.h"
+#include "topgun/topgun.h"
 
 constexpr uint16 kMagic = 0x4C37;
 
 namespace TopGun {
+
+ResourceFile::~ResourceFile() {
+	for (auto pair : _extensionFiles)
+		delete pair._value;
+}
+
 bool ResourceFile::load(const Common::String &filename) {
-	Common::File file;
-	if (!file.open(filename) ||
-		file.readUint16LE() != kMagic)
+	_baseExtensionPath = filename.substr(0, filename.size() - 3);
+
+	if (!_mainFile.open(filename) ||
+		_mainFile.readUint16LE() != kMagic)
 		return false;
 
-	const uint16 headerSize = file.readUint16LE(); // the combined size of these first fields and the version-dependent header
-	_architecture = (Architecture)file.readUint16LE();
-	if (!readTitles(file))
+	const uint16 headerSize = _mainFile.readUint16LE(); // the combined size of these first fields and the version-dependent header
+	_architecture = (Architecture)_mainFile.readUint16LE();
+	if (!readTitles(_mainFile))
 		return false;
-	_version = file.readUint16LE();
+	_version = (ResourceFileVersion)_mainFile.readUint16LE();
 
 	switch (_architecture)
 	{
 	case Architecture::kBits32:
-		if (!readHeaderFor32Bit(file, headerSize))
+		if (!readHeaderFor32Bit(_mainFile, headerSize))
 			return false;
 		break;
 	case Architecture::kBits16:
-		if (!readHeaderFor16Bit(file, headerSize))
+		if (!readHeaderFor16Bit(_mainFile, headerSize))
 			return false;
 		break;
 	case Architecture::kGrail2:
-		if (!readHeaderForGrail2(file, headerSize))
+		if (!readHeaderForGrail2(_mainFile, headerSize))
 			return false;
 	default:
 		return false;
 	}
 
-	if (!readResourceLocations(file) ||
-		!readVariables(file) ||
-		!readStringKeyResource(file, KeyResource::kConstStrings, _constStrings) ||
-		!readPalette(file) ||
-		!readStringKeyResource(file, KeyResource::kPlugins, _plugins) ||
-		!readStringKeyResource(file, KeyResource::kPluginProcs, _pluginProcedures) ||
-		!readPluginIndices(file) ||
+	if (!readResourceLocations(_mainFile) ||
+		!readVariables(_mainFile) ||
+		!readStringKeyResource(_mainFile, KeyResource::kConstStrings, _constStrings) ||
+		!readPalette(_mainFile) ||
+		!readStringKeyResource(_mainFile, KeyResource::kPlugins, _plugins) ||
+		!readStringKeyResource(_mainFile, KeyResource::kPluginProcs, _pluginProcedures) ||
+		!readPluginIndices(_mainFile) ||
 		_pluginProcedures.size() != _pluginIndexPerProcedure.size())
 		return false;
 
-	return !file.err();
+	return !_mainFile.err();
 }
 
 bool ResourceFile::readTitles(Common::SeekableReadStream &stream) {
@@ -97,7 +104,8 @@ bool ResourceFile::readHeaderFor32Bit(Common::SeekableReadStream &stream, uint16
 	_maxFadeColors = stream.readUint32LE();
 	_maxTransColors = stream.readUint32LE();
 	_dynamicResources = stream.readUint32LE();
-	stream.skip(8); // titled as string and variable count but we do not have to trust these values
+	_dynamicStringCount = stream.readUint32LE();
+	stream.skip(4); // titled as variable count but we do not have to trust this value
 	_maxScrMsg = stream.readUint32LE();
 	stream.skip(44);
 
@@ -130,7 +138,8 @@ bool ResourceFile::readHeaderFor16Bit(Common::SeekableReadStream &stream, uint16
 	_maxFadeColors = stream.readUint16LE();
 	_maxTransColors = stream.readUint16LE();
 	_dynamicResources = stream.readUint16LE();
-	stream.skip(8);
+	_dynamicStringCount = stream.readUint16LE();
+	stream.skip(6);
 	_maxScrMsg = stream.readUint16LE();
 	stream.skip(4);
 
@@ -162,7 +171,8 @@ bool ResourceFile::readHeaderForGrail2(Common::SeekableReadStream &stream, uint1
 	_maxFadeColors = stream.readUint16LE();
 	_maxTransColors = stream.readUint16LE();
 	_dynamicResources = stream.readUint16LE();
-	stream.skip(24);
+	_dynamicStringCount = stream.readUint16LE();
+	stream.skip(22);
 	_maxScrMsg = UINT32_MAX;
 
 	constexpr size_t kKeyResourceCount = 14;
@@ -259,6 +269,33 @@ bool ResourceFile::readPluginIndices(Common::SeekableReadStream& stream) {
 	}
 
 	return !stream.err();
+}
+
+Common::Array<byte> ResourceFile::loadResource(uint32 index) {
+	const auto location = _resources[index];
+	Common::File *file = &_mainFile;
+	size_t additionalOffset = 0;
+
+	if (location._type >= ResourceType::kMovie && location._type <= ResourceType::kTile) {
+		additionalOffset = _keyResources[(int)KeyResource::kScripts]._offset;
+	}
+	else if (_version == ResourceFileVersion::kUseExtensionFiles) {
+		file = _extensionFiles[location._extension];
+		if (file == nullptr) {
+			debugCN(kInfo, kDebugResource, "Loading extension file %d", location._extension);
+			auto extensionPath = Common::String::format("%s%03d", _baseExtensionPath.c_str(), location._extension);
+			file = new Common::File();
+			if (!file->open(extensionPath))
+				error("Could not open resource extension file: %s", extensionPath.c_str());
+			_extensionFiles[location._extension] = file;
+		}
+	}
+
+	Common::Array<byte> result(location._size);
+	if (!file->seek(additionalOffset + location._offset, SEEK_SET) ||
+		file->read(result.begin(), result.size()) != result.size())
+		error("Could not read resource %d", index);
+	return result;
 }
 
 }

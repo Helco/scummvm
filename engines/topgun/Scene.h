@@ -19,31 +19,30 @@
  *
  */
 
+#ifndef TOPGUN_SCENE_H
+#define TOPGUN_SCENE_H
+
+#include "common/system.h"
+
 namespace TopGun {
+class TopGunEngine;
 
-const PlainGameDescriptor topgunGames[] = {
-	{ "tama", "Tamagotchi CD-ROM" },
-	{ 0, 0 }
+class Scene {
+public:
+	Scene(TopGunEngine *engine, const Common::String &name);
+
+	const Common::String &getName() const;
+	int32 getVariable(int32 index) const;
+	void setVariable(int32 index, int32 value);
+	Common::String &getDynamicString(int32 index);
+	void setDynamicString(int32 index, const Common::String &str);
+
+private:
+	Common::String _name;
+	Common::Array<int32> _variables;
+	Common::Array<Common::String> _dynamicStrings;
 };
 
-const TopGunGameDescription gameDescriptions[] = {
-	{
-		{
-			"tama",
-			nullptr,
-			AD_ENTRY1s("tama.bin", "903ca3bedb95a703a1b67d069fe62977", 180505),
-			Common::EN_ANY,
-			Common::kPlatformWindows,
-			ADGF_UNSTABLE | ADGF_CD,
-			GUIO1(GUIO_NONE)
-		},
-		5001 // varTableSize
-	},
+}
 
-	{
-		AD_TABLE_END_MARKER,
-		0
-	}
-};
-
-} // End of namespace Topgun
+#endif // TOPGUN_SCENE_H

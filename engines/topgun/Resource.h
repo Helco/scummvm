@@ -19,31 +19,55 @@
  *
  */
 
+#ifndef TOPGUN_IRESOURCE_H
+#define TOPGUN_IRESOURCE_H
+
+#include "topgun/ResourceFile.h"
+
 namespace TopGun {
 
-const PlainGameDescriptor topgunGames[] = {
-	{ "tama", "Tamagotchi CD-ROM" },
-	{ 0, 0 }
-};
+class TopGunEngine;
 
-const TopGunGameDescription gameDescriptions[] = {
-	{
-		{
-			"tama",
-			nullptr,
-			AD_ENTRY1s("tama.bin", "903ca3bedb95a703a1b67d069fe62977", 180505),
-			Common::EN_ANY,
-			Common::kPlatformWindows,
-			ADGF_UNSTABLE | ADGF_CD,
-			GUIO1(GUIO_NONE)
-		},
-		5001 // varTableSize
-	},
+class IResource {
+public:
+	IResource(ResourceType type, uint32 index);
+	virtual ~IResource() = default;
 
-	{
-		AD_TABLE_END_MARKER,
-		0
+	virtual bool load(Common::Array<byte> &&data) = 0;
+
+	inline ResourceType getResourceType() const {
+		return _type;
 	}
+
+	inline uint32 getResourceIndex() const {
+		return _index;
+	}
+
+private:
+	ResourceType _type;
+	uint32 _index;
 };
 
-} // End of namespace Topgun
+class RawDataResource : public IResource {
+public:
+	RawDataResource(ResourceType type, uint32 index);
+	virtual ~RawDataResource() = default;
+
+	virtual bool load(Common::Array<byte> &&data) override;
+
+	inline Common::Array<byte> &getData() {
+		return _data;
+	}
+
+private:
+	Common::Array<byte> _data;
+};
+
+class ScriptResource : public RawDataResource {
+public:
+	ScriptResource(uint32 index);
+};
+
+}
+
+#endif // TOPGUN_IRESOURCE_H

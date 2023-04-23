@@ -37,9 +37,14 @@
 
 #include "topgun/detection.h"
 #include "topgun/ResourceFile.h"
+#include "topgun/Resource.h"
+#include "topgun/Scene.h"
 #include "topgun/graphics/SpriteContext.h"
 
 using Common::ScopedPtr;
+using Common::SharedPtr;
+using Common::WeakPtr;
+using Common::Array;
 
 namespace TopGun {
 
@@ -47,20 +52,20 @@ struct TopgunGameDescription;
 
 class TopGunEngine : public Engine {
 private:
-	const ADGameDescription *_gameDescription;
+	const TopGunGameDescription *_gameDescription;
 	Common::RandomSource _randomSource;
 protected:
 	Common::Error run() override;
 public:
-	TopGunEngine(OSystem *syst, const ADGameDescription *gameDesc);
+	TopGunEngine(OSystem *syst, const TopGunGameDescription *gameDesc);
 	~TopGunEngine() override;
 
 	uint32 getFeatures() const;
 
-	/**
-	 * Returns the game Id
-	 */
 	Common::String getGameId() const;
+	inline const TopGunGameDescription* getGameDesc() const {
+		return _gameDescription;
+	}
 
 	bool hasFeature(EngineFeature f) const override {
 		return
@@ -94,17 +99,27 @@ public:
 	inline SpriteContext *getSpriteCtx() {
 		return _spriteCtx.get();
 	}
-	inline ResourceFile* getResourceFile() {
+	inline ResourceFile *getResourceFile() {
 		return _resFile.get();
+	}
+	inline Scene* getScene() {
+		return _scenes.back();
 	}
 
 public:
 	bool sceneIn(const Common::String &name);
 
+	bool isResourceLoaded(uint32 index) const;
+	SharedPtr<IResource> loadResource(uint32 index);
+	void freeResource(uint32 index);
+
 private:
 	bool _debug;
 	ScopedPtr<ResourceFile> _resFile;
 	ScopedPtr<SpriteContext> _spriteCtx;
+	// FIXME: This array would be nicer with a moving push_back or even an emplace method, discuss with core team
+	Array<Scene*> _scenes;
+	Array<SharedPtr<IResource>> _resources;
 };
 
 extern TopGunEngine *g_engine;

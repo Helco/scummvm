@@ -39,6 +39,7 @@
 #include "topgun/ResourceFile.h"
 #include "topgun/Resource.h"
 #include "topgun/Scene.h"
+#include "topgun/Savestate.h"
 #include "topgun/script/Script.h"
 #include "topgun/graphics/SpriteContext.h"
 
@@ -103,8 +104,11 @@ public:
 	inline ResourceFile *getResourceFile() {
 		return _resFile.get();
 	}
-	inline Scene* getScene() {
+	inline Scene *getScene() {
 		return _scenes.back();
+	}
+	inline Savestate *getSavestate() {
+		return _savestate.get();
 	}
 
 public:
@@ -124,6 +128,7 @@ private:
 	ScopedPtr<ResourceFile> _resFile;
 	ScopedPtr<SpriteContext> _spriteCtx;
 	ScopedPtr<Script> _script;
+	ScopedPtr<Savestate> _savestate;
 	// FIXME: This array would be nicer with a moving push_back or even an emplace method, discuss with core team
 	Array<Scene*> _scenes;
 	Array<SharedPtr<IResource>> _resources;

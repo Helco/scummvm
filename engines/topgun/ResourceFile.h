@@ -114,18 +114,20 @@ public:
 	~ResourceFile();
 	bool load(const Common::String &filename);
 
+	const char *getConstString(uint32 offset) const;
 	Common::Array<byte> loadResource(uint32 index);
 
 private:
-	bool readTitles(Common::SeekableReadStream &stream);
-	bool readHeaderFor32Bit(Common::SeekableReadStream &stream, uint16 headerSize);
-	bool readHeaderFor16Bit(Common::SeekableReadStream &stream, uint16 headerSize);
-	bool readHeaderForGrail2(Common::SeekableReadStream &stream, uint16 headerSize);
-	bool readResourceLocations(Common::SeekableReadStream &stream);
-	bool readVariables(Common::SeekableReadStream &stream);
-	bool readStringKeyResource(Common::SeekableReadStream &stream, KeyResource keyResource, Common::Array<Common::String> &array);
-	bool readPalette(Common::SeekableReadStream &stream);
-	bool readPluginIndices(Common::SeekableReadStream &stream);
+	bool readTitles();
+	bool readHeaderFor32Bit(uint16 headerSize);
+	bool readHeaderFor16Bit(uint16 headerSize);
+	bool readHeaderForGrail2(uint16 headerSize);
+	bool readResourceLocations();
+	bool readVariables();
+	bool readConstStringData();
+	bool readStringKeyResource( KeyResource keyResource, Common::Array<Common::String> &array);
+	bool readPalette();
+	bool readPluginIndices();
 
 public:
 	Architecture _architecture;
@@ -143,7 +145,7 @@ public:
 	KeyResourceLocation _keyResources[(size_t)KeyResource::kCount];
 	Common::Array<ResourceLocation> _resources;
 	Common::Array<VariableEntry> _variables;
-	Common::Array<Common::String> _constStrings;
+	Common::Array<char> _constStringData;
 	Common::Array<uint32> _scriptEndOffsets;
 	Common::Array<byte> _palette; ///< The main palette, which can be changed e.g. using palette resources
 	Common::Array<Common::String> _plugins;

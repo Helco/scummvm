@@ -38,7 +38,8 @@ TopGunEngine::TopGunEngine(OSystem *syst, const TopGunGameDescription *gameDesc)
 	_gameDescription(gameDesc),
 	_randomSource("Topgun"),
 	_debug(true),
-	_script(new Script(this)) {
+	_script(new Script(this)),
+	_savestate(new Savestate()) {
 	g_engine = this;
 
 	gDebugLevel = kSuperVerbose;

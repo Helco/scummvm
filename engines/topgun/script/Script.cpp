@@ -27,7 +27,10 @@ namespace TopGun {
 Script::Script(TopGunEngine *engine) :
 	_engine(engine),
 	_scene(nullptr),
-	_nestedScriptCount(0) {
+	_nestedScriptCount(0),
+	_localScope(0),
+	_scriptResult(0),
+	_reg3E3F(0) {
 	_systemVariables.resize(engine->getGameDesc()->_systemVarCount);
 }
 
@@ -101,7 +104,7 @@ void Script::stackPush(int32 value) {
 
 int32 Script::evalValue(int32 valueOrIndex, bool isIndex) {
 	const auto gameDesc = _engine->getGameDesc();
-	if (isIndex)
+	if (!isIndex)
 		return valueOrIndex;
 	else if (valueOrIndex < gameDesc->_globalVarCount)
 		return _scene->getVariable(valueOrIndex);
@@ -137,6 +140,15 @@ void Script::setupLocalArguments(int32 *args, uint32 argCount) {
 
 	for (uint32 i = 0; i < argCount; i++)
 		_localVariables[_localScope + argCount - 1 - i] = args[i];
+}
+
+Common::String Script::getString(int32 index) {
+	constexpr int32 kConstStrBit = 0x8000;
+	const bool isConstString = index & kConstStrBit;
+	index = index & (kConstStrBit - 1);
+	return isConstString
+		? _engine->getResourceFile()->getConstString(index)
+		: _scene->getDynamicString(index - 1);
 }
 
 }

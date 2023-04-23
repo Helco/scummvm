@@ -297,11 +297,11 @@ enum class ScriptOp {
 	kSpriteGetBounds241 = 241,
 	kOpenAdditionHMMIO = 242,
 	kSetCursorPos243 = 243,
-	kGetRegistry244 = 244,
+	kGetRegistryNumber = 244,
 	kSetOrDeleteReg245 = 245,
 	kSetOrDeleteReg246 = 246,
 	kSetOrDeleteReg247 = 247,
-	kGetRegistry248 = 248,
+	kGetRegistryNumberWithSubKey = 248,
 	kGetCaesarRegistry249 = 249,
 	kSetOrDeleteReg250 = 250,
 	kSetOrDeleteReg251 = 251,
@@ -390,10 +390,13 @@ private:
 	int32 stackTop() const;
 	int32 stackPop();
 	void stackPush(int32 value);
+	Common::String getString(int32 index);
 
 private:
 	TopGunEngine *_engine;
 	Scene *_scene;
+
+	int32 _reg3E3F;
 
 	int32 _scriptResult;
 	uint32 _nestedScriptCount;

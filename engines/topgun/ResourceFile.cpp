@@ -41,234 +41,244 @@ bool ResourceFile::load(const Common::String &filename) {
 
 	const uint16 headerSize = _mainFile.readUint16LE(); // the combined size of these first fields and the version-dependent header
 	_architecture = (Architecture)_mainFile.readUint16LE();
-	if (!readTitles(_mainFile))
+	if (!readTitles())
 		return false;
 	_version = (ResourceFileVersion)_mainFile.readUint16LE();
 
 	switch (_architecture)
 	{
 	case Architecture::kBits32:
-		if (!readHeaderFor32Bit(_mainFile, headerSize))
+		if (!readHeaderFor32Bit(headerSize))
 			return false;
 		break;
 	case Architecture::kBits16:
-		if (!readHeaderFor16Bit(_mainFile, headerSize))
+		if (!readHeaderFor16Bit(headerSize))
 			return false;
 		break;
 	case Architecture::kGrail2:
-		if (!readHeaderForGrail2(_mainFile, headerSize))
+		if (!readHeaderForGrail2(headerSize))
 			return false;
 	default:
 		return false;
 	}
 
-	if (!readResourceLocations(_mainFile) ||
-		!readVariables(_mainFile) ||
-		!readStringKeyResource(_mainFile, KeyResource::kConstStrings, _constStrings) ||
-		!readPalette(_mainFile) ||
-		!readStringKeyResource(_mainFile, KeyResource::kPlugins, _plugins) ||
-		!readStringKeyResource(_mainFile, KeyResource::kPluginProcs, _pluginProcedures) ||
-		!readPluginIndices(_mainFile) ||
+	if (!readResourceLocations() ||
+		!readVariables() ||
+		!readConstStringData() ||
+		!readPalette() ||
+		!readStringKeyResource(KeyResource::kPlugins, _plugins) ||
+		!readStringKeyResource(KeyResource::kPluginProcs, _pluginProcedures) ||
+		!readPluginIndices() ||
 		_pluginProcedures.size() != _pluginIndexPerProcedure.size())
 		return false;
 
 	return !_mainFile.err();
 }
 
-bool ResourceFile::readTitles(Common::SeekableReadStream &stream) {
+bool ResourceFile::readTitles() {
 	auto bytesLeft = 79;
-	stream.skip(1); // the size of both titles, we do not need it
-	_title = stream.readString(0);
+	_mainFile.skip(1); // the size of both titles, we do not need it
+	_title = _mainFile.readString(0);
 	bytesLeft -= _title.size() + 1;
-	_subTitle = stream.readString(0);
+	_subTitle = _mainFile.readString(0);
 	bytesLeft -= _subTitle.size() + 1;
-	stream.skip(bytesLeft);
-	return !stream.err();
+	_mainFile.skip(bytesLeft);
+	return !_mainFile.err();
 }
 
-bool ResourceFile::readHeaderFor32Bit(Common::SeekableReadStream &stream, uint16 headerSize) {
+bool ResourceFile::readHeaderFor32Bit( uint16 headerSize) {
 	assert(headerSize == 476);
 
-	_entryId = stream.readUint32LE();
+	_entryId = _mainFile.readUint32LE();
 
 	constexpr size_t kMaxScriptEndOffsets = 0x30;
 	_scriptEndOffsets.reserve(kMaxScriptEndOffsets);
 	for (size_t i = 0; i < kMaxScriptEndOffsets; i++)
-		_scriptEndOffsets.push_back(stream.readUint32LE());
+		_scriptEndOffsets.push_back(_mainFile.readUint32LE());
 
-	const uint32 scriptCount = stream.readUint32LE();
+	const uint32 scriptCount = _mainFile.readUint32LE();
 	if (scriptCount > kMaxScriptEndOffsets)
 		return false;
 	_scriptEndOffsets.resize(scriptCount);
 
-	_maxFadeColors = stream.readUint32LE();
-	_maxTransColors = stream.readUint32LE();
-	_dynamicResources = stream.readUint32LE();
-	_dynamicStringCount = stream.readUint32LE();
-	stream.skip(4); // titled as variable count but we do not have to trust this value
-	_maxScrMsg = stream.readUint32LE();
-	stream.skip(44);
+	_maxFadeColors = _mainFile.readUint32LE();
+	_maxTransColors = _mainFile.readUint32LE();
+	_dynamicResources = _mainFile.readUint32LE();
+	_dynamicStringCount = _mainFile.readUint32LE();
+	_mainFile.skip(4); // titled as variable count but we do not have to trust this value
+	_maxScrMsg = _mainFile.readUint32LE();
+	_mainFile.skip(44);
 
 	constexpr size_t kKeyResourceCount = 15;
 	for (size_t i = 0; i < kKeyResourceCount; i++)
 	{
-		_keyResources[i]._offset = stream.readUint32LE();
-		_keyResources[i]._size = stream.readUint32LE();
+		_keyResources[i]._offset = _mainFile.readUint32LE();
+		_keyResources[i]._size = _mainFile.readUint32LE();
 	}
 
-	return !stream.err();
+	return !_mainFile.err();
 }
 
-bool ResourceFile::readHeaderFor16Bit(Common::SeekableReadStream &stream, uint16 headerSize) {
+bool ResourceFile::readHeaderFor16Bit( uint16 headerSize) {
 	assert(headerSize == 354);
 
 	_entryId = 0;
-	stream.skip(10);
+	_mainFile.skip(10);
 
 	constexpr size_t kMaxScriptEndOffsets = 0x20;
 	_scriptEndOffsets.reserve(kMaxScriptEndOffsets);
 	for (size_t i = 0; i < kMaxScriptEndOffsets; i++)
-		_scriptEndOffsets.push_back(stream.readUint32LE());
+		_scriptEndOffsets.push_back(_mainFile.readUint32LE());
 
-	const uint16 scriptCount = stream.readUint16LE();
+	const uint16 scriptCount = _mainFile.readUint16LE();
 	if (scriptCount > kMaxScriptEndOffsets)
 		return false;
 	_scriptEndOffsets.resize(scriptCount);
 
-	_maxFadeColors = stream.readUint16LE();
-	_maxTransColors = stream.readUint16LE();
-	_dynamicResources = stream.readUint16LE();
-	_dynamicStringCount = stream.readUint16LE();
-	stream.skip(6);
-	_maxScrMsg = stream.readUint16LE();
-	stream.skip(4);
+	_maxFadeColors = _mainFile.readUint16LE();
+	_maxTransColors = _mainFile.readUint16LE();
+	_dynamicResources = _mainFile.readUint16LE();
+	_dynamicStringCount = _mainFile.readUint16LE();
+	_mainFile.skip(6);
+	_maxScrMsg = _mainFile.readUint16LE();
+	_mainFile.skip(4);
 
 	constexpr size_t kKeyResourceCount = 14;
 	for (size_t i = 0; i < kKeyResourceCount; i++) {
-		_keyResources[i]._offset = stream.readUint32LE();
-		_keyResources[i]._size = stream.readUint32LE();
+		_keyResources[i]._offset = _mainFile.readUint32LE();
+		_keyResources[i]._size = _mainFile.readUint32LE();
 	}
 
-	return !stream.err();
+	return !_mainFile.err();
 }
 
-bool ResourceFile::readHeaderForGrail2(Common::SeekableReadStream &stream, uint16 headerSize) {
+bool ResourceFile::readHeaderForGrail2( uint16 headerSize) {
 	assert(headerSize == 322);
 
 	_entryId = 0;
-	stream.skip(10);
+	_mainFile.skip(10);
 
 	constexpr size_t kMaxScriptEndOffsets = 0x18;
 	_scriptEndOffsets.reserve(kMaxScriptEndOffsets);
 	for (size_t i = 0; i < kMaxScriptEndOffsets; i++)
-		_scriptEndOffsets.push_back(stream.readUint32LE());
+		_scriptEndOffsets.push_back(_mainFile.readUint32LE());
 
-	const uint16 scriptCount = stream.readUint16LE();
+	const uint16 scriptCount = _mainFile.readUint16LE();
 	if (scriptCount > kMaxScriptEndOffsets)
 		return false;
 	_scriptEndOffsets.resize(scriptCount);
 
-	_maxFadeColors = stream.readUint16LE();
-	_maxTransColors = stream.readUint16LE();
-	_dynamicResources = stream.readUint16LE();
-	_dynamicStringCount = stream.readUint16LE();
-	stream.skip(22);
+	_maxFadeColors = _mainFile.readUint16LE();
+	_maxTransColors = _mainFile.readUint16LE();
+	_dynamicResources = _mainFile.readUint16LE();
+	_dynamicStringCount = _mainFile.readUint16LE();
+	_mainFile.skip(22);
 	_maxScrMsg = UINT32_MAX;
 
 	constexpr size_t kKeyResourceCount = 14;
 	for (size_t i = 0; i < kKeyResourceCount; i++) {
-		_keyResources[i]._offset = stream.readUint32LE();
-		_keyResources[i]._size = stream.readUint32LE();
+		_keyResources[i]._offset = _mainFile.readUint32LE();
+		_keyResources[i]._size = _mainFile.readUint32LE();
 	}
 
-	return !stream.err();
+	return !_mainFile.err();
 }
 
-bool ResourceFile::readResourceLocations(Common::SeekableReadStream &stream) {
+bool ResourceFile::readResourceLocations() {
 	const auto range = _keyResources[(int)KeyResource::kResources];
 	_staticResources = range._size / 10;
 	_totalResources = _staticResources + _dynamicResources;
 	_resources.resize(_totalResources);
 
-	if (!stream.seek(range._offset, SEEK_SET))
+	if (!_mainFile.seek(range._offset, SEEK_SET))
 		return false;
 	for (size_t i = 0; i < _staticResources; i++) {
-		_resources[i]._type = (ResourceType)stream.readByte();
-		_resources[i]._extension = stream.readByte();
-		_resources[i]._offset = stream.readUint32LE();
-		_resources[i]._size = stream.readUint32LE();
+		_resources[i]._type = (ResourceType)_mainFile.readByte();
+		_resources[i]._extension = _mainFile.readByte();
+		_resources[i]._offset = _mainFile.readUint32LE();
+		_resources[i]._size = _mainFile.readUint32LE();
 	}
 
-	return !stream.err();
+	return !_mainFile.err();
 }
 
-bool ResourceFile::readVariables(Common::SeekableReadStream &stream) {
+bool ResourceFile::readVariables() {
 	const auto range = _keyResources[(int)KeyResource::kVariables];
 
-	if (!stream.seek(range._offset, SEEK_SET))
+	if (!_mainFile.seek(range._offset, SEEK_SET))
 		return false;
 
 	if (_architecture == Architecture::kBits32) {
 		_variables.resize(range._size / 8);
 		for (size_t i = 0; i < _variables.size(); i++) {
-			_variables[i]._key = stream.readUint32LE();
-			_variables[i]._value = stream.readSint32LE();
+			_variables[i]._key = _mainFile.readUint32LE();
+			_variables[i]._value = _mainFile.readSint32LE();
 		}
 	} else {
 		_variables.resize(range._size / 4);
 		for (size_t i = 0; i < _variables.size(); i++) {
-			_variables[i]._key = stream.readUint16LE();
-			_variables[i]._value = stream.readSint16LE();
+			_variables[i]._key = _mainFile.readUint16LE();
+			_variables[i]._value = _mainFile.readSint16LE();
 		}
 	}
 
-	return !stream.err();
+	return !_mainFile.err();
 }
 
-bool ResourceFile::readStringKeyResource(Common::SeekableReadStream &stream, KeyResource keyResource, Common::Array<Common::String> &array) {
-	const auto range = _keyResources[(int)keyResource];
-	const int64 endOffset = range._offset + range._size;
-	if (!stream.seek(range._offset, SEEK_SET))
+bool ResourceFile::readConstStringData() {
+	const auto range = _keyResources[(int)KeyResource::kConstStrings];
+	if (!_mainFile.seek(range._offset, SEEK_SET))
 		return false;
 
-	while (stream.pos() < endOffset)
-		array.push_back(stream.readString());
-
-	return !stream.err() && stream.pos() == endOffset;
+	_constStringData.resize(range._size);
+	_mainFile.read(_constStringData.data(), range._size);
+	return !_mainFile.err();
 }
 
-bool ResourceFile::readPalette(Common::SeekableReadStream &stream) {
+bool ResourceFile::readStringKeyResource( KeyResource keyResource, Common::Array<Common::String> &array) {
+	const auto range = _keyResources[(int)keyResource];
+	const int64 endOffset = range._offset + range._size;
+	if (!_mainFile.seek(range._offset, SEEK_SET))
+		return false;
+
+	while (_mainFile.pos() < endOffset)
+		array.push_back(_mainFile.readString());
+
+	return !_mainFile.err() && _mainFile.pos() == endOffset;
+}
+
+bool ResourceFile::readPalette() {
 	const auto range = _keyResources[(int)KeyResource::kPalette];
 	_palette.resize(3 * range._size / 4);
-	if (!stream.seek(range._offset, SEEK_SET))
+	if (!_mainFile.seek(range._offset, SEEK_SET))
 		return false;
 
 	for (size_t i = 0; i < _palette.size() / 3; i += 3) {
-		_palette[i + 0] = stream.readByte();
-		_palette[i + 1] = stream.readByte();
-		_palette[i + 2] = stream.readByte();
-		stream.skip(1);
+		_palette[i + 0] = _mainFile.readByte();
+		_palette[i + 1] = _mainFile.readByte();
+		_palette[i + 2] = _mainFile.readByte();
+		_mainFile.skip(1);
 	}
 
-	return !stream.err();
+	return !_mainFile.err();
 }
 
-bool ResourceFile::readPluginIndices(Common::SeekableReadStream& stream) {
+bool ResourceFile::readPluginIndices() {
 	const auto range = _keyResources[(int)KeyResource::kPluginIndexPerProc];
-	if (!stream.seek(range._offset, SEEK_SET))
+	if (!_mainFile.seek(range._offset, SEEK_SET))
 		return false;
 
 	if (_architecture == Architecture::kBits32) {
 		_pluginIndexPerProcedure.resize(range._size / 4);
 		for (size_t i = 0; i < _pluginIndexPerProcedure.size(); i++)
-			_pluginIndexPerProcedure[i] = stream.readUint32LE();
+			_pluginIndexPerProcedure[i] = _mainFile.readUint32LE();
 	} else {
 		_pluginIndexPerProcedure.resize(range._size / 2);
 		for (size_t i = 0; i < _pluginIndexPerProcedure.size(); i++)
-			_pluginIndexPerProcedure[i] = stream.readUint16LE();
+			_pluginIndexPerProcedure[i] = _mainFile.readUint16LE();
 	}
 
-	return !stream.err();
+	return !_mainFile.err();
 }
 
 Common::Array<byte> ResourceFile::loadResource(uint32 index) {
@@ -296,6 +306,10 @@ Common::Array<byte> ResourceFile::loadResource(uint32 index) {
 		file->read(result.begin(), result.size()) != result.size())
 		error("Could not read resource %d", index);
 	return result;
+}
+
+const char *ResourceFile::getConstString(uint32 index) const {
+	return &_constStringData[index];
 }
 
 }

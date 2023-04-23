@@ -149,13 +149,22 @@ void Script::setupLocalArguments(int32 *args, uint32 argCount) {
 		_localVariables[_localScope + argCount - 1 - i] = args[i];
 }
 
-Common::String Script::getString(int32 index) {
-	constexpr int32 kConstStrBit = 0x8000;
+constexpr int32 kConstStrBit = 0x8000;
+
+Common::String Script::getString(int32 index) {	
 	const bool isConstString = index & kConstStrBit;
 	index = index & (kConstStrBit - 1);
 	return isConstString
 		? _engine->getResourceFile()->getConstString(index)
 		: _scene->getDynamicString(index - 1);
+}
+
+void Script::setString(int32 index, const Common::String &value) {
+	const bool isConstString = index & kConstStrBit;
+	index = index & (kConstStrBit - 1);
+	if (isConstString)
+		error("Attempted to modify const string %d", index);
+	_scene->setDynamicString(index - 1, value);
 }
 
 }

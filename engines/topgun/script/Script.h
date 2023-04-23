@@ -391,7 +391,15 @@ private:
 	int32 stackPop();
 	void stackPush(int32 value);
 	Common::String getString(int32 index);
+	void setString(int32 index, const Common::String &value);
 	int32 calcJumpOffset(uint32 nativeIntCount, uint32 additionalBytes = 0) const;
+
+	struct FormatValue {
+		bool _isInteger;
+		Common::String _string;
+		int32 _integer;
+	};
+	static Common::String sprintfWithArray(const Common::String &format, const Array<FormatValue> &values);
 
 private:
 	TopGunEngine *_engine;

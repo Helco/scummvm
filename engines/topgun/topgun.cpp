@@ -42,7 +42,7 @@ TopGunEngine::TopGunEngine(OSystem *syst, const TopGunGameDescription *gameDesc)
 	_savestate(new Savestate()) {
 	g_engine = this;
 
-	gDebugLevel = kSuperVerbose;
+	gDebugLevel = kVerbose;
 	DebugMan.enableAllDebugChannels();
 }
 

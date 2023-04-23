@@ -27,7 +27,7 @@ int32 Script::runCalc(Common::SeekableReadStream &stream) {
 	const auto prevStackSize = _stack.size();
 	auto op = (ScriptCalcOp)stream.readByte();
 	while (op != ScriptCalcOp::kExit && !stream.err()) {
-		debugCN(kSuperVerbose, "calc instruction: %d\n", op);
+		debugCN(kSuperVerbose, kDebugScript, "calc instruction: %d\n", op);
 		switch (op) {
 		case ScriptCalcOp::kPushValue:
 			stackPush(readSint(stream));

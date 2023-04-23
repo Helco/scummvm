@@ -73,6 +73,15 @@ void Savestate::setRegistryString(
 	_iniFile->setKey(iniKey, kRegistrySection, value);
 }
 
+void Savestate::deleteRegistryValue(
+	int32 key,
+	const char *subKey,
+	const char *subSubKey,
+	const char *valueName) {
+	auto iniKey = createRegistryKey(key, subKey, subSubKey, valueName);
+	_iniFile->removeKey(iniKey, kRegistrySection);
+}
+
 Common::String Savestate::createRegistryKey(
 	int32 key,
 	const char *subKey,

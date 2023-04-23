@@ -71,6 +71,12 @@ public:
 		const char *valueName,
 		const char *value);
 
+	void deleteRegistryValue(
+		int32 key,
+		const char *subKey,
+		const char *subSubKey,
+		const char *valueName);
+
 	inline Common::INIFile &getINIFile() {
 		return *_iniFile;
 	}

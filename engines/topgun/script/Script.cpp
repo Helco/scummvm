@@ -65,7 +65,7 @@ void Script::runRoot(Common::MemorySeekableReadWriteStream &stream) {
 }
 
 int32 Script::runProcedure(uint32 procId, const int32 *args, uint32 argCount) {
-	debugCN(kSuperVerbose, kDebugScript, "procedure %d\n", procId);
+	debugCN(kVerbose, kDebugScript, "procedure %d\n", procId);
 	const auto maxScrMsg = _engine->getResourceFile()->_maxScrMsg;
 	return procId > maxScrMsg
 		? runPluginProcedure(procId - maxScrMsg, args, argCount)

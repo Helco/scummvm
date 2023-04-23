@@ -37,6 +37,7 @@ enum TopgunDebugChannels {
 enum TopgunDebugLevel {
 	kInfo = 0,
 	kTrace,
+	kVerbose,
 	kSuperVerbose
 };
 

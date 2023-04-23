@@ -24,10 +24,10 @@
 namespace TopGun {
 
 void Script::runSingleRootInstruction(Common::MemorySeekableReadWriteStream &stream) {
-	const auto op = (ScriptRootOp)stream.readUint16LE();
+	const auto op = (ScriptOp)stream.readUint16LE();
 	debugCN(kSuperVerbose, kDebugScript, "root instruction %d\n", op);
 	switch (op) {
-	case ScriptRootOp::kRunCalc: {
+	case ScriptOp::kRunCalc: {
 		auto calcStream = stream.readStream(readUint(stream) - 2 - 4);
 		runCalc(*calcStream);
 		delete calcStream;

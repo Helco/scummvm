@@ -34,14 +34,16 @@ const TopGunGameDescription gameDescriptions[] = {
 			AD_ENTRY1s("tama.bin", "903ca3bedb95a703a1b67d069fe62977", 180505),
 			Common::EN_ANY,
 			Common::kPlatformWindows,
-			ADGF_UNSTABLE | ADGF_CD,
+			ADGF_UNSTABLE,
 			GUIO1(GUIO_NONE)
 		},
-		5001 // varTableSize
+		5001, // globalVarCount
+		117 // systemVarCount
 	},
 
 	{
 		AD_TABLE_END_MARKER,
+		0,
 		0
 	}
 };

@@ -39,6 +39,7 @@
 #include "topgun/ResourceFile.h"
 #include "topgun/Resource.h"
 #include "topgun/Scene.h"
+#include "topgun/script/Script.h"
 #include "topgun/graphics/SpriteContext.h"
 
 using Common::ScopedPtr;
@@ -110,13 +111,19 @@ public:
 	bool sceneIn(const Common::String &name);
 
 	bool isResourceLoaded(uint32 index) const;
-	SharedPtr<IResource> loadResource(uint32 index);
+	ResourceType getResourceType(uint32 index) const;
 	void freeResource(uint32 index);
+	SharedPtr<IResource> loadResource(uint32 index, ResourceType expectedType);
+	template<class TResource>
+	inline SharedPtr<TResource> loadResource(uint32 index) {
+		return loadResource(index, TResource::kResourceType).dynamicCast<TResource>();
+	}
 
 private:
 	bool _debug;
 	ScopedPtr<ResourceFile> _resFile;
 	ScopedPtr<SpriteContext> _spriteCtx;
+	ScopedPtr<Script> _script;
 	// FIXME: This array would be nicer with a moving push_back or even an emplace method, discuss with core team
 	Array<Scene*> _scenes;
 	Array<SharedPtr<IResource>> _resources;

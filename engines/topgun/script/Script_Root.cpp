@@ -23,33 +23,18 @@
 
 namespace TopGun {
 
-Scene::Scene(TopGunEngine *engine, const Common::String &name) : _name(name) {
-	auto resFile = engine->getResourceFile();
-	_variables.resize(engine->getGameDesc()->_globalVarCount);
-	for (const auto kv : resFile->_variables)
-		_variables[kv._key] = kv._value;
+void Script::runSingleRootInstruction(Common::MemorySeekableReadWriteStream &stream) {
+	const auto op = (ScriptRootOp)stream.readUint16LE();
+	debugCN(kSuperVerbose, kDebugScript, "root instruction %d\n", op);
+	switch (op) {
+	case ScriptRootOp::kRunCalc: {
+		auto calcStream = stream.readStream(readUint(stream) - 2 - 4);
+		runCalc(*calcStream);
+		delete calcStream;
+	}break;
 
-	_dynamicStrings.resize(resFile->_dynamicStringCount);
-}
-
-const Common::String &Scene::getName() const {
-	return _name;
-}
-
-int32 Scene::getVariable(int32 index) const {
-	return _variables[index];
-}
-
-void Scene::setVariable(int32 index, int32 value) {
-	_variables[index] = value;
-}
-
-Common::String &Scene::getDynamicString(int32 index) {
-	return _dynamicStrings[index];
-}
-
-void Scene::setDynamicString(int32 index, const Common::String &string) {
-	_dynamicStrings[index] = string;
+	default: error("Unknown or unimplemented root script instruction: %d", op);
+	}
 }
 
 }

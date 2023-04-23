@@ -23,33 +23,11 @@
 
 namespace TopGun {
 
-Scene::Scene(TopGunEngine *engine, const Common::String &name) : _name(name) {
-	auto resFile = engine->getResourceFile();
-	_variables.resize(engine->getGameDesc()->_globalVarCount);
-	for (const auto kv : resFile->_variables)
-		_variables[kv._key] = kv._value;
-
-	_dynamicStrings.resize(resFile->_dynamicStringCount);
-}
-
-const Common::String &Scene::getName() const {
-	return _name;
-}
-
-int32 Scene::getVariable(int32 index) const {
-	return _variables[index];
-}
-
-void Scene::setVariable(int32 index, int32 value) {
-	_variables[index] = value;
-}
-
-Common::String &Scene::getDynamicString(int32 index) {
-	return _dynamicStrings[index];
-}
-
-void Scene::setDynamicString(int32 index, const Common::String &string) {
-	_dynamicStrings[index] = string;
+int32 Script::runInternalProcedure(uint32 procId, const int32 *args, uint32 argCount) {
+	switch (procId) {
+	default:
+		error("Unknown or unimplemented internal procedure: %d", procId);
+	}
 }
 
 }

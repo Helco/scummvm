@@ -36,14 +36,16 @@ enum TopgunDebugChannels {
 
 enum TopgunDebugLevel {
 	kInfo = 0,
-	kTrace
+	kTrace,
+	kSuperVerbose
 };
 
 extern const PlainGameDescriptor topgunGames[];
 
 struct TopGunGameDescription {
 	ADGameDescription _baseDescription;
-	size_t _varTableSize;
+	size_t _globalVarCount;
+	size_t _systemVarCount;
 };
 
 extern const TopGunGameDescription gameDescriptions[];

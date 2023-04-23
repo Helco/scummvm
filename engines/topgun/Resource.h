@@ -65,6 +65,8 @@ private:
 
 class ScriptResource : public RawDataResource {
 public:
+	static constexpr ResourceType kResourceType = ResourceType::kScript;
+
 	ScriptResource(uint32 index);
 };
 

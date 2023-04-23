@@ -37,10 +37,11 @@ TopGunEngine *g_engine;
 TopGunEngine::TopGunEngine(OSystem *syst, const TopGunGameDescription *gameDesc) : Engine(syst),
 	_gameDescription(gameDesc),
 	_randomSource("Topgun"),
-	_debug(true) {
+	_debug(true),
+	_script(new Script(this)) {
 	g_engine = this;
 
-	gDebugLevel = kTrace;
+	gDebugLevel = kSuperVerbose;
 	DebugMan.enableAllDebugChannels();
 }
 
@@ -125,8 +126,7 @@ bool TopGunEngine::sceneIn(const Common::String &name) {
 	_scenes.push_back(new Scene(this, name));
 
 	_spriteCtx->SetPaletteFromResourceFile();
-
-	auto res = loadResource(_resFile->_entryId);
+	_script->runEntry();
 
 	return true;
 }
@@ -135,10 +135,17 @@ bool TopGunEngine::isResourceLoaded(uint32 index) const {
 	return _resources[index] != nullptr;
 }
 
-SharedPtr<IResource> TopGunEngine::loadResource(uint32 index) {
+ResourceType TopGunEngine::getResourceType(uint32 index) const {
+	return _resFile->_resources[index]._type;
+}
+
+SharedPtr<IResource> TopGunEngine::loadResource(uint32 index, ResourceType expectedType) {
+	const auto actualType = getResourceType(index);
+	if (actualType != expectedType)
+		error("Attempted to load resource %index, expecting a type of %d, but it was %d", index, expectedType, actualType);
 	if (isResourceLoaded(index))
 		return _resources[index];
-	debugCN(kTrace, kDebugResource, "Loading resource %d", index);
+	debugCN(kTrace, kDebugResource, "Loading resource %d\n", index);
 
 	auto resourceLocation = _resFile->_resources[index];
 	switch (resourceLocation._type) {

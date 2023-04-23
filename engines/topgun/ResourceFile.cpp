@@ -282,7 +282,7 @@ Common::Array<byte> ResourceFile::loadResource(uint32 index) {
 	else if (_version == ResourceFileVersion::kUseExtensionFiles) {
 		file = _extensionFiles[location._extension];
 		if (file == nullptr) {
-			debugCN(kInfo, kDebugResource, "Loading extension file %d", location._extension);
+			debugCN(kInfo, kDebugResource, "Loading extension file %d\n", location._extension);
 			auto extensionPath = Common::String::format("%s%03d", _baseExtensionPath.c_str(), location._extension);
 			file = new Common::File();
 			if (!file->open(extensionPath))

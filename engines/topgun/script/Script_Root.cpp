@@ -30,8 +30,17 @@ void Script::runSingleRootInstruction(Common::MemorySeekableReadWriteStream &str
 	case ScriptOp::kSetCursor:
 		_engine->getSpriteCtx()->setCursor(stream.readSint16LE());
 		break;
+	case ScriptOp::kJumpIfCalc: {
+		const auto startPosition = stream.pos();
+		const int32 elseDistance = readSint(stream);
+		const int32 thenDistance = readSint(stream);
+		if (runCalc(stream))
+			stream.seek(startPosition + thenDistance - 2, SEEK_SET);
+		else
+			stream.seek(startPosition + elseDistance - 2, SEEK_SET);
+	}break;
 	case ScriptOp::kRunCalc: {
-		auto calcStream = stream.readStream(readUint(stream) - 2 - 4);
+		auto calcStream = stream.readStream(readUint(stream) - calcJumpOffset(1));
 		runCalc(*calcStream);
 		delete calcStream;
 	}break;

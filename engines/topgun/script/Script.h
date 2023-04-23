@@ -391,6 +391,7 @@ private:
 	int32 stackPop();
 	void stackPush(int32 value);
 	Common::String getString(int32 index);
+	int32 calcJumpOffset(uint32 nativeIntCount, uint32 additionalBytes = 0) const;
 
 private:
 	TopGunEngine *_engine;

@@ -88,6 +88,13 @@ uint32 Script::readUint(Common::ReadStream &stream) {
 		: stream.readUint16LE();
 }
 
+int32 Script::calcJumpOffset(uint32 nativeIntCount, uint32 additionalBytes) const {
+	additionalBytes += 2; // the op code itself
+	return _engine->getResourceFile()->_architecture == Architecture::kBits32
+		? nativeIntCount * 4 + additionalBytes
+		: nativeIntCount * 2 + additionalBytes;
+}
+
 int32 Script::stackTop() const {
 	return _stack.back();
 }

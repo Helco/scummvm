@@ -50,6 +50,16 @@ int32 Script::runInternalProcedure(uint32 procId, const int32 *args, uint32 argC
 		// seems to be used for compatibility checks so any number higher is alright
 		return INT32_MAX;
 
+	case ScriptOp::kGetRegistryString:
+	case ScriptOp::kGetRegistryString_dup: {
+		checkArgCount(argCount, 3, 4);
+		const auto newValue = _engine->getSavestate()->getRegistryString(
+			Savestate::kRegistryLocalMachineKey,
+			nullptr,
+			getString(args[0]).c_str(),
+			getString(args[1]).c_str());
+		setString(args[2], newValue);
+	}break;
 	case ScriptOp::kSetOrDeleteRegistryString:
 	case ScriptOp::kSetOrDeleteRegistryString_dup: {
 		checkArgCount(argCount, 3, 4);
@@ -101,6 +111,15 @@ int32 Script::runInternalProcedure(uint32 procId, const int32 *args, uint32 argC
 			getString(args[2]).c_str(),
 			getString(args[3]).c_str());
 		setVariable(args[4], newValue);
+	}break;
+	case ScriptOp::kGetRegistryStringWithSubKey: {
+		checkArgCount(argCount, 5, 6);
+		const auto newValue = _engine->getSavestate()->getRegistryString(
+			args[0],
+			getString(args[1]).c_str(),
+			getString(args[2]).c_str(),
+			getString(args[3]).c_str());
+		setString(args[4], newValue);
 	}break;
 	case ScriptOp::kSetOrDeleteRegistryNumberWithSubKey: {
 		checkArgCount(argCount, 5, 7);

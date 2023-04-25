@@ -34,9 +34,30 @@ Script::Script(TopGunEngine *engine) :
 	_systemVariables.resize(engine->getGameDesc()->_systemVarCount);
 }
 
+Script::~Script() {
+	for (auto procedure : _pluginProcedures)
+		delete procedure;
+}
+
 void Script::runEntry() {
+	_localVariables.clear();
+	_stack.clear();
+	_localScope = 0;
+	for (auto procedure : _pluginProcedures)
+		delete procedure;
+	_pluginProcedures.clear();
+
 	_scene = _engine->getScene();
-	run(_engine->getResourceFile()->_entryId);
+	auto resFile = _engine->getResourceFile();
+	_pluginProcedures.reserve(resFile->_pluginProcedures.size());
+	for (size_t i = 0; i < resFile->_pluginProcedures.size(); i++) {
+		auto pluginIndex = resFile->_pluginIndexPerProcedure[i];
+		auto plugin = _engine->getLoadedPlugin(pluginIndex);
+		auto procedure = plugin->getScriptProcedure(resFile->_pluginProcedures[i]);
+		_pluginProcedures.push_back(procedure);
+	}
+	
+	run(resFile->_entryId);
 }
 
 void Script::run(uint32 index) {
@@ -66,14 +87,21 @@ void Script::runRoot(Common::MemorySeekableReadWriteStream &stream) {
 
 int32 Script::runProcedure(uint32 procId, const int32 *args, uint32 argCount) {
 	debugCN(kVerbose, kDebugScript, "procedure %d\n", procId);
-	const auto maxScrMsg = _engine->getResourceFile()->_maxScrMsg;
-	return procId > maxScrMsg
-		? runPluginProcedure(procId - maxScrMsg, args, argCount)
+	return procId > _engine->getResourceFile()->_maxScrMsg
+		? runPluginProcedure(procId, args, argCount)
 		: runInternalProcedure(procId, args, argCount);
 }
 
 int32 Script::runPluginProcedure(uint32 procId, const int32 *args, uint32 argCount) {
-	error("Plugin procedures are not supported yet");
+	const auto resFile = _engine->getResourceFile();
+	const auto maxScrMsg = resFile->_maxScrMsg;
+	procId -= maxScrMsg;
+	if (procId >= _pluginProcedures.size() || _pluginProcedures[procId] == nullptr)
+		error("Unsupported plugin procedure id %d = (%s.%s)",
+			procId + maxScrMsg,
+			resFile->_plugins[resFile->_pluginIndexPerProcedure[procId]].c_str(),
+			resFile->_pluginProcedures[procId].c_str());
+	return (*_pluginProcedures[procId])(args, argCount);
 }
 
 int32 Script::readSint(Common::ReadStream &stream) {

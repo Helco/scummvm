@@ -23,7 +23,7 @@
 #define TOPGUN_SCRIPT_H
 
 #include "common/memstream.h"
-#include "common/hashmap.h"
+#include "topgun/script/IPlugin.h"
 #include "topgun/Scene.h"
 
 using Common::Array;
@@ -370,8 +370,9 @@ enum class ScriptCalcOp {
 class Script {
 public:
 	Script(TopGunEngine *engine);
+	~Script();
 
-	void runEntry();
+	void runEntry(); ///< also sets up a new scene (e.g. loads plugin procedures)
 	void run(uint32 index);
 	void runRoot(Common::MemorySeekableReadWriteStream &stream);
 	void runSingleRootInstruction(Common::MemorySeekableReadWriteStream &stream);
@@ -413,6 +414,7 @@ private:
 	Array<int32> _systemVariables;
 	Array<int32> _localVariables;
 	Array<int32> _stack; // using Array to easily grab a couple arguments for runProcedure
+	Array<ScriptPluginProcedure *> _pluginProcedures;
 };
 
 }

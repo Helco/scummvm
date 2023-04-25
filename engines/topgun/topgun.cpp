@@ -47,9 +47,10 @@ TopGunEngine::TopGunEngine(OSystem *syst, const TopGunGameDescription *gameDesc)
 }
 
 TopGunEngine::~TopGunEngine() {
-	for (size_t i = 0; i < _scenes.size(); i++)
-		delete _scenes[i];
-	_scenes.clear();
+	for (auto scene : _scenes)
+		delete scene;
+	for (auto plugin : _plugins)
+		delete plugin;
 	g_engine = nullptr;
 }
 
@@ -126,6 +127,7 @@ bool TopGunEngine::sceneIn(const Common::String &name) {
 
 	_resources.resize(_resFile->_totalResources);
 	Common::fill(_resources.begin(), _resources.end(), nullptr);
+	loadPlugins();
 	_scenes.push_back(new Scene(this, name));
 
 	_spriteCtx->setPaletteFromResourceFile();
@@ -169,6 +171,16 @@ SharedPtr<IResource> TopGunEngine::loadResource(uint32 index, ResourceType expec
 
 void TopGunEngine::freeResource(uint32 index) {
 	_resources[index] = nullptr;
+}
+
+void TopGunEngine::loadPlugins() {
+	for (auto plugin : _plugins)
+		delete plugin;
+	_plugins.clear();
+
+	_plugins.reserve(_resFile->_plugins.size());
+	for (auto &pluginName : _resFile->_plugins)
+		_plugins.push_back(loadPlugin(pluginName));
 }
 
 } // End of namespace Topgun

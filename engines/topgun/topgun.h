@@ -41,6 +41,7 @@
 #include "topgun/Scene.h"
 #include "topgun/Savestate.h"
 #include "topgun/script/Script.h"
+#include "topgun/script/IPlugin.h"
 #include "topgun/graphics/SpriteContext.h"
 
 using Common::ScopedPtr;
@@ -110,6 +111,13 @@ public:
 	inline Savestate *getSavestate() {
 		return _savestate.get();
 	}
+	inline IPlugin *getLoadedPlugin(uint32 index) {
+		return _plugins[index];
+	}
+
+private:
+	void loadPlugins();
+	IPlugin *loadPlugin(const Common::String &name); // defined in plugins/loadPlugin.cpp
 
 public:
 	bool sceneIn(const Common::String &name);
@@ -123,6 +131,8 @@ public:
 		return loadResource(index, TResource::kResourceType).dynamicCast<TResource>();
 	}
 
+
+
 private:
 	bool _debug;
 	ScopedPtr<ResourceFile> _resFile;
@@ -132,6 +142,7 @@ private:
 	// FIXME: This array would be nicer with a moving push_back or even an emplace method, discuss with core team
 	Array<Scene*> _scenes;
 	Array<SharedPtr<IResource>> _resources;
+	Array<IPlugin *> _plugins;
 };
 
 extern TopGunEngine *g_engine;

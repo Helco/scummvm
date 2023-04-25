@@ -395,6 +395,14 @@ private:
 	void setString(int32 index, const Common::String &value);
 	int32 calcJumpOffset(uint32 nativeIntCount, uint32 additionalBytes = 0) const;
 
+	void jumpToCase(Common::SeekableReadStream &stream,
+					int32 switchValue,
+					uint32 offsetToCases,
+					uint32 caseCount,
+					int32 defaultJumpDistance,
+					int64 startPos);
+	int32 simpleCalc(int32 left, int32 right, byte op, bool negateRight, bool isRightIndirect);
+
 	struct FormatValue {
 		bool _isInteger;
 		Common::String _string;

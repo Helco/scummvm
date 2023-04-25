@@ -76,10 +76,10 @@ void Script::run(uint32 index) {
 }
 
 void Script::runRoot(Common::MemorySeekableReadWriteStream &stream) {
-	do
+	while (stream.pos() < stream.size() && !stream.err())
 	{
 		runSingleRootInstruction(stream);
-	} while (!stream.eos() && !stream.err());
+	}
 
 	if (stream.err())
 		error("Stream error during script execution");

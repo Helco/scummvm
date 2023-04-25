@@ -41,10 +41,29 @@ void Script::runSingleRootInstruction(Common::MemorySeekableReadWriteStream &str
 		else
 			stream.seek(startPosition + elseDistance - 2, SEEK_SET);
 	}break;
+	case ScriptOp::kJump:
+		stream.seek(readSint(stream) - 2, SEEK_CUR);
+		break;
 	case ScriptOp::kRunCalc: {
 		auto calcStream = stream.readStream(readUint(stream) - calcJumpOffset(1));
 		runCalc(*calcStream);
 		delete calcStream;
+	}break;
+	case ScriptOp::kSimpleCalc: {
+		constexpr uint32 kMaxOpCount = 3;
+		auto targetIndex = readSint(stream);
+		auto targetValue = evalValue(targetIndex, true);
+		auto opCount = readUint(stream);
+		for (uint i = 0; i < kMaxOpCount; i++) {
+			const auto right = readSint(stream);
+			const auto subOp = stream.readByte();
+			stream.skip(1);
+			const auto negateRight = stream.readByte() != 0;
+			const auto isRightIndirect = stream.readByte() != 0;
+			if (i < opCount)
+				targetValue = simpleCalc(targetValue, right, subOp, negateRight, isRightIndirect);
+		}
+		setVariable(targetIndex, targetValue);
 	}break;
 	case ScriptOp::kSetString: {
 		const auto targetString = readSint(stream);
@@ -75,8 +94,66 @@ void Script::runSingleRootInstruction(Common::MemorySeekableReadWriteStream &str
 		const auto resultString = sprintfWithArray(getString(formatString), formatValues);
 		setString(targetString, resultString);
 	}break;
+	case ScriptOp::kSwitch: {
+		const auto startPos = stream.pos();
+		auto value = readSint(stream);
+		const auto offsetToCases = readUint(stream);
+		const auto defaultJumpDistance = readSint(stream);
+		const auto caseCount = stream.readUint16LE();
+		stream.skip(1);
+		value = evalValue(value, stream.readByte() != 0);
+		jumpToCase(stream, value, offsetToCases, caseCount, defaultJumpDistance, startPos);
+	}break;
+	case ScriptOp::kCalcSwitch: {
+		const auto startPos = stream.pos();
+		readUint(stream);
+		const auto offsetToCases = readUint(stream);
+		const auto defaultJumpDistance = readSint(stream);
+		const auto caseCount = stream.readUint16LE();
+		const auto result = runCalc(stream);
+		jumpToCase(stream, result, offsetToCases, caseCount, defaultJumpDistance, startPos);
+	}break;
 
 	default: error("Unknown or unimplemented root script instruction: %d", op);
+	}
+}
+
+void Script::jumpToCase(Common::SeekableReadStream &stream,
+						int32 switchValue,
+						uint32 offsetToCases,
+						uint32 caseCount,
+						int32 defaultJumpDistance,
+						int64 startPos) {
+	stream.seek(startPos + offsetToCases - 2, SEEK_SET);
+	auto jumpDistance = defaultJumpDistance;
+	for (uint32 i = 0; i < caseCount; i++) {
+		stream.skip(2); // this proabably should always be ScriptOp::kCase
+		auto caseValue = readSint(stream);
+		const auto caseJumpDistance = readSint(stream);
+		caseValue = evalValue(caseValue, stream.readByte() != 0);
+		stream.skip(1);
+		if (caseValue == switchValue) {
+			jumpDistance = caseJumpDistance;
+			break;
+		}
+	}
+	stream.seek(startPos + jumpDistance - 2, SEEK_SET);
+}
+
+int32 Script::simpleCalc(int32 left, int32 right, byte op, bool negateRight, bool isRightIndirect) {
+	right = evalValue(right, isRightIndirect);
+	if (negateRight)
+		right = -right;
+	switch (op) {
+	case 0: return right;
+	case 1: return left + right;
+	case 2: return left - right;
+	case 3: return left * right;
+	case 4: return (left + abs(right / 2)) / right;
+	case 5: return left | right;
+	case 6: return left & right;
+	case 7: return left % right;
+	default: return 0;
 	}
 }
 

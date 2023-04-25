@@ -81,9 +81,9 @@ int32 Script::runCalc(Common::SeekableReadStream &stream) {
 			const auto scriptIndex = _stack[_stack.size() - argCount - 1];
 			const auto prevScriptResult = _scriptResult;
 
+			setupLocalArguments(_stack.data() + _stack.size() - argCount, argCount);
 			_scriptResult = 0;
 			_localScope += scopeSize;
-			setupLocalArguments(_stack.data() + _stack.size() - argCount, argCount);
 			run(scriptIndex);
 			_localScope -= scopeSize;
 

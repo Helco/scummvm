@@ -50,6 +50,11 @@ int32 Script::runInternalProcedure(uint32 procId, const int32 *args, uint32 argC
 		// seems to be used for compatibility checks so any number higher is alright
 		return INT32_MAX;
 
+	case ScriptOp::kLoadResource:
+		checkArgCount(argCount, 1);
+		_engine->loadResource(args[0], ResourceType::kInvalid);
+		break;
+
 	case ScriptOp::kGetRegistryString:
 	case ScriptOp::kGetRegistryString_dup: {
 		checkArgCount(argCount, 3, 4);

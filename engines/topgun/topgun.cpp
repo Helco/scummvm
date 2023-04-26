@@ -39,7 +39,8 @@ TopGunEngine::TopGunEngine(OSystem *syst, const TopGunGameDescription *gameDesc)
 	_randomSource("Topgun"),
 	_debug(true),
 	_script(new Script(this)),
-	_savestate(new Savestate()) {
+	_savestate(new Savestate()),
+	_topMostSpriteIndex(0) {
 	g_engine = this;
 
 	gDebugLevel = kVerbose;
@@ -157,7 +158,9 @@ SharedPtr<IResource> TopGunEngine::loadResource(uint32 index, ResourceType expec
 	case ResourceType::kScript:
 		_resources[index].reset(new ScriptResource(index));
 		break;
-
+	case ResourceType::kSprite:
+		_resources[index] = _spriteCtx->createSprite(index);
+		break;
 	default:
 		error("Unsupported resource type: %d", resourceLocation._type);
 	}
@@ -181,6 +184,13 @@ void TopGunEngine::loadPlugins() {
 	_plugins.reserve(_resFile->_plugins.size());
 	for (auto &pluginName : _resFile->_plugins)
 		_plugins.push_back(loadPlugin(pluginName));
+}
+
+void TopGunEngine::setTopMostSprite(Sprite *sprite) {
+	if (_topMostSpriteIndex != 0)
+		freeResource(_topMostSpriteIndex);
+
+	_topMostSpriteIndex = sprite == nullptr ? 0 : sprite->getResourceIndex();
 }
 
 } // End of namespace Topgun

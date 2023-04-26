@@ -22,7 +22,11 @@
 #ifndef TOPGUN_IRESOURCE_H
 #define TOPGUN_IRESOURCE_H
 
+#include "common/rect.h"
 #include "topgun/ResourceFile.h"
+
+using Common::Point;
+using Common::Rect;
 
 namespace TopGun {
 
@@ -46,6 +50,12 @@ public:
 private:
 	ResourceType _type;
 	uint32 _index;
+};
+
+class ISurfaceResource : public IResource {
+public:
+	virtual Point getOffset() const = 0;
+	virtual Graphics::Surface *getSurface() = 0;
 };
 
 class RawDataResource : public IResource {

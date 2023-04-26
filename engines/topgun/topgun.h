@@ -114,6 +114,11 @@ public:
 	inline IPlugin *getLoadedPlugin(uint32 index) {
 		return _plugins[index];
 	}
+	inline SharedPtr<Sprite> getTopMostSprite() {
+		return _topMostSpriteIndex == 0
+			? nullptr
+			: _resources[_topMostSpriteIndex].dynamicCast<Sprite>();
+	}
 
 private:
 	void loadPlugins();
@@ -131,7 +136,7 @@ public:
 		return loadResource(index, TResource::kResourceType).dynamicCast<TResource>();
 	}
 
-
+	void setTopMostSprite(Sprite *sprite);
 
 private:
 	bool _debug;
@@ -143,6 +148,8 @@ private:
 	Array<Scene*> _scenes;
 	Array<SharedPtr<IResource>> _resources;
 	Array<IPlugin *> _plugins;
+
+	uint32 _topMostSpriteIndex;
 };
 
 extern TopGunEngine *g_engine;

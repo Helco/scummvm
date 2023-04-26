@@ -37,7 +37,9 @@ SpriteContext::SpriteContext(TopGunEngine *engine) :
 	_engine(engine),
 	_screen(new Graphics::Screen()),
 	_currentPalette{0},
-	_targetPalette{0} {
+	_targetPalette{0},
+	_nestedSpriteLoops(0),
+	_curSpriteIndex(0) {
 
 	loadCursors();
 }
@@ -45,6 +47,12 @@ SpriteContext::SpriteContext(TopGunEngine *engine) :
 SpriteContext::~SpriteContext() {
 	for (auto cursorGroup : _cursorGroups)
 		delete cursorGroup;
+}
+
+Common::SharedPtr<Sprite> SpriteContext::createSprite(uint32 index) {
+	auto sprite = Common::SharedPtr<Sprite>(new Sprite(this, index));
+	_sprites.push_back(sprite); // shortly invalidating order, to be fixed shortly during load
+	return sprite;
 }
 
 void SpriteContext::setPaletteFromResourceFile() {
@@ -94,6 +102,42 @@ void SpriteContext::loadCursors() {
 
 void SpriteContext::setCursor(int id) {
 	CursorMan.replaceCursor(_cursors[id]);
+}
+
+uint32 SpriteContext::getSpriteIndex(const Sprite *sprite) const {
+	for (uint32 i = 0; i < _sprites.size(); i++) {
+		if (_sprites[i].get() == sprite)
+			return i;
+	}
+	assert(false);
+	return UINT32_MAX;
+}
+
+void SpriteContext::resortSprite(const Sprite *sprite) {
+	uint32 oldIndex = getSpriteIndex(sprite);
+	auto spritePtr = _sprites.remove_at(oldIndex);
+
+	if (_nestedSpriteLoops && oldIndex > _curSpriteIndex)
+		_curSpriteIndex--;
+
+	uint32 newIndex = _sprites.size();
+	if (_engine->getTopMostSprite().get() != sprite) {
+		for (; newIndex > 0 && _sprites[newIndex - 1]->_level > sprite->_level; newIndex--) {
+		}
+	}
+	_sprites.insert_at(newIndex, spritePtr);
+}
+
+void SpriteContext::setPaletteFromTopMostSprite(Common::ReadStream &stream, uint32 colorCount) {
+	const auto colorOffset = kHighSystemColors - _engine->getResourceFile()->_maxTransColors;
+	assert(colorOffset + colorCount < kPaletteSize);
+	for (uint32 i = 0; i < colorCount; i++) {
+		_currentPalette[(colorOffset + i) * 3 + 0] = stream.readByte();
+		_currentPalette[(colorOffset + i) * 3 + 1] = stream.readByte();
+		_currentPalette[(colorOffset + i) * 3 + 2] = stream.readByte();
+		stream.readByte();
+	}
+	g_system->getPaletteManager()->setPalette(_currentPalette + colorOffset * 3, colorOffset, colorCount);
 }
 
 }

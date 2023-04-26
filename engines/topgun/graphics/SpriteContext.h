@@ -28,6 +28,8 @@
 #include "graphics/cursorman.h"
 #include "graphics/wincursor.h"
 
+#include "Sprite.h"
+
 using Common::Array;
 using Common::ScopedPtr;
 
@@ -35,6 +37,7 @@ namespace TopGun {
 
 class TopGunEngine;
 class SpriteContext {
+	friend class Sprite;
 public:
 	static constexpr int32 kSystemBusyCursor = 0;
 	static constexpr int32 kCursorCount = 9;
@@ -46,17 +49,29 @@ public:
 	SpriteContext(TopGunEngine *engine);
 	~SpriteContext();
 
+	Common::SharedPtr<Sprite> createSprite(uint32 index);
 	void setPaletteFromResourceFile();
 	void fadePalette(uint32 t, uint32 maxT, byte colorOffset, byte colorCount);
 	void setCursor(int32 id);
 
+	inline TopGunEngine *getEngine() {
+		return _engine;
+	}
+
 private:
 	void loadCursors();
+	uint32 getSpriteIndex(const Sprite *sprite) const;
+	void resortSprite(const Sprite *sprite);
+	void setPaletteFromTopMostSprite(Common::ReadStream &stream, uint32 colorCount);
 
 private:
 	TopGunEngine *_engine;
 
-	ScopedPtr<Graphics::Screen> _screen = nullptr;
+	Common::Array<Common::SharedPtr<Sprite> > _sprites; // intentionally not using SortedArray
+	uint32 _nestedSpriteLoops;
+	uint32 _curSpriteIndex;
+
+	ScopedPtr<Graphics::Screen> _screen;
 	Array<Graphics::Cursor *> _cursors; // unowned pointers
 	ScopedPtr<Graphics::Cursor> _busyCursor;
 	ScopedPtr<Graphics::Cursor> _defaultCursor;

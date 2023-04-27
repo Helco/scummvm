@@ -27,11 +27,13 @@
 #include "graphics/screen.h"
 #include "graphics/cursorman.h"
 #include "graphics/wincursor.h"
+#include "graphics/font.h"
 
 #include "Sprite.h"
 
 using Common::Array;
 using Common::ScopedPtr;
+using Common::SharedPtr;
 
 namespace TopGun {
 
@@ -53,6 +55,7 @@ public:
 	void setPaletteFromResourceFile();
 	void fadePalette(uint32 t, uint32 maxT, byte colorOffset, byte colorCount);
 	void setCursor(int32 id);
+	SharedPtr<Graphics::Font> loadFont(const Common::String &name, int32 height);
 
 	inline TopGunEngine *getEngine() {
 		return _engine;
@@ -76,6 +79,9 @@ private:
 	ScopedPtr<Graphics::Cursor> _busyCursor;
 	ScopedPtr<Graphics::Cursor> _defaultCursor;
 	Array<Graphics::WinCursorGroup *> _cursorGroups;
+
+	Common::Array<Common::SharedPtr<Graphics::Font> > _fonts;
+	Common::Array<Common::Pair<Common::String, int> > _fontTopGunNames;
 
 	byte _targetPalette[kPaletteSize * 3];
 	byte _currentPalette[kPaletteSize * 3];

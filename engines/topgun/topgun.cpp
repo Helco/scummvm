@@ -22,6 +22,7 @@
 #include "topgun/topgun.h"
 #include "topgun/detection.h"
 #include "topgun/console.h"
+#include "topgun/graphics/Text.h"
 #include "common/scummsys.h"
 #include "common/config-manager.h"
 #include "common/debug-channels.h"
@@ -160,6 +161,9 @@ SharedPtr<IResource> TopGunEngine::loadResource(uint32 index, ResourceType expec
 		break;
 	case ResourceType::kSprite:
 		_resources[index] = _spriteCtx->createSprite(index);
+		break;
+	case ResourceType::kText:
+		_resources[index].reset(new Text(getSpriteCtx(), index));
 		break;
 	default:
 		error("Unsupported resource type: %d", resourceLocation._type);

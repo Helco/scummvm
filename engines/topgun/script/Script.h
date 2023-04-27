@@ -379,19 +379,20 @@ public:
 	int32 runCalc(Common::SeekableReadStream &stream);
 	int32 runProcedure(uint32 procId, const int32 *args, uint32 argCount);
 
+	int32 evalValue(int32 valueOrIndex, bool isIndex);
+	Common::String getString(int32 index);
+
 private:
 	int32 runInternalProcedure(uint32 procId, const int32 *args, uint32 argCount);
 	int32 runPluginProcedure(uint32 procId, const int32 *args, uint32 argCount);
 
 	int32 readSint(Common::ReadStream &stream);
 	uint32 readUint(Common::ReadStream &stream);
-	int32 evalValue(int32 valueOrIndex, bool isIndex);
 	void setVariable(int32 index, int32 value);
 	void setupLocalArguments(int32 *args, uint32 argCount);
 	int32 stackTop() const;
 	int32 stackPop();
 	void stackPush(int32 value);
-	Common::String getString(int32 index);
 	void setString(int32 index, const Common::String &value);
 	int32 calcJumpOffset(uint32 nativeIntCount, uint32 additionalBytes = 0) const;
 

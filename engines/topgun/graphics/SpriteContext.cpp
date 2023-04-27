@@ -23,6 +23,7 @@
 #include "common/formats/winexe.h"
 #include "graphics/wincursor.h"
 #include "graphics/palette.h"
+#include "graphics/fonts/ttf.h"
 
 #include "topgun/topgun.h"
 #include "topgun/graphics/SpriteContext.h"
@@ -138,6 +139,37 @@ void SpriteContext::setPaletteFromTopMostSprite(Common::ReadStream &stream, uint
 		stream.readByte();
 	}
 	g_system->getPaletteManager()->setPalette(_currentPalette + colorOffset * 3, colorOffset, colorCount);
+}
+
+struct FontMapping {
+	const char *topgunName;
+	const char *scummName;
+};
+
+static const FontMapping fontMappings[] = {
+	{ "Arial", "LiberationSans-Regular.ttf" },
+	{ "Times Roman", "LiberationSerif-Regular.ttf"},
+	{ nullptr, nullptr }
+};
+
+SharedPtr<Graphics::Font> SpriteContext::loadFont(const Common::String &name, int32 height) {
+	for (size_t i = 0; i < _fonts.size(); i++) {
+		if (_fontTopGunNames[i].first == name && _fontTopGunNames[i].second == height)
+			return _fonts[i];
+	}
+
+	const FontMapping *mapping = fontMappings;
+	while (mapping->topgunName != nullptr && name != mapping->topgunName)
+		mapping++;
+	if (mapping->topgunName == nullptr)
+		error("Unknown TopGun font %s", name.c_str());
+
+	auto font = SharedPtr<Graphics::Font>(Graphics::loadTTFFontFromArchive(mapping->scummName, height));
+	if (font == nullptr)
+		error("Could not load ScummVM font %s", mapping->scummName);
+	_fonts.push_back(font);
+	_fontTopGunNames.push_back(Common::Pair<Common::String, int>(name, height));
+	return font;
 }
 
 }

@@ -54,6 +54,8 @@ private:
 
 class ISurfaceResource : public IResource {
 public:
+	ISurfaceResource(ResourceType type, uint32 index);
+
 	virtual Point getOffset() const = 0;
 	virtual Graphics::Surface *getSurface() = 0;
 };

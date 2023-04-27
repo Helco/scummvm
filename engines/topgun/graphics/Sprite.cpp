@@ -60,6 +60,7 @@ bool Sprite::load(Common::Array<byte> &&data) {
 		_spriteCtx->getEngine()->setTopMostSprite(this);
 	}
 
+	_cells.reserve(resourceCount);
 	for (size_t i = 0; i < resourceCount; i++) {
 		auto resource = engine->loadResource(stream.readUint32LE(), ResourceType::kInvalid);
 		const auto resourceType = resource->getResourceType();

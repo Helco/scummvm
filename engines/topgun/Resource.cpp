@@ -26,6 +26,9 @@ namespace TopGun {
 IResource::IResource(ResourceType type, uint32 index) : _type(type), _index(index) {
 }
 
+ISurfaceResource::ISurfaceResource(ResourceType type, uint32 index) : IResource(type, index) {
+}
+
 RawDataResource::RawDataResource(ResourceType type, uint32 index) : IResource(type, index) {
 }
 

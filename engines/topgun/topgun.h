@@ -102,6 +102,9 @@ public:
 	inline SpriteContext *getSpriteCtx() {
 		return _spriteCtx.get();
 	}
+	inline Script *getScript() {
+		return _script.get();
+	}
 	inline ResourceFile *getResourceFile() {
 		return _resFile.get();
 	}

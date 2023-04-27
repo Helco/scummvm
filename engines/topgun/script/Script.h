@@ -36,7 +36,7 @@ class TopGunEngine;
 /*
  * There are not one, not two, but three different script languages
  * present in TopGun games:
- *   - "Root": A CISC language which is always called first (hence the name)
+ *   - "Root": A CISC-like language which is always called first (hence the name)
  *             It uses a set of local variables with unknown count. Parameters
  *             are passed (in reverse) as the first n variables.
  *             There is a special register to return values.
@@ -416,6 +416,7 @@ private:
 	Scene *_scene;
 
 	int32 _reg3E3F;
+	int32 _pauseEventHandler;
 
 	int32 _scriptResult;
 	uint32 _nestedScriptCount;

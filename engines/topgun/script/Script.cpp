@@ -30,7 +30,8 @@ Script::Script(TopGunEngine *engine) :
 	_nestedScriptCount(0),
 	_localScope(0),
 	_scriptResult(0),
-	_reg3E3F(0) {
+	_reg3E3F(0),
+	_pauseEventHandler(-1) {
 	_systemVariables.resize(engine->getGameDesc()->_systemVarCount);
 }
 

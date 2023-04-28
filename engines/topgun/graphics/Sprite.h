@@ -26,6 +26,12 @@
 
 namespace TopGun {
 
+enum class SpritePickableMode {
+	kAlwaysPickable = 0,
+	kPickableIfVisible,
+	kNeverPickable
+};
+
 class SpriteContext;
 
 class Sprite : public IResource {
@@ -67,6 +73,8 @@ private:
 	bool _animateCell;
 	bool _animateCellsForward;
 	bool _setToNextCellOnRepaint;
+	bool _rectPickable;
+	SpritePickableMode _pickableMode;
 	uint32 _cellIndexStart, _cellIndexStop;
 	uint32 _curCellIndex;
 	int32 _level;

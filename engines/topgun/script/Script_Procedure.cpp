@@ -57,6 +57,26 @@ int32 Script::runInternalProcedure(uint32 procId, const int32 *args, uint32 argC
 		checkArgCount(argCount, 1);
 		_pauseEventHandler = args[0];
 		break;
+		
+	case ScriptOp::kSetBackgroundColor:
+	case ScriptOp::kSetBackgroundColorWithAnimation:
+		checkArgCount(argCount, 1, 4);
+		_engine->getSpriteCtx()->setBackground(args[0]);
+		break;
+	case ScriptOp::kSetBackgroundColorRGB:
+	case ScriptOp::kSetBackgroundColorRGBWithAnimation:
+		// animation is only supported for bitmap in the original game
+		checkArgCount(argCount, 3, 6);
+		_engine->getSpriteCtx()->setBackground(args[0], args[1], args[2]);
+		break;
+	case ScriptOp::kSetBackgroundBitmap:
+		checkArgCount(argCount, 1);
+		_engine->getSpriteCtx()->setBackground(args[0], args[0]);
+		break;
+	case ScriptOp::kSetBackgroundBitmapWithAnimation:
+		checkArgCount(argCount, 4);
+		_engine->getSpriteCtx()->setBackground(args[0], args[0], (BackgroundAnimation)args[1], args[2], args[3]);
+		break;
 
 	case ScriptOp::kGetRegistryString:
 	case ScriptOp::kGetRegistryString_dup: {

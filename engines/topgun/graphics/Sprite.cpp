@@ -46,10 +46,10 @@ bool Sprite::load(Common::Array<byte> &&data) {
 	const auto colorCount = stream.readUint32LE();
 	setLevel(stream.readSint32LE());
 	stream.skip(1);
-	const auto pickMode = stream.readByte();
+	_rectPickable = stream.readByte() != 0;
 	stream.skip(1);
 	const auto isTopMostSprite = stream.readByte() != 0;
-	const auto anotherPickMode = stream.readByte();
+	_pickableMode = (SpritePickableMode)stream.readByte();
 	_isScrollable = stream.readByte() != 0;
 
 	if (isTopMostSprite) {

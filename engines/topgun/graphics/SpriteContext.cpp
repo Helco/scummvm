@@ -43,6 +43,10 @@ SpriteContext::SpriteContext(TopGunEngine *engine) :
 	_curSpriteIndex(0) {
 
 	loadCursors();
+	_screenBounds.left = (_screen->w - 1) / -2;
+	_screenBounds.top = (_screen->h - 1) / -2;
+	_screenBounds.right = _screenBounds.left + _screen->w;
+	_screenBounds.bottom = _screenBounds.right + _screen->h;
 }
 
 SpriteContext::~SpriteContext() {
@@ -61,6 +65,7 @@ void SpriteContext::setPaletteFromResourceFile() {
 	const size_t maxCopyBytes = kHighSystemColors - kLowSystemColors - _engine->getResourceFile()->_maxTransColors;
 	const size_t copyBytes = MIN(maxCopyBytes, (size_t)resFilePalette.size());
 	Common::copy(resFilePalette.begin(), resFilePalette.begin() + copyBytes, _targetPalette + kLowSystemColors * 3);
+	_sceneColorCount = resFilePalette.size() / 3;
 
 	g_system->getPaletteManager()->setPalette(_targetPalette, 0, kPaletteSize);
 	fadePalette(1, 1, kLowSystemColors, _engine->getResourceFile()->_maxFadeColors);
@@ -101,7 +106,7 @@ void SpriteContext::loadCursors() {
 	CursorMan.pushCursor(NULL, 0, 0, 0, 0, 0);
 }
 
-void SpriteContext::setCursor(int id) {
+void SpriteContext::setCursor(int32 id) {
 	CursorMan.replaceCursor(_cursors[id]);
 }
 
@@ -170,6 +175,97 @@ SharedPtr<Graphics::Font> SpriteContext::loadFont(const Common::String &name, in
 	_fonts.push_back(font);
 	_fontTopGunNames.push_back(Common::Pair<Common::String, int>(name, height));
 	return font;
+}
+
+void SpriteContext::resetBackgroundBounds() {
+	_scrollPos = Point(0, 0);
+	_backgroundBounds.left = _backgroundBounds.top = 0;
+	_backgroundBounds.right = _bitmapBackground == nullptr ? _screen->w : _bitmapBackground->getSurface()->w;
+	_backgroundBounds.bottom = _bitmapBackground == nullptr ? _screen->h : _bitmapBackground->getSurface()->h;
+
+	_paintOffset.x = (_backgroundBounds.right - 1) / 2;
+	_paintOffset.y = (_backgroundBounds.bottom - 1) / 2;
+	_backgroundBounds.translate(_paintOffset.x, _paintOffset.y);
+	_fullBackgroundBounds = _backgroundBounds;
+
+	if (_clipBox.right > _clipBox.left)
+		_backgroundBounds.clip(_clipBox);
+	_backgroundBounds.clip(_screenBounds);
+
+	clipScrollBox();
+}
+
+void SpriteContext::clipScrollBox() {
+	_clippedScrollBox = _screenBounds;
+	if (_scrollBox.right > _scrollBox.left && _scrollBox.top < _scrollBox.bottom) {
+		_clippedScrollBox.clip(_scrollBox);
+		_clippedScrollBox.clip(_backgroundBounds);
+	}
+
+	// TODO: Add tile background handling here
+	if (_bitmapBackground != nullptr)
+		_clippedScrollBox.clip(_fullBackgroundBounds);
+}
+
+byte SpriteContext::getNearestSceneColor(byte r, byte g, byte b) {
+	int minIndex = -1;
+	int minScore = INT32_MAX;
+	for (int i = 0; i < _sceneColorCount; i++) {
+		int curScore =
+			ABS(_currentPalette[(kLowSystemColors + i) * 3 + 0] - r) +
+			ABS(_currentPalette[(kLowSystemColors + i) * 3 + 1] - g) +
+			ABS(_currentPalette[(kLowSystemColors + i) * 3 + 2] - b);
+		if (curScore >= minScore)
+			continue;
+		minIndex = i;
+		curScore = i;
+		if (curScore == 0)
+			return i;
+	}
+
+	if (_sceneColorCount <= kMaxSceneColors - _engine->getResourceFile()->_maxTransColors) {
+		minIndex = kLowSystemColors + _sceneColorCount++;
+		_currentPalette[minIndex * 3 + 0] = r;
+		_currentPalette[minIndex * 3 + 1] = g;
+		_currentPalette[minIndex * 3 + 2] = b;
+	}
+	return minIndex;
+}
+
+void SpriteContext::setBackground(byte r, byte g, byte b) {
+	setBackground(getNearestSceneColor(r, g, b));
+}
+
+void SpriteContext::setBackground(byte color) {
+	_bitmapBackground.reset();
+	_colorBackground = color;
+	resetBackgroundBounds();
+}
+
+void SpriteContext::setBackground(
+	uint32 highResBitmap,
+	uint32 lowResBitmap,
+	BackgroundAnimation animation,
+	int32 animArg1,
+	int32 animArg2) {
+	if (animation != BackgroundAnimation::kNone)
+		warning("Background animations are not implemented yet");
+
+	_colorBackground = 0;
+	uint32 myResBitmap = highResBitmap; // TODO: Add low res handling
+	switch (_engine->getResourceType(myResBitmap)) {
+	case ResourceType::kBitmap:
+		_bitmapBackground = _engine->loadResource<Bitmap>(myResBitmap);
+		break;
+	case ResourceType::kCell:
+		error("Cell backgrounds are not implemented yet");
+		break;
+	default:
+		error("Invalid background resource %d type %d", myResBitmap, _engine->getResourceType(myResBitmap));
+		break;
+	}
+
+	resetBackgroundBounds();
 }
 
 }

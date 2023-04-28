@@ -156,6 +156,9 @@ SharedPtr<IResource> TopGunEngine::loadResource(uint32 index, ResourceType expec
 
 	auto resourceLocation = _resFile->_resources[index];
 	switch (resourceLocation._type) {
+	case ResourceType::kBitmap:
+		_resources[index].reset(new Bitmap(index));
+		break;
 	case ResourceType::kScript:
 		_resources[index].reset(new ScriptResource(index));
 		break;

@@ -171,7 +171,7 @@ void Script::setVariable(int32 index, int32 value) {
 }
 
 void Script::setupLocalArguments(int32 *args, uint32 argCount) {
-	if (_localScope + argCount < _localVariables.size())
+	if (_localScope + argCount > _localVariables.size())
 		_localVariables.resize(_localScope + argCount);
 
 	for (uint32 i = 0; i < argCount; i++)

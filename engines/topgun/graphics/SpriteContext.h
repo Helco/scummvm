@@ -29,6 +29,7 @@
 #include "graphics/wincursor.h"
 #include "graphics/font.h"
 
+#include "Bitmap.h"
 #include "Sprite.h"
 
 using Common::Array;
@@ -36,6 +37,10 @@ using Common::ScopedPtr;
 using Common::SharedPtr;
 
 namespace TopGun {
+
+enum class BackgroundAnimation {
+	kNone
+};
 
 class TopGunEngine;
 class SpriteContext {
@@ -47,15 +52,24 @@ public:
 	static constexpr size_t kPaletteSize = 256;
 	static constexpr size_t kLowSystemColors = 10;
 	static constexpr size_t kHighSystemColors = 246;
+	static constexpr size_t kMaxSceneColors = kHighSystemColors - kLowSystemColors;
 
 	SpriteContext(TopGunEngine *engine);
 	~SpriteContext();
 
-	Common::SharedPtr<Sprite> createSprite(uint32 index);
+	SharedPtr<Sprite> createSprite(uint32 index);
+	SharedPtr<Graphics::Font> loadFont(const Common::String &name, int32 height);
 	void setPaletteFromResourceFile();
 	void fadePalette(uint32 t, uint32 maxT, byte colorOffset, byte colorCount);
 	void setCursor(int32 id);
-	SharedPtr<Graphics::Font> loadFont(const Common::String &name, int32 height);
+	void setBackground(
+		uint32 highResBitmap,
+		uint32 lowResBitmap,
+		BackgroundAnimation animation = BackgroundAnimation::kNone,
+		int32 animArg1 = 0,
+		int32 animArg2 = 0);
+	void setBackground(byte r, byte g, byte b);
+	void setBackground(byte color);
 
 	inline TopGunEngine *getEngine() {
 		return _engine;
@@ -66,25 +80,40 @@ private:
 	uint32 getSpriteIndex(const Sprite *sprite) const;
 	void resortSprite(const Sprite *sprite);
 	void setPaletteFromTopMostSprite(Common::ReadStream &stream, uint32 colorCount);
+	void resetBackgroundBounds();
+	void clipScrollBox();
+	byte getNearestSceneColor(byte r, byte g, byte b);
 
 private:
 	TopGunEngine *_engine;
 
-	Common::Array<Common::SharedPtr<Sprite> > _sprites; // intentionally not using SortedArray
+	Point _scrollPos, _paintOffset;
+	Rect _screenBounds;
+	Rect _backgroundBounds;
+	Rect _fullBackgroundBounds;
+	Rect _clipBox;
+	Rect _clippedScrollBox;
+	Rect _scrollBox;
+	ScopedPtr<Graphics::Screen> _screen;
+
+	Array<SharedPtr<Sprite> > _sprites; // intentionally not using SortedArray
 	uint32 _nestedSpriteLoops;
 	uint32 _curSpriteIndex;
 
-	ScopedPtr<Graphics::Screen> _screen;
 	Array<Graphics::Cursor *> _cursors; // unowned pointers
 	ScopedPtr<Graphics::Cursor> _busyCursor;
 	ScopedPtr<Graphics::Cursor> _defaultCursor;
 	Array<Graphics::WinCursorGroup *> _cursorGroups;
 
-	Common::Array<Common::SharedPtr<Graphics::Font> > _fonts;
-	Common::Array<Common::Pair<Common::String, int> > _fontTopGunNames;
+	Array<SharedPtr<Graphics::Font> > _fonts;
+	Array<Common::Pair<Common::String, int> > _fontTopGunNames;
+
+	SharedPtr<Bitmap> _bitmapBackground;
+	byte _colorBackground;
 
 	byte _targetPalette[kPaletteSize * 3];
 	byte _currentPalette[kPaletteSize * 3];
+	byte _sceneColorCount;
 };
 
 }

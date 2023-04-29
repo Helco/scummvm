@@ -23,6 +23,7 @@
 #include "topgun/detection.h"
 #include "topgun/console.h"
 #include "topgun/graphics/Text.h"
+#include "topgun/graphics/Cell.h"
 #include "common/scummsys.h"
 #include "common/config-manager.h"
 #include "common/debug-channels.h"
@@ -158,6 +159,9 @@ SharedPtr<IResource> TopGunEngine::loadResource(uint32 index, ResourceType expec
 	switch (resourceLocation._type) {
 	case ResourceType::kBitmap:
 		_resources[index].reset(new Bitmap(index));
+		break;
+	case ResourceType::kCell:
+		_resources[index].reset(new Cell(index));
 		break;
 	case ResourceType::kQueue:
 		_resources[index].reset(new SpriteMessageQueue(index));

@@ -23,6 +23,7 @@
 #define TOPGUN_SPRITE_H
 
 #include "topgun/Resource.h"
+#include "topgun/graphics/SpriteMessageQueue.h"
 
 namespace TopGun {
 

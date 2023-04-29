@@ -159,6 +159,9 @@ SharedPtr<IResource> TopGunEngine::loadResource(uint32 index, ResourceType expec
 	case ResourceType::kBitmap:
 		_resources[index].reset(new Bitmap(index));
 		break;
+	case ResourceType::kQueue:
+		_resources[index].reset(new SpriteMessageQueue(index));
+		break;
 	case ResourceType::kScript:
 		_resources[index].reset(new ScriptResource(index));
 		break;

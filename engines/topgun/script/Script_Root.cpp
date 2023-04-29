@@ -174,7 +174,7 @@ const char *walkOverFormatSpecifier(const char *format) {
 
 String Script::sprintfWithArray(const Common::String &format, const Array<FormatValue> &values) {
 	// the original game just used wvsprintfA and created a va_list
-	// But this is undefined behaviour
+	// which is undefined behaviour
 
 	auto formatPtr = format.c_str();
 	String result = "";

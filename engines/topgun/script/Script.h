@@ -172,7 +172,7 @@ enum class ScriptOp {
 	kSpriteSetLevel = 113,
 	kSetErrFile = 114,
 	kSpriteLinePoint = 115,
-	kScene116 = 116,
+	kClearTopMostSpriteNextFrame = 116,
 	kLoadResource = 117,
 	kMax = 118,
 	kMin = 119,

@@ -49,6 +49,10 @@ int32 Script::runInternalProcedure(uint32 procId, const int32 *args, uint32 argC
 	case ScriptOp::kGetFreeGlobalMemory:
 		// seems to be used for compatibility checks so any number higher is alright
 		return INT32_MAX;
+	case ScriptOp::kClearTopMostSpriteNextFrame:
+		checkArgCount(argCount, 1);
+		warning("stub procedure ClearTopMostSpriteNextFrame");
+		break;
 	case ScriptOp::kLoadResource:
 		checkArgCount(argCount, 1);
 		_engine->loadResource(args[0], ResourceType::kInvalid);

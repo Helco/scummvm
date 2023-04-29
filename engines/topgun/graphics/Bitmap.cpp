@@ -51,11 +51,13 @@ bool Bitmap::load(Common::Array<byte> &&data) {
 
 void Bitmap::decompressSimpleRLE(Common::SeekableReadStream &stream, uint32 width, uint32 height) {
 	const auto alignedWidth = (width + 3) & ~3u;
-	const auto unaligned = alignedWidth - alignedWidth;
-	auto pixels = malloc(alignedWidth * height);
+	const auto unaligned = alignedWidth - width;
+	auto pixels = (byte *)malloc(alignedWidth * height);
 	if (pixels == nullptr)
 		error("Could not allocate %d bytes for bitmap", alignedWidth * height);
 	getSurface()->init(width, height, alignedWidth, pixels, Graphics::PixelFormat::createFormatCLUT8());
+
+	stream.skip(2 * height); // for some reason there are just some unused bytes
 
 	byte *destPtr = (byte *)pixels;
 	byte packetType;
@@ -68,12 +70,13 @@ void Bitmap::decompressSimpleRLE(Common::SeekableReadStream &stream, uint32 widt
 		if (!packetType)
 			break;
 
+		assert(destPtr - pixels <= alignedWidth * height);
 		if (packetType < 128) { // repeat packet
 			const auto packetSize = packetType;
 			memset(destPtr, stream.readByte(), packetSize);
 			destPtr += packetSize;
 		} else { // copy packet
-			auto packetSize = ~packetType;
+			byte packetSize = ~packetType;
 			if (!packetSize)
 				packetSize = stream.readByte();
 			stream.read(destPtr, packetSize);

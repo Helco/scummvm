@@ -49,7 +49,6 @@ public:
 
 private:
 	Common::SharedPtr<Bitmap> _bitmap;
-	Graphics::Surface _surface; ///< do not free, the memory is owned by _bitmap
 	Point _offset;
 };
 

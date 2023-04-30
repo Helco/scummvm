@@ -63,8 +63,13 @@ int32 Script::runInternalProcedure(uint32 procId, const int32 *args, uint32 argC
 		debugCN(kInfo, kDebugScript, "Quit game due to empty tmp string in changeSceneToTmpString procedure\n");
 		g_engine->quitGame();
 		break;
+	case ScriptOp::kFade:
+		checkArgCount(argCount, 1);
+		warning("stub procedure fade");
+		break;
 	case ScriptOp::kStopFade:
 		// TODO: Implement, was postponed because non-essential
+		warning("stub procedure kStopFade");
 		break;
 	case ScriptOp::kGetFreeGlobalMemory:
 		// seems to be used for compatibility checks so any number higher is alright

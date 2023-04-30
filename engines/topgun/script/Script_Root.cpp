@@ -29,9 +29,22 @@ void Script::runSingleRootInstruction(Common::MemorySeekableReadWriteStream &str
 	const auto op = (ScriptOp)stream.readUint16LE();
 	debugCN(kSuperVerbose, kDebugScript, "root instruction %d\n", op);
 	switch (op) {
+	case ScriptOp::kNop: break;
 	case ScriptOp::kSetCursor:
 		_engine->getSpriteCtx()->setCursor(stream.readSint16LE());
 		break;
+	case ScriptOp::kJumpIf: {
+		const auto startPosition = stream.pos();
+		const auto distance = readSint(stream);
+		auto left = readSint(stream);
+		auto right = readSint(stream);
+		const auto subOp = stream.readByte();
+		left = evalValue(left, stream.readByte());
+		right = evalValue(right, stream.readByte());
+		stream.skip(1);
+		if (simpleCondition(left, right, subOp))
+			stream.seek(startPosition + distance - 2, SEEK_SET);
+	}break;
 	case ScriptOp::kJumpIfCalc:
 	case ScriptOp::kJumpIfCalc_dup: {
 		const auto startPosition = stream.pos();
@@ -164,6 +177,28 @@ int32 Script::simpleCalc(int32 left, int32 right, byte op, bool negateRight, boo
 	case 7: return left % right;
 	default: return 0;
 	}
+}
+
+bool Script::simpleCondition(int32 left, int32 right, byte op) {
+	bool result;
+	if (op & (1 << 0))
+		result = left == right;
+	else if (op & (1 << 1))
+		result = left > right;
+	else if (op & (1 << 2))
+		result = left < right;
+	else if (op & (1 << 3))
+		result = left | right;
+	else if (op & (1 << 4))
+		result = left & right;
+	else if (op & (1 << 5))
+		result = left % right;
+	else
+		result = left != 0;
+
+	if (op & (1 << 7))
+		result = !result;
+	return result;
 }
 
 const char *walkOverFormatSpecifier(const char *format) {

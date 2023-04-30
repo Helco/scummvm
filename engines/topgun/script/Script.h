@@ -424,6 +424,7 @@ private:
 					int32 defaultJumpDistance,
 					int64 startPos);
 	int32 simpleCalc(int32 left, int32 right, byte op, bool negateRight, bool isRightIndirect);
+	bool simpleCondition(int32 left, int32 right, byte op);
 	void prepareSceneChange();
 
 	struct FormatValue {

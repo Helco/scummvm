@@ -179,7 +179,7 @@ ResourceType TopGunEngine::getResourceType(uint32 index) const {
 SharedPtr<IResource> TopGunEngine::loadResource(uint32 index, ResourceType expectedType) {
 	const auto actualType = getResourceType(index);
 	if (actualType != expectedType && expectedType != ResourceType::kInvalid)
-		error("Attempted to load resource %index, expecting a type of %d, but it was %d", index, expectedType, actualType);
+		error("Attempted to load resource %i, expecting a type of %d, but it was %d", index, expectedType, actualType);
 	if (isResourceLoaded(index))
 		return _resources[index];
 	debugCN(kTrace, kDebugResource, "Loading resource %d\n", index);

@@ -74,6 +74,11 @@ int32 Script::runInternalProcedure(uint32 procId, const int32 *args, uint32 argC
 	case ScriptOp::kGetFreeGlobalMemory:
 		// seems to be used for compatibility checks so any number higher is alright
 		return INT32_MAX;
+	case ScriptOp::kSpriteSetLevel:
+		checkArgCount(argCount, 2);
+		if (_engine->isResourceLoaded(args[0]) && _engine->getResourceType(args[0]) == ResourceType::kSprite)
+			_engine->loadResource<Sprite>(args[0])->setLevel(args[1]);
+		break;
 	case ScriptOp::kClearTopMostSpriteNextFrame:
 		checkArgCount(argCount, 1);
 		_engine->postClearTopMostSprite(args[0]);

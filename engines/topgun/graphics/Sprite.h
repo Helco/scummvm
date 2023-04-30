@@ -69,6 +69,7 @@ public:
 private:
 	void renderSubRect(Common::SharedPtr<ISurfaceResource> bitmap, Rect bounds, Rect outBounds);
 	void setBoundsByCurrentCell();
+	void transferTo(Common::SharedPtr<Sprite> dst);
 
 private:
 	SpriteContext *_spriteCtx;

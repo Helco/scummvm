@@ -62,6 +62,8 @@ public:
 
 	void resetScene();
 	SharedPtr<Sprite> createSprite(uint32 index);
+	void removeSprite(uint32 index);
+	void copySpriteTo(uint32 from, uint32 to, uint32 queue, bool destroyFrom);
 	SharedPtr<Graphics::Font> loadFont(const Common::String &name, int32 height);
 	void setPaletteFromResourceFile();
 	void fadePalette(uint32 t, uint32 maxT, byte colorOffset, byte colorCount);

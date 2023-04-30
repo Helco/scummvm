@@ -153,4 +153,18 @@ void Sprite::setBoundsByCurrentCell() {
 	_bounds = Rect::center(center.x, center.y, cellSurface->w, cellSurface->h);
 }
 
+void Sprite::transferTo(Common::SharedPtr<Sprite> dst) {
+	dst->_curCellIndex = _curCellIndex;
+	dst->_subRects = _subRects;
+	dst->_isVisible = _isVisible;
+	dst->_bounds = _bounds;
+	dst->_pos = _pos;
+	dst->_setToNextCellOnRepaint = false;
+
+	_curCellIndex = 0;
+	_subRects.clear();
+	_isVisible = false;
+	_setToNextCellOnRepaint = false;
+}
+
 }

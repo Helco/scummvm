@@ -223,6 +223,8 @@ SharedPtr<IResource> TopGunEngine::loadResource(uint32 index, ResourceType expec
 }
 
 void TopGunEngine::freeResource(uint32 index) {
+	if (isResourceLoaded(index) && getResourceType(index) == ResourceType::kSprite)
+		_spriteCtx->removeSprite(index);
 	_resources[index] = nullptr;
 }
 

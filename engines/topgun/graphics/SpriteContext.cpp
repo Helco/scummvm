@@ -105,6 +105,47 @@ Common::SharedPtr<Sprite> SpriteContext::createSprite(uint32 index) {
 	return sprite;
 }
 
+void SpriteContext::removeSprite(uint32 resIndex) {
+	if (!_engine->isResourceLoaded(resIndex))
+		return;
+	auto sprite = _engine->loadResource<Sprite>(resIndex);
+	auto spriteIndex = getSpriteIndex(sprite.get());
+	if (spriteIndex < 0)
+		return;
+	_sprites.remove_at(spriteIndex);
+	if (_curSpriteIndex >= spriteIndex)
+		_curSpriteIndex--;
+}
+
+void SpriteContext::copySpriteTo(uint32 from, uint32 to, uint32 queue, bool destroyFrom) {
+	if (from == 0 || to == 0) {
+		warning("Invalid sprite indices for copySpriteTo");
+		return; // this can happen in original games...
+	}
+
+	auto fromSprite = _engine->loadResource<Sprite>(from);
+	const auto wasToLoaded = _engine->isResourceLoaded(to);
+	auto toSprite = _engine->loadResource<Sprite>(to);
+
+	// TODO: empty queue
+
+	if (wasToLoaded && toSprite->_isVisible)
+		warning("I do not support that resource concat madness, let's see what happens without it");
+	fromSprite->transferTo(toSprite);
+
+	const auto fromIndex = getSpriteIndex(fromSprite.get());
+	const auto toIndex = getSpriteIndex(toSprite.get());
+	if (fromIndex >= 0 && toIndex >= 0 &&
+		fromSprite->_level == toSprite->_level &&
+		fromIndex > toIndex) {
+		_sprites[fromIndex] = toSprite;
+		_sprites[toIndex] = fromSprite;
+	}
+
+	if (destroyFrom)
+		_engine->freeResource(from);
+}
+
 void SpriteContext::setPaletteFromResourceFile() {
 	auto& resFilePalette = _engine->getResourceFile()->_palette;
 	const size_t maxCopyBytes = kHighSystemColors - kLowSystemColors - _engine->getResourceFile()->_maxTransColors;

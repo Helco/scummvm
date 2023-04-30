@@ -35,6 +35,11 @@ enum class SpritePickableMode {
 
 class SpriteContext;
 
+struct SpriteSubRect {
+	Common::SharedPtr<ISurfaceResource> _bitmap;
+	Rect _bounds;
+};
+
 class Sprite : public IResource {
 	friend class SpriteContext;
 
@@ -46,6 +51,8 @@ public:
 
 	virtual bool load(Common::Array<byte> &&data) override;
 
+	void render(Rect outBounds);
+	void animate();
 	void setLevel(int32 newLevel);
 	void addCell(Common::SharedPtr<ISurfaceResource> resource);
 
@@ -60,16 +67,20 @@ public:
 	}
 
 private:
+	void renderSubRect(Common::SharedPtr<ISurfaceResource> bitmap, Rect bounds, Rect outBounds);
 	void setBoundsByCurrentCell();
 
 private:
 	SpriteContext *_spriteCtx;
 	Common::Array<Common::SharedPtr<ISurfaceResource> > _cells;
+	Common::Array<SpriteSubRect> _subRects;
 
 	Point _pos;
 	Point _scrollPos;
 	Rect _bounds;
 
+	bool _isEnabled;
+	bool _isVisible;
 	bool _isScrollable;
 	bool _animateCell;
 	bool _animateCellsForward;

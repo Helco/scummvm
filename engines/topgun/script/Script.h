@@ -372,6 +372,8 @@ public:
 	Script(TopGunEngine *engine);
 	~Script();
 
+	void runMessageQueue();
+
 	void runEntry(); ///< also sets up a new scene (e.g. loads plugin procedures)
 	void run(uint32 index);
 	void runRoot(Common::MemorySeekableReadWriteStream &stream);

@@ -57,6 +57,9 @@ public:
 	SpriteContext(TopGunEngine *engine);
 	~SpriteContext();
 
+	void render();
+	void animate();
+
 	SharedPtr<Sprite> createSprite(uint32 index);
 	SharedPtr<Graphics::Font> loadFont(const Common::String &name, int32 height);
 	void setPaletteFromResourceFile();
@@ -87,7 +90,7 @@ private:
 private:
 	TopGunEngine *_engine;
 
-	Point _scrollPos, _paintOffset;
+	Point _scrollPos, _backgroundOffset;
 	Rect _screenBounds;
 	Rect _backgroundBounds;
 	Rect _fullBackgroundBounds;

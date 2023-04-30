@@ -40,6 +40,9 @@ Script::~Script() {
 		delete procedure;
 }
 
+void Script::runMessageQueue() {
+}
+
 void Script::runEntry() {
 	_localVariables.clear();
 	_stack.clear();

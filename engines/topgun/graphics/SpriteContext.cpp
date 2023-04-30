@@ -46,12 +46,47 @@ SpriteContext::SpriteContext(TopGunEngine *engine) :
 	_screenBounds.left = (_screen->w - 1) / -2;
 	_screenBounds.top = (_screen->h - 1) / -2;
 	_screenBounds.right = _screenBounds.left + _screen->w;
-	_screenBounds.bottom = _screenBounds.right + _screen->h;
+	_screenBounds.bottom = _screenBounds.top + _screen->h;
 }
 
 SpriteContext::~SpriteContext() {
 	for (auto cursorGroup : _cursorGroups)
 		delete cursorGroup;
+}
+
+void SpriteContext::render() {
+	_screen->clear(_colorBackground);
+
+	if (_bitmapBackground != nullptr) {
+		Rect srcRect(_backgroundBounds.width(), _backgroundBounds.height());
+		srcRect.translate(_backgroundOffset.x, _backgroundOffset.y);
+		srcRect.translate(-_scrollPos.x, -_scrollPos.y);
+		Point dstPos(-_screenBounds.left, -_screenBounds.top);
+		_screen->blitFrom(*_bitmapBackground->getSurface(), srcRect, dstPos);
+	}
+
+	for (auto sprite : _sprites)
+		sprite->render(_backgroundBounds);
+
+	/*auto r = Rect(_screen->w / 256, _screen->h / 10);
+	for (int i = 0; i < 256; i++)
+	{
+		_screen->fillRect(r, i);
+		r.translate(r.width(), 0);
+	}*/
+
+	_screen->update();
+}
+
+void SpriteContext::animate() {
+	_nestedSpriteLoops++;
+
+	for (; _curSpriteIndex < _sprites.size(); _curSpriteIndex++) {
+		_sprites[_curSpriteIndex]->animate();
+	}
+	_curSpriteIndex = 0;
+
+	_nestedSpriteLoops--;
 }
 
 Common::SharedPtr<Sprite> SpriteContext::createSprite(uint32 index) {
@@ -183,9 +218,9 @@ void SpriteContext::resetBackgroundBounds() {
 	_backgroundBounds.right = _bitmapBackground == nullptr ? _screen->w : _bitmapBackground->getSurface()->w;
 	_backgroundBounds.bottom = _bitmapBackground == nullptr ? _screen->h : _bitmapBackground->getSurface()->h;
 
-	_paintOffset.x = (_backgroundBounds.right - 1) / 2;
-	_paintOffset.y = (_backgroundBounds.bottom - 1) / 2;
-	_backgroundBounds.translate(_paintOffset.x, _paintOffset.y);
+	_backgroundOffset.x = (_backgroundBounds.right - 1) / 2;
+	_backgroundOffset.y = (_backgroundBounds.bottom - 1) / 2;
+	_backgroundBounds.translate(-_backgroundOffset.x, -_backgroundOffset.y);
 	_fullBackgroundBounds = _backgroundBounds;
 
 	if (_clipBox.right > _clipBox.left)
@@ -210,11 +245,11 @@ void SpriteContext::clipScrollBox() {
 byte SpriteContext::getNearestSceneColor(byte r, byte g, byte b) {
 	int minIndex = -1;
 	int minScore = INT32_MAX;
-	for (int i = 0; i < _sceneColorCount; i++) {
+	for (int i = kLowSystemColors; i < kLowSystemColors + _sceneColorCount; i++) {
 		int curScore =
-			ABS(_currentPalette[(kLowSystemColors + i) * 3 + 0] - r) +
-			ABS(_currentPalette[(kLowSystemColors + i) * 3 + 1] - g) +
-			ABS(_currentPalette[(kLowSystemColors + i) * 3 + 2] - b);
+			ABS(_currentPalette[i * 3 + 0] - r) +
+			ABS(_currentPalette[i * 3 + 1] - g) +
+			ABS(_currentPalette[i * 3 + 2] - b);
 		if (curScore >= minScore)
 			continue;
 		minIndex = i;
@@ -228,6 +263,7 @@ byte SpriteContext::getNearestSceneColor(byte r, byte g, byte b) {
 		_currentPalette[minIndex * 3 + 0] = r;
 		_currentPalette[minIndex * 3 + 1] = g;
 		_currentPalette[minIndex * 3 + 2] = b;
+		g_system->getPaletteManager()->setPalette(_currentPalette + minIndex * 3, minIndex, 1);
 	}
 	return minIndex;
 }

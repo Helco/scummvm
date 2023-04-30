@@ -30,7 +30,16 @@ namespace TopGun {
 Sprite::Sprite(SpriteContext *spriteCtx, uint32 index) :
 	IResource(kResourceType, index),
 	_spriteCtx(spriteCtx),
+	_isEnabled(true),
+	_isVisible(false),
 	_isScrollable(false),
+	_animateCell(false),
+	_animateCellsForward(false),
+	_setToNextCellOnRepaint(false),
+	_rectPickable(false),
+	_cellIndexStart(0),
+	_cellIndexStop(0),
+	_curCellIndex(0),
 	_level(0) {
 }
 
@@ -76,6 +85,39 @@ bool Sprite::load(Common::Array<byte> &&data) {
 	}
 
 	return !stream.err();
+}
+
+void Sprite::render(Rect outBounds) {
+	if (!_isVisible)
+		return;
+	if (_subRects.empty()) {
+		renderSubRect(_cells[_curCellIndex], _bounds, outBounds);
+	}
+	else {
+		for (auto &subRect : _subRects)
+			renderSubRect(subRect._bitmap, subRect._bounds, outBounds);
+	}
+}
+
+void Sprite::renderSubRect(Common::SharedPtr<ISurfaceResource> bitmap, Rect bounds, Rect outBounds) {
+	auto clippedBounds = bounds;
+	clippedBounds.clip(outBounds);
+	if (_isScrollable)
+		clippedBounds.clip(_spriteCtx->_clippedScrollBox);
+	// TODO: Sprites can have their own clipping rect
+
+	auto srcRect = Rect(clippedBounds.width(), clippedBounds.height());
+	srcRect.translate(
+		clippedBounds.left - bounds.left,
+		clippedBounds.top - bounds.top);
+	Point dstPos(
+		clippedBounds.left - _spriteCtx->_screenBounds.left,
+		clippedBounds.top - _spriteCtx->_screenBounds.top);
+	_spriteCtx->_screen->blitFrom(*bitmap->getSurface(), srcRect, dstPos);
+}
+
+void Sprite::animate() {
+
 }
 
 void Sprite::setLevel(int32 newLevel) {

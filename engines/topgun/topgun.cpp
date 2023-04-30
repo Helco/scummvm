@@ -66,43 +66,40 @@ Common::String TopGunEngine::getGameId() const {
 }
 
 Common::Error TopGunEngine::run() {
+	setDebugger(new Console());
+
+	CursorMan.showMouse(true);
 	initGraphics(800, 600);
 	_spriteCtx.reset(new SpriteContext(this));
-
-	// Set the engine's debugger console
-	setDebugger(new Console());
 
 	// If a savegame was selected from the launcher, load it
 	int saveSlot = ConfMan.getInt("save_slot");
 	if (saveSlot != -1)
 		(void)loadGameState(saveSlot);
 
-	// TODO: Load Cursors
 	// TODO: Init Audio
-	// TODO: Init Sprite
 	// TODO: Set MessageProc, MovieProc, ServiceProc
 
 	if (!sceneIn("tama.bin"))
 		return Common::kUnknownError;
 
-	// Simple event handling loop
-	byte pal[256 * 3] = { 0 };
 	Common::Event e;
-	int offset = 0;
-
 	while (!shouldQuit()) {
 		while (g_system->getEventManager()->pollEvent(e)) {
+			
 		}
 
-		// Cycle through a simple palette
-		++offset;
-		for (int i = 0; i < 256; ++i)
-			pal[i * 3 + 1] = (i + offset) % 256;
-		g_system->getPaletteManager()->setPalette(pal, 0, 256);
+		_spriteCtx->animate();
+		// TODO: Call plugins with update function
+		// TODO: Call no-input-script
+		// TODO: Update timers
+		// TODO: Update native timers
+		// TODO: Update Hit detect triggers
+		// TODO: Update movies
+		_script->runMessageQueue();
 
-		// Delay for a bit. All events loops should have a delay
-		// to prevent the system being unduly loaded
-		g_system->delayMillis(10);
+		_spriteCtx->render();
+		g_system->delayMillis(15);
 	}
 
 	return Common::kNoError;

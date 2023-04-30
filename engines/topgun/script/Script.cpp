@@ -64,6 +64,24 @@ void Script::runEntry() {
 	run(resFile->_entryId);
 }
 
+int32 Script::runMessage(uint32 index, uint32 localScopeSize, uint32 argCount, const int32 *args) {
+	const auto prevResult = _scriptResult;
+	_scriptResult = 0;
+
+	_localScope += localScopeSize;
+	setupLocalArguments(args, argCount);
+	run(index);
+	_localScope -= localScopeSize;
+
+	const auto newResult = _scriptResult;
+	_scriptResult = prevResult;
+	return newResult;
+}
+
+int32 Script::runSimpleMessage(uint32 index, int32 arg) {
+	return runMessage(index, 0, 1, &arg);
+}
+
 void Script::run(uint32 index) {
 	debugCN(kTrace, kDebugScript, "Running %d\n", index);
 
@@ -173,7 +191,7 @@ void Script::setVariable(int32 index, int32 value) {
 	}
 }
 
-void Script::setupLocalArguments(int32 *args, uint32 argCount) {
+void Script::setupLocalArguments(const int32 *args, uint32 argCount) {
 	if (_localScope + argCount > _localVariables.size())
 		_localVariables.resize(_localScope + argCount);
 
@@ -197,6 +215,78 @@ void Script::setString(int32 index, const Common::String &value) {
 	if (isConstString)
 		error("Attempted to modify const string %d", index);
 	_scene->setDynamicString(index - 1, value);
+}
+
+void Script::onKeyDown(Common::KeyState keyState) {
+	auto windowsKey = _engine->convertScummKeyToWindows(keyState.keycode);
+	if (windowsKey < 0 || _keyListeners[windowsKey]._isDisabled)
+		return;
+	uint32 script;
+	if (keyState.hasFlags(Common::KBD_SHIFT))
+		script = _keyListeners[windowsKey]._scriptShift;
+	else if (keyState.hasFlags(Common::KBD_CTRL))
+		script = _keyListeners[windowsKey]._scriptControl;
+	else if (keyState.hasFlags(Common::KBD_SHIFT | Common::KBD_CTRL))
+		script = _keyListeners[windowsKey]._scriptShiftAndControl;
+	else
+		script = _keyListeners[windowsKey]._scriptUnmodified;
+	if (script)
+		runSimpleMessage(script, windowsKey);
+}
+
+void Script::onKeyUp(Common::KeyState keyState) {
+	auto windowsKey = _engine->convertScummKeyToWindows(keyState.keycode);
+	if (windowsKey >= 0 && _keyListeners[windowsKey]._scriptUp)
+		runSimpleMessage(_keyListeners[windowsKey]._scriptUp, windowsKey);
+}
+
+void ScriptKeyListener::setDownScript(uint32 script, bool isForShift, bool isForControl) {
+	_isDisabled = false;
+	if (isForShift && isForControl)
+		_scriptShiftAndControl = script;
+	else if (isForShift)
+		_scriptShift = script;
+	else if (isForControl)
+		_scriptControl = script;
+	else
+		_scriptUnmodified = script;
+}
+
+void Script::setKeyListener(int32 key, uint32 script, bool isForShift, bool isForControl) {
+	if (key < 0)
+		return;
+	else if (key < kWindowsKeyCount)
+		_keyListeners[key].setDownScript(script, isForShift, isForControl);
+	else {
+		for (int32 i = 0; i < kWindowsKeyCount; i++)
+			_keyListeners[i].setDownScript(script, isForShift, isForControl);
+	}
+}
+
+void Script::setKeyUpListener(int32 key, uint32 script) {
+	if (key < 0)
+		return;
+	else if (key < kWindowsKeyCount) {
+		_keyListeners[key]._scriptUp = script;
+		_keyListeners[key]._isDisabled = false;
+	}
+	else {
+		for (int32 i = 0; i < kWindowsKeyCount; i++) {
+			_keyListeners[i]._scriptUp = script;
+			_keyListeners[i]._isDisabled = false;
+		}
+	}
+}
+
+void Script::toggleKeyListener(int32 key, bool toggle) {
+	if (key < 0)
+		return;
+	else if (key < kWindowsKeyCount)
+		_keyListeners[key]._isDisabled = !toggle;
+	else {
+		for (int32 i = 0; i < kWindowsKeyCount; i++)
+			_keyListeners[i]._isDisabled = !toggle;
+	}
 }
 
 }

@@ -79,17 +79,7 @@ int32 Script::runCalc(Common::SeekableReadStream &stream) {
 			const auto scopeSize = readUint(stream);
 			const auto argCount = readUint(stream);
 			const auto scriptIndex = _stack[_stack.size() - argCount - 1];
-			const auto prevScriptResult = _scriptResult;
-
-			setupLocalArguments(_stack.data() + _stack.size() - argCount, argCount);
-			_scriptResult = 0;
-			_localScope += scopeSize;
-			run(scriptIndex);
-			_localScope -= scopeSize;
-
-			_stack.resize(_stack.size() - argCount - 1);
-			stackPush(_scriptResult);
-			_scriptResult = prevScriptResult;
+			runMessage(scriptIndex, scopeSize, argCount, _stack.data() + _stack.size() - argCount);
 		}break;
 		case ScriptCalcOp::kNegate: stackPush(-stackPop()); break;
 		case ScriptCalcOp::kBooleanNot: stackPush(stackPop() == 0); break;

@@ -43,7 +43,8 @@ TopGunEngine::TopGunEngine(OSystem *syst, const TopGunGameDescription *gameDesc)
 	_script(new Script(this)),
 	_savestate(new Savestate()),
 	_topMostSpriteIndex(0),
-	_clearTopMostSpriteScript(0) {
+	_clearTopMostSpriteScript(0),
+	_windowsToScummKey{ Common::KEYCODE_INVALID }  {
 	g_engine = this;
 
 	gDebugLevel = kVerbose;
@@ -98,6 +99,12 @@ Common::Error TopGunEngine::run() {
 					setTopMostSprite(nullptr);
 					break;
 				}
+				break;
+			case Common::EVENT_KEYDOWN:
+				_script->onKeyDown(e.kbd);
+				break;
+			case Common::EVENT_KEYUP:
+				_script->onKeyUp(e.kbd);
 				break;
 			}
 		}

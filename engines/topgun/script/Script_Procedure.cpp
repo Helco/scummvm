@@ -82,6 +82,28 @@ int32 Script::runInternalProcedure(uint32 procId, const int32 *args, uint32 argC
 		_engine->getSpriteCtx()->setBackground(args[0], args[0], (BackgroundAnimation)args[1], args[2], args[3]);
 		break;
 
+	case ScriptOp::kSetKeyListener:
+		checkArgCount(argCount, 2);
+		setKeyListener(args[0], args[1], false, false);
+		break;
+	case ScriptOp::kSetModifiedKeyListener:
+		checkArgCount(argCount, 4);
+		setKeyListener(args[0], args[3], args[2] != 0, args[1] != 0);
+		break;
+	case ScriptOp::kDeleteKeyListener:
+		checkArgCount(argCount, 1);
+		setKeyListener(args[0], 0, false, false);
+		break;
+	case ScriptOp::kDeleteModifiedKeyListener:
+		checkArgCount(argCount, 3);
+		setKeyListener(args[0], 0, args[2] != 0, args[1] != 0);
+		break;
+	case ScriptOp::kToggleKeyListener:
+	case ScriptOp::kToggleModifiedKeyListener:
+		checkArgCount(argCount, 2, 4);
+		toggleKeyListener(args[0], args[argCount - 1] != 0);
+		break;
+
 	case ScriptOp::kGetRegistryString:
 	case ScriptOp::kGetRegistryString_dup: {
 		checkArgCount(argCount, 3, 4);

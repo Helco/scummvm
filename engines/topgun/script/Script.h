@@ -33,6 +33,8 @@ namespace TopGun {
 
 class TopGunEngine;
 
+constexpr int32 kWindowsKeyCount = 256;
+
 /*
  * There are not one, not two, but three different script languages
  * present in TopGun games:
@@ -98,8 +100,8 @@ enum class ScriptOp {
 	kFreeResource = 34,
 	kDeleteIniSection = 35,
 	kSetClickRect36 = 36,
-	kArray1943_37 = 37,
-	kArray1943_38 = 38,
+	kDeleteKeyListener = 37,
+	kDeleteModifiedKeyListener = 38,
 	kSetClickRect39 = 39,
 	kSetHitDetectTrigger40 = 40,
 	kDistance = 41,
@@ -110,8 +112,8 @@ enum class ScriptOp {
 	kSetClickRect46 = 46,
 	kSetClickRect47 = 47,
 	kBufferCDC_48 = 48,
-	kArray1943_50 = 50,
-	kArray1943_51 = 51,
+	kToggleKeyListener = 50,
+	kToggleModifiedKeyListener = 51,
 	kSetClickRect52 = 52,
 	kPickedSprite53 = 53,
 	kChangeScene54 = 54,
@@ -185,8 +187,8 @@ enum class ScriptOp {
 	kDeleteClickRect = 126,
 	kSpriteSetData127 = 127,
 	kbufferCDC_128 = 128,
-	karray1943_129 = 129,
-	karray1943_130 = 130,
+	kSetKeyListener = 129,
+	kSetModifiedKeyListener = 130,
 	kSetReg3EF7 = 131,
 	kBrowseEvents132 = 132,
 	kSetClickRect133 = 133,
@@ -367,19 +369,37 @@ enum class ScriptCalcOp {
 	kShiftRight
 };
 
+struct ScriptKeyListener {
+	uint32 _scriptUnmodified,
+		_scriptShift,
+		_scriptControl,
+		_scriptShiftAndControl,
+		_scriptUp;
+	bool _isDisabled;
+
+	void setDownScript(uint32 script, bool isForShift, bool isForControl);
+};
+
 class Script {
 public:
 	Script(TopGunEngine *engine);
 	~Script();
 
 	void runMessageQueue();
-
 	void runEntry(); ///< also sets up a new scene (e.g. loads plugin procedures)
+	int32 runMessage(uint32 index, uint32 localScopeSize, uint32 argCount, const int32 *args);
+	int32 runSimpleMessage(uint32 index, int32 arg);
 	void run(uint32 index);
 	void runRoot(Common::MemorySeekableReadWriteStream &stream);
 	void runSingleRootInstruction(Common::MemorySeekableReadWriteStream &stream);
 	int32 runCalc(Common::SeekableReadStream &stream);
 	int32 runProcedure(uint32 procId, const int32 *args, uint32 argCount);
+
+	void onKeyDown(Common::KeyState keyState);
+	void onKeyUp(Common::KeyState keyState);
+	void setKeyListener(int32 key, uint32 script, bool isForShift, bool isForControl);
+	void setKeyUpListener(int32 key, uint32 script);
+	void toggleKeyListener(int32 key, bool toggle);
 
 	int32 evalValue(int32 valueOrIndex, bool isIndex);
 	Common::String getString(int32 index);
@@ -391,7 +411,7 @@ private:
 	int32 readSint(Common::ReadStream &stream);
 	uint32 readUint(Common::ReadStream &stream);
 	void setVariable(int32 index, int32 value);
-	void setupLocalArguments(int32 *args, uint32 argCount);
+	void setupLocalArguments(const int32 *args, uint32 argCount);
 	int32 stackTop() const;
 	int32 stackPop();
 	void stackPush(int32 value);
@@ -419,6 +439,7 @@ private:
 
 	int32 _reg3E3F;
 	int32 _pauseEventHandler;
+	ScriptKeyListener _keyListeners[kWindowsKeyCount];
 
 	int32 _scriptResult;
 	uint32 _nestedScriptCount;

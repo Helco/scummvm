@@ -129,6 +129,9 @@ public:
 			: _resources[_topMostSpriteIndex].dynamicCast<Sprite>();
 	}
 
+	int32 convertScummKeyToWindows(Common::KeyCode code);
+	Common::KeyCode convertWindowsKeyToScumm(int32 vkCode);
+
 private:
 	void loadPlugins();
 	IPlugin *loadPlugin(const Common::String &name); // defined in plugins/loadPlugin.cpp
@@ -161,6 +164,8 @@ private:
 
 	uint32 _topMostSpriteIndex;
 	int32 _clearTopMostSpriteScript;
+
+	Common::KeyCode _windowsToScummKey[kWindowsKeyCount];
 };
 
 extern TopGunEngine *g_engine;

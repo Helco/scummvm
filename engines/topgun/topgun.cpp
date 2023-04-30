@@ -42,7 +42,8 @@ TopGunEngine::TopGunEngine(OSystem *syst, const TopGunGameDescription *gameDesc)
 	_debug(true),
 	_script(new Script(this)),
 	_savestate(new Savestate()),
-	_topMostSpriteIndex(0) {
+	_topMostSpriteIndex(0),
+	_clearTopMostSpriteScript(0) {
 	g_engine = this;
 
 	gDebugLevel = kVerbose;
@@ -86,7 +87,19 @@ Common::Error TopGunEngine::run() {
 	Common::Event e;
 	while (!shouldQuit()) {
 		while (g_system->getEventManager()->pollEvent(e)) {
-			
+			switch (e.type) {
+			case Common::EVENT_CUSTOM_ENGINE_ACTION_START:
+				switch ((TopGunEvent)e.customType) {
+				case TopGunEvent::kClearTopMostSprite:
+					if (_clearTopMostSpriteScript) {
+						_script->run(_clearTopMostSpriteScript);
+						_clearTopMostSpriteScript = 0;
+					}
+					setTopMostSprite(nullptr);
+					break;
+				}
+				break;
+			}
 		}
 
 		_spriteCtx->animate();
@@ -202,6 +215,15 @@ void TopGunEngine::setTopMostSprite(Sprite *sprite) {
 		freeResource(_topMostSpriteIndex);
 
 	_topMostSpriteIndex = sprite == nullptr ? 0 : sprite->getResourceIndex();
+}
+
+void TopGunEngine::postClearTopMostSprite(int32 script) {
+	_clearTopMostSpriteScript = script;
+
+	Common::Event ev;
+	ev.type = Common::EVENT_CUSTOM_ENGINE_ACTION_START;
+	ev.customType = (Common::CustomEventType)TopGunEvent::kClearTopMostSprite;
+	g_system->getEventManager()->pushEvent(ev);
 }
 
 } // End of namespace Topgun

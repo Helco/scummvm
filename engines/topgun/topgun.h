@@ -30,6 +30,7 @@
 #include "common/random.h"
 #include "common/serializer.h"
 #include "common/util.h"
+#include <common/events.h>
 #include "engines/engine.h"
 #include "engines/savestate.h"
 #include "graphics/screen.h"
@@ -52,6 +53,11 @@ using Common::Array;
 namespace TopGun {
 
 struct TopgunGameDescription;
+
+enum class TopGunEvent : Common::CustomEventType {
+	// originally these are Windows messages
+	kClearTopMostSprite = 0x4C8
+};
 
 class TopGunEngine : public Engine {
 private:
@@ -140,6 +146,7 @@ public:
 	}
 
 	void setTopMostSprite(Sprite *sprite);
+	void postClearTopMostSprite(int32 script);
 
 private:
 	bool _debug;
@@ -153,6 +160,7 @@ private:
 	Array<IPlugin *> _plugins;
 
 	uint32 _topMostSpriteIndex;
+	int32 _clearTopMostSpriteScript;
 };
 
 extern TopGunEngine *g_engine;

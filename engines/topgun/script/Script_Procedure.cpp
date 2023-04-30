@@ -51,7 +51,7 @@ int32 Script::runInternalProcedure(uint32 procId, const int32 *args, uint32 argC
 		return INT32_MAX;
 	case ScriptOp::kClearTopMostSpriteNextFrame:
 		checkArgCount(argCount, 1);
-		warning("stub procedure ClearTopMostSpriteNextFrame");
+		_engine->postClearTopMostSprite(args[0]);
 		break;
 	case ScriptOp::kLoadResource:
 		checkArgCount(argCount, 1);

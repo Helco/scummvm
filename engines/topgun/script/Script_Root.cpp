@@ -45,6 +45,11 @@ void Script::runSingleRootInstruction(Common::MemorySeekableReadWriteStream &str
 	case ScriptOp::kJump:
 		stream.seek(readSint(stream) - calcJumpOffset(1), SEEK_CUR);
 		break;
+	case ScriptOp::kReturn:
+		readUint(stream);
+		_scriptResult = runCalc(stream);
+		stream.seek(0, SEEK_END);
+		break;
 	case ScriptOp::kExit:
 		stream.seek(0, SEEK_END);
 		break;

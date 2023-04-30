@@ -101,6 +101,10 @@ int32 Script::runInternalProcedure(uint32 procId, const int32 *args, uint32 argC
 		checkArgCount(argCount, 4);
 		_engine->getSpriteCtx()->setBackground(args[0], args[0], (BackgroundAnimation)args[1], args[2], args[3]);
 		break;
+	case ScriptOp::kSpriteSetClipBox:
+		checkArgCount(argCount, 4);
+		_engine->getSpriteCtx()->setClipBox(Rect(args[0], args[1], args[2], args[3]));
+		break;
 
 	case ScriptOp::kSetKeyListener:
 		checkArgCount(argCount, 2);

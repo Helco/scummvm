@@ -230,7 +230,7 @@ enum class ScriptOp {
 	kSetBackgroundBitmap = 170,
 	kSetBackgroundBitmapWithAnimation = 171,
 	kSetStringChar = 172,
-	kSpriteSetClipBox173 = 173,
+	kSpriteSetClipBox = 173,
 	kBackupCursorPos174 = 174,
 	kRunCalc = 175,
 	kBufferCDC_176 = 176,

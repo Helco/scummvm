@@ -66,6 +66,7 @@ public:
 	void setPaletteFromResourceFile();
 	void fadePalette(uint32 t, uint32 maxT, byte colorOffset, byte colorCount);
 	void setCursor(int32 id);
+	void setClipBox(Rect clipBox = Rect());
 	void setBackground(
 		uint32 highResBitmap,
 		uint32 lowResBitmap,

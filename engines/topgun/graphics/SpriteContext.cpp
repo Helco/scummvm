@@ -90,7 +90,8 @@ void SpriteContext::animate() {
 }
 
 void SpriteContext::resetScene() {
-	// TODO: reset clipBox, scrollBox
+	// TODO: reset scrollBox
+	setClipBox();
 	setBackground(0);
 
 	_sprites.clear();
@@ -249,6 +250,15 @@ void SpriteContext::clipScrollBox() {
 	// TODO: Add tile background handling here
 	if (_bitmapBackground != nullptr)
 		_clippedScrollBox.clip(_fullBackgroundBounds);
+}
+
+void SpriteContext::setClipBox(Rect rect) {
+	_clipBox = rect;
+	if (_clipBox.left < _clipBox.right && _clipBox.top < _clipBox.bottom) {
+		_clipBox.right++;
+		_clipBox.bottom++;
+	}
+	resetBackgroundBounds();
 }
 
 byte SpriteContext::getNearestSceneColor(byte r, byte g, byte b) {

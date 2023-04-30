@@ -60,6 +60,7 @@ public:
 	void render();
 	void animate();
 
+	void resetScene();
 	SharedPtr<Sprite> createSprite(uint32 index);
 	SharedPtr<Graphics::Font> loadFont(const Common::String &name, int32 height);
 	void setPaletteFromResourceFile();

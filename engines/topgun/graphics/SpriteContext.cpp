@@ -89,6 +89,15 @@ void SpriteContext::animate() {
 	_nestedSpriteLoops--;
 }
 
+void SpriteContext::resetScene() {
+	// TODO: reset clipBox, scrollBox
+	setBackground(0);
+
+	_sprites.clear();
+	_fonts.clear();
+	_fontTopGunNames.clear();
+}
+
 Common::SharedPtr<Sprite> SpriteContext::createSprite(uint32 index) {
 	auto sprite = Common::SharedPtr<Sprite>(new Sprite(this, index));
 	_sprites.push_back(sprite); // shortly invalidating order, to be fixed shortly during load

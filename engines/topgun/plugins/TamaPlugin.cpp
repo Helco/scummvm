@@ -42,6 +42,8 @@ ScriptPluginProcedure *TamaPlugin::getScriptProcedure(const Common::String &name
 		return new ScriptPluginProcedureMem<TamaPlugin>(this, &TamaPlugin::dialogSignalAttention);
 	else if (!name.compareToIgnoreCase("Window_ShowFullScreen"))
 		return new ScriptPluginProcedureMem<TamaPlugin>(this, &TamaPlugin::dialogSignalAttention);
+	else if (!name.compareToIgnoreCase("TamagoGetNumScrap"))
+		return new ScriptPluginProcedureMem<TamaPlugin>(this, &TamaPlugin::dialogSignalAttention);
 	else
 		return nullptr;
 }

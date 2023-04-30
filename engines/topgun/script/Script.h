@@ -117,9 +117,9 @@ enum class ScriptOp {
 	kSetClickRect52 = 52,
 	kPickedSprite53 = 53,
 	kChangeScene54 = 54,
-	kScene55 = 55,
-	kScene56 = 56,
-	kScene57 = 57,
+	kChangeScene = 55,
+	kQuitScene = 56,
+	kChangeSceneToTmpString = 57,
 	kSetTmpString = 58,
 	kGetWinIconOrBitmap = 59,
 	kFade = 60,
@@ -417,7 +417,6 @@ private:
 	void stackPush(int32 value);
 	void setString(int32 index, const Common::String &value);
 	int32 calcJumpOffset(uint32 nativeIntCount, uint32 additionalBytes = 0) const;
-
 	void jumpToCase(Common::SeekableReadStream &stream,
 					int32 switchValue,
 					uint32 offsetToCases,
@@ -425,6 +424,7 @@ private:
 					int32 defaultJumpDistance,
 					int64 startPos);
 	int32 simpleCalc(int32 left, int32 right, byte op, bool negateRight, bool isRightIndirect);
+	void prepareSceneChange();
 
 	struct FormatValue {
 		bool _isInteger;

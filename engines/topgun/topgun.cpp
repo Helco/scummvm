@@ -42,6 +42,8 @@ TopGunEngine::TopGunEngine(OSystem *syst, const TopGunGameDescription *gameDesc)
 	_debug(true),
 	_script(new Script(this)),
 	_savestate(new Savestate()),
+	_curSceneIndex(0),
+	_lastSceneIndex(0),
 	_topMostSpriteIndex(0),
 	_clearTopMostSpriteScript(0),
 	_windowsToScummKey{ Common::KEYCODE_INVALID }  {
@@ -98,6 +100,9 @@ Common::Error TopGunEngine::run() {
 					}
 					setTopMostSprite(nullptr);
 					break;
+				case TopGunEvent::kChangeScene:
+					handleChangeScene();
+					break;
 				}
 				break;
 			case Common::EVENT_KEYDOWN:
@@ -148,7 +153,14 @@ bool TopGunEngine::sceneIn(const Common::String &name) {
 	_resources.resize(_resFile->_totalResources);
 	Common::fill(_resources.begin(), _resources.end(), nullptr);
 	loadPlugins();
-	_scenes.push_back(new Scene(this, name));
+
+	_lastSceneIndex = _curSceneIndex;
+	for (_curSceneIndex = 0; _curSceneIndex < _scenes.size(); _curSceneIndex++) {
+		if (!_scenes[_curSceneIndex]->getName().compareToIgnoreCase(name))
+			break;
+	}
+	if (_curSceneIndex == _scenes.size())
+		_scenes.push_back(new Scene(this, name));
 
 	_spriteCtx->setPaletteFromResourceFile();
 	_script->runEntry();
@@ -208,13 +220,16 @@ void TopGunEngine::freeResource(uint32 index) {
 }
 
 void TopGunEngine::loadPlugins() {
-	for (auto plugin : _plugins)
-		delete plugin;
-	_plugins.clear();
-
+	clearPlugins();
 	_plugins.reserve(_resFile->_plugins.size());
 	for (auto &pluginName : _resFile->_plugins)
 		_plugins.push_back(loadPlugin(pluginName));
+}
+
+void TopGunEngine::clearPlugins() {
+	for (auto plugin : _plugins)
+		delete plugin;
+	_plugins.clear();
 }
 
 void TopGunEngine::setTopMostSprite(Sprite *sprite) {
@@ -231,6 +246,41 @@ void TopGunEngine::postClearTopMostSprite(int32 script) {
 	ev.type = Common::EVENT_CUSTOM_ENGINE_ACTION_START;
 	ev.customType = (Common::CustomEventType)TopGunEvent::kClearTopMostSprite;
 	g_system->getEventManager()->pushEvent(ev);
+}
+
+void TopGunEngine::postQuitScene() {
+	if (_curSceneIndex == _lastSceneIndex) {
+		debugCN(kInfo, kDebugRuntime, "Quit scene to quit game\n");
+		g_engine->quitGame();
+		return;
+	}
+	postChangeScene(_scenes[_lastSceneIndex]->getName());
+}
+
+void TopGunEngine::postChangeScene(const Common::String &name) {
+	debugCN(kInfo, kDebugRuntime, "Post scene change to %s\n", name.c_str());
+	_nextSceneName = name;
+
+	Common::Event ev;
+	ev.type = Common::EVENT_CUSTOM_ENGINE_ACTION_START;
+	ev.customType = (Common::CustomEventType)TopGunEvent::kChangeScene;
+	g_system->getEventManager()->pushEvent(ev);
+}
+
+void TopGunEngine::handleChangeScene() {
+	_lastSceneIndex = _curSceneIndex;
+	g_system->getEventManager()->getEventDispatcher()->clearEvents();
+	resetCurrentScene();
+	sceneIn(_nextSceneName);
+}
+
+void TopGunEngine::resetCurrentScene() {
+	_resources.clear();
+
+	// TODO: clear movies, timers, hitdetects, clickrects, probably browseevents
+
+	_spriteCtx->resetScene();
+	clearPlugins();
 }
 
 } // End of namespace Topgun

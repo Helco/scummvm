@@ -56,7 +56,8 @@ struct TopgunGameDescription;
 
 enum class TopGunEvent : Common::CustomEventType {
 	// originally these are Windows messages
-	kClearTopMostSprite = 0x4C8
+	kClearTopMostSprite = 0x4C8,
+	kChangeScene = 0x4C9
 };
 
 class TopGunEngine : public Engine {
@@ -115,7 +116,7 @@ public:
 		return _resFile.get();
 	}
 	inline Scene *getScene() {
-		return _scenes.back();
+		return _scenes[_curSceneIndex];
 	}
 	inline Savestate *getSavestate() {
 		return _savestate.get();
@@ -134,7 +135,11 @@ public:
 
 private:
 	void loadPlugins();
+	void clearPlugins();
 	IPlugin *loadPlugin(const Common::String &name); // defined in plugins/loadPlugin.cpp
+
+	void resetCurrentScene();
+	void handleChangeScene();
 
 public:
 	bool sceneIn(const Common::String &name);
@@ -150,6 +155,8 @@ public:
 
 	void setTopMostSprite(Sprite *sprite);
 	void postClearTopMostSprite(int32 script);
+	void postQuitScene();
+	void postChangeScene(const Common::String &name);
 
 private:
 	bool _debug;
@@ -162,6 +169,8 @@ private:
 	Array<SharedPtr<IResource>> _resources;
 	Array<IPlugin *> _plugins;
 
+	Common::String _nextSceneName;
+	uint32 _curSceneIndex, _lastSceneIndex;
 	uint32 _topMostSpriteIndex;
 	int32 _clearTopMostSpriteScript;
 

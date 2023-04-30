@@ -43,6 +43,26 @@ int32 Script::runInternalProcedure(uint32 procId, const int32 *args, uint32 argC
 		checkArgCount(argCount, 1);
 		_engine->getSpriteCtx()->setCursor(args[0]);
 		break;
+	case ScriptOp::kChangeScene:
+		checkArgCount(argCount, 2);
+		if (args[1])
+			_engine->setTopMostSprite(nullptr);
+		prepareSceneChange();
+		_engine->postChangeScene(getString(args[0]));
+		break;
+	case ScriptOp::kQuitScene:
+		checkArgCount(argCount, 1);
+		if (args[0])
+			_engine->setTopMostSprite(nullptr);
+		prepareSceneChange();
+		_engine->postQuitScene();
+		break;
+	case ScriptOp::kChangeSceneToTmpString:
+		checkArgCount(argCount, 0);
+		warning("stub procedure kChangeSceneToTmpString");
+		debugCN(kInfo, kDebugScript, "Quit game due to empty tmp string in changeSceneToTmpString procedure\n");
+		g_engine->quitGame();
+		break;
 	case ScriptOp::kStopFade:
 		// TODO: Implement, was postponed because non-essential
 		break;
@@ -213,6 +233,11 @@ int32 Script::runInternalProcedure(uint32 procId, const int32 *args, uint32 argC
 	}
 
 	return static_cast<int32>(procId);
+}
+
+void Script::prepareSceneChange() {
+	memset(_keyListeners, 0, sizeof(_keyListeners));
+	_reg3E3F = 0;
 }
 
 }

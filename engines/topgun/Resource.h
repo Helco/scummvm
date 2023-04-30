@@ -82,6 +82,18 @@ public:
 	ScriptResource(uint32 index);
 };
 
+class Group : public IResource {
+public:
+	static constexpr ResourceType kResourceType = ResourceType::kGroup;
+
+	Group(uint32 index);
+	virtual ~Group();
+
+	virtual bool load(Common::Array<byte> &&data) override;
+private:
+	Common::Array<uint32> _children;
+};
+
 }
 
 #endif // TOPGUN_IRESOURCE_H

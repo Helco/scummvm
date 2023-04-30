@@ -19,7 +19,7 @@
  *
  */
 
-#include "topgun/Resource.h"
+#include "topgun/topgun.h"
 
 namespace TopGun {
 
@@ -38,6 +38,28 @@ bool RawDataResource::load(Common::Array<byte> &&data) {
 }
 
 ScriptResource::ScriptResource(uint32 index) : RawDataResource(ResourceType::kScript, index) {
+}
+
+Group::Group(uint32 index) : IResource(kResourceType, index) {
+}
+
+Group::~Group() {
+	for (auto child : _children)
+		g_engine->freeResource(child);
+}
+
+bool Group::load(Common::Array<byte> &&data) {
+	assert(g_engine->getResourceFile()->_architecture == Architecture::kBits32);
+	auto stream = Common::MemorySeekableReadWriteStream(data.data(), data.size());
+
+	_children.reserve(data.size() / sizeof(uint32));
+	while (stream.pos() < stream.size())
+		_children.push_back(stream.readUint32LE());
+
+	for (auto child : _children)
+		g_engine->loadResource(child, ResourceType::kInvalid);
+
+	return !stream.err();
 }
 
 }

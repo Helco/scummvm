@@ -189,8 +189,15 @@ SharedPtr<IResource> TopGunEngine::loadResource(uint32 index, ResourceType expec
 	case ResourceType::kBitmap:
 		_resources[index].reset(new Bitmap(index));
 		break;
+	case ResourceType::kWave:
+		_resources[index].reset(new RawDataResource(ResourceType::kWave, index));
+		warning("stub wave resource");
+		break;
 	case ResourceType::kCell:
 		_resources[index].reset(new Cell(index));
+		break;
+	case ResourceType::kGroup:
+		_resources[index].reset(new Group(index));
 		break;
 	case ResourceType::kQueue:
 		_resources[index].reset(new SpriteMessageQueue(index));

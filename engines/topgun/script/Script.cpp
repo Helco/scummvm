@@ -33,7 +33,11 @@ Script::Script(TopGunEngine *engine) :
 	_scriptResult(0),
 	_reg3E3F(0),
 	_mouseEventHandler(0),
-	_pauseEventHandler(-1) {
+	_pauseEventHandler(-1),
+	_areTimersPaused(false),
+	_timeAtPausingTimers(0),
+	_curTimerIndex(0),
+	_wereTimersPausedByGameplay(false) {
 	_systemVariables.resize(engine->getGameDesc()->_systemVarCount);
 	memset(_keyListeners, 0, sizeof(_keyListeners));
 }
@@ -45,6 +49,7 @@ Script::~Script() {
 
 void Script::prepareSceneChange() {
 	_debugger->onScene(false);
+	_timers.clear();
 	memset(_keyListeners, 0, sizeof(_keyListeners));
 	_reg3E3F = 0;
 }
@@ -324,6 +329,70 @@ void Script::toggleKeyListener(int32 key, bool toggle) {
 	else {
 		for (int32 i = 0; i < kWindowsKeyCount; i++)
 			_keyListeners[i]._isDisabled = !toggle;
+	}
+}
+
+void Script::updateTimers() {
+	if (_areTimersPaused)
+		return;
+	for (_curTimerIndex = 0; _curTimerIndex < _timers.size(); _curTimerIndex++) {
+		if (g_system->getMillis() > _timers[_curTimerIndex]._nextTrigger)
+			continue;
+		const auto resIndex = _timers[_curTimerIndex]._script;
+		if (_timers[_curTimerIndex]._repeats)
+			_timers[_curTimerIndex]._nextTrigger = g_system->getMillis() + _timers[_curTimerIndex]._duration;
+		else
+			deleteTimer(_curTimerIndex);
+		runMessage(resIndex);
+	}
+}
+
+void Script::handleEnginePause(bool pause) {
+	if (pause) {
+		_wereTimersPausedByGameplay = _areTimersPaused;
+		pauseTimers(true);
+	}
+	else if (!_wereTimersPausedByGameplay)
+		pauseTimers(false);
+}
+
+void Script::pauseTimers(bool pause) {
+	if (_areTimersPaused == pause)
+		return;
+	_areTimersPaused = pause;
+	if (pause)
+		_timeAtPausingTimers = g_system->getMillis();
+	else {
+		const auto durationPaused = g_system->getMillis() - _timeAtPausingTimers;
+		for (uint32 i = 0; i < _timers.size(); i++)
+			_timers[i]._nextTrigger += durationPaused;
+	}
+}
+
+void Script::setTimer(int32 id, uint32 script, uint32 duration, bool repeats) {
+	uint32 index;
+	for (index = 0; index < _timers.size(); index++) {
+		if (_timers[index]._id == id)
+			break;
+	}
+	if (index == _timers.size())
+		_timers.push_back(ScriptTimer());
+	_timers[index]._id = id;
+	_timers[index]._script = script;
+	_timers[index]._duration = duration;
+	_timers[index]._repeats = repeats;
+	_timers[index]._nextTrigger = g_system->getMillis() + duration;
+}
+
+void Script::deleteTimer(int32 id) {
+	uint32 index;
+	for (index = 0; index < _timers.size(); index++) {
+		if (_timers[index]._id == id) {
+			_timers.remove_at(index);
+			if (index >= _curTimerIndex)
+				_curTimerIndex--;
+			return;
+		}
 	}
 }
 

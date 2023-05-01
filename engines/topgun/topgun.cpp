@@ -71,7 +71,7 @@ Common::String TopGunEngine::getGameId() const {
 
 Common::Error TopGunEngine::run() {
 	setDebugger(new Console(_script->getDebugger()));
-	_script->getDebugger()->runStep();
+	//_script->getDebugger()->runStep();
 
 	CursorMan.showMouse(true);
 	initGraphics(800, 600);
@@ -119,7 +119,7 @@ Common::Error TopGunEngine::run() {
 		_spriteCtx->animate();
 		// TODO: Call plugins with update function
 		// TODO: Call no-input-script
-		// TODO: Update timers
+		_script->updateTimers();
 		// TODO: Update native timers
 		// TODO: Update Hit detect triggers
 		// TODO: Update movies
@@ -130,6 +130,11 @@ Common::Error TopGunEngine::run() {
 	}
 
 	return Common::kNoError;
+}
+
+void TopGunEngine::pauseEngineIntern(bool pause) {
+	Engine::pauseEngineIntern(pause);
+	_script->handleEnginePause(pause);
 }
 
 Common::Error TopGunEngine::syncGame(Common::Serializer &s) {

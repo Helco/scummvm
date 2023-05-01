@@ -111,6 +111,22 @@ int32 Script::runInternalProcedure(uint32 procId, const int32 *args, uint32 argC
 		checkArgCount(argCount, 1);
 		_pauseEventHandler = args[0];
 		break;
+	case ScriptOp::kSetTimer:
+	case ScriptOp::kSetTimer_dup:
+		checkArgCount(argCount, 4);
+		setTimer(args[0], args[2], args[1], args[3]);
+		break;
+	case ScriptOp::kDeleteTimer:
+	case ScriptOp::kDeleteTimer_dup:
+		checkArgCount(argCount, 1);
+		if (args[0] == -1)
+			_timers.clear();
+		else
+			deleteTimer(args[0]);
+		break;
+	case ScriptOp::kPauseTimers:
+		pauseTimers(args[0]);
+		break;
 		
 	case ScriptOp::kSetBackgroundColor:
 	case ScriptOp::kSetBackgroundColorWithAnimation:

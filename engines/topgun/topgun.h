@@ -67,6 +67,7 @@ private:
 	Common::RandomSource _randomSource;
 protected:
 	Common::Error run() override;
+	virtual void pauseEngineIntern(bool pause) override;
 public:
 	TopGunEngine(OSystem *syst, const TopGunGameDescription *gameDesc);
 	~TopGunEngine() override;

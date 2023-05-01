@@ -381,11 +381,23 @@ struct ScriptKeyListener {
 	void setDownScript(uint32 script, bool isForShift, bool isForControl);
 };
 
+struct ScriptTimer {
+	int32 _id;
+	uint32 _script;
+	uint32 _duration;
+	uint32 _nextTrigger;
+	bool _repeats;
+};
+
 class Script {
 	friend class ScriptDebugger;
 public:
 	Script(TopGunEngine *engine);
 	~Script();
+
+	void handleEnginePause(bool pause);
+	void updateTimers();
+	void pauseTimers(bool pause);
 
 	void runMessageQueue();
 	void runEntry(); ///< also sets up a new scene (e.g. loads plugin procedures)
@@ -434,6 +446,9 @@ private:
 	bool simpleCondition(int32 left, int32 right, byte op);
 	void prepareSceneChange();
 
+	void setTimer(int32 id, uint32 script, uint32 duration, bool repeats);
+	void deleteTimer(int32 id);
+
 	struct FormatValue {
 		bool _isInteger;
 		Common::String _string;
@@ -450,6 +465,11 @@ private:
 	int32 _mouseEventHandler;
 	int32 _pauseEventHandler;
 	ScriptKeyListener _keyListeners[kWindowsKeyCount];
+
+	bool _areTimersPaused, _wereTimersPausedByGameplay;
+	uint32 _timeAtPausingTimers,
+		_curTimerIndex;
+	Common::Array<ScriptTimer> _timers;
 
 	int32 _scriptResult;
 	uint32 _nestedScriptCount;

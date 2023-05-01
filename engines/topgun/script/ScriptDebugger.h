@@ -77,7 +77,7 @@ public:
 	bool removePoint(uint32 id);
 	void removeAllPoints();
 
-	void onCallStart(ScriptCallType type, uint32 index, uint32 argCount = 0, uint32 lastScopeSize = 0);
+	void onCallStart(ScriptCallType type, uint32 index, uint32 offset, uint32 argCount = 0, uint32 lastScopeSize = 0);
 	void onCallIncrement(uint32 newOffset);
 	void onCallEnd();
 	void onVariable(bool isWrite, uint32 index);

@@ -73,7 +73,7 @@ void Script::runEntry() {
 	_debugger->onScene(true);
 
 	debugCN(kTrace, kDebugScript, "Running scene entry %d\n", resFile->_entryId);
-	_debugger->onCallStart(ScriptCallType::kRoot, resFile->_entryId);
+	_debugger->onCallStart(ScriptCallType::kRoot, resFile->_entryId, 0);
 	runScript(resFile->_entryId);
 }
 
@@ -93,7 +93,7 @@ int32 Script::runMessage(uint32 index, uint32 localScopeSize, uint32 argCount, c
 
 	_localScope += localScopeSize;
 	setupLocalArguments(args, argCount);
-	_debugger->onCallStart(ScriptCallType::kRoot, index, argCount, localScopeSize);
+	_debugger->onCallStart(ScriptCallType::kRoot, index, 0, argCount, localScopeSize);
 	runScript(index);
 	_localScope -= localScopeSize;
 
@@ -137,7 +137,7 @@ void Script::runRoot(Common::MemorySeekableReadWriteStream &stream, uint32 index
 
 int32 Script::runProcedure(uint32 procId, const int32 *args, uint32 argCount, uint32 scopeSize) {
 	_localScope += scopeSize;
-	_debugger->onCallStart(ScriptCallType::kProcedure, procId, argCount, scopeSize);
+	_debugger->onCallStart(ScriptCallType::kProcedure, procId, 0, argCount, scopeSize);
 
 	const auto result = procId > _engine->getResourceFile()->_maxScrMsg
 		? runPluginProcedure(procId, args, argCount)
@@ -234,7 +234,7 @@ void Script::setupLocalArguments(const int32 *args, uint32 argCount) {
 		_localVariables.resize(_localScope + argCount);
 
 	for (uint32 i = 0; i < argCount; i++)
-		_localVariables[_localScope + argCount - 1 - i] = args[i];
+		_localVariables[_localScope + i] = args[i];
 }
 
 constexpr int32 kConstStrBit = 0x8000;

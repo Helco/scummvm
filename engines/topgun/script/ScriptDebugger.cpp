@@ -110,7 +110,7 @@ void ScriptDebugger::removeAllPoints() {
 	_points.clear();
 }
 
-void ScriptDebugger::onCallStart(ScriptCallType type, uint32 index, uint32 argCount, uint32 lastScopeSize) {
+void ScriptDebugger::onCallStart(ScriptCallType type, uint32 index, uint32 offset, uint32 argCount, uint32 lastScopeSize) {
 	assert(type != ScriptCallType::kInvalid);
 	if (lastScopeSize > 0) {
 		if (_callStack.empty())
@@ -121,13 +121,13 @@ void ScriptDebugger::onCallStart(ScriptCallType type, uint32 index, uint32 argCo
 	ScriptCallStackEntry entry;
 	entry._type = type;
 	entry._index = index;
-	entry._offset = 0;
+	entry._offset = offset;
 	entry._argCount = argCount;
 	entry._localScopeSize = argCount;
 	entry._localScopeStart = _engine->getScript()->_localScope;
 	_callStack.push_back(entry);
 	onCallStackModified();
-	onCallIncrement(0);
+	onCallIncrement(offset);
 }
 
 void ScriptDebugger::onCallEnd() {
@@ -298,7 +298,7 @@ void ScriptDebugger::printLocalScope(uint32 index) {
 			debugger->debugPrintf("Call stack empty, there is no local scope\n");
 			return;
 		}
-		index = _callStack.size() - 1;
+		index = 0;
 	}
 	if (index >= _callStack.size()) {
 		debugger->debugPrintf("Invalid call index %d, there are only %d calls\n", index, _callStack.size());

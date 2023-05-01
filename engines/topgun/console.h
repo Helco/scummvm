@@ -27,11 +27,26 @@
 
 namespace TopGun {
 
+class ScriptDebugger;
+
 class Console : public GUI::Debugger {
 private:
-	bool Cmd_test(int argc, const char **argv);
+	ScriptDebugger *_scriptDebugger;
+
+	bool Cmd_addPoint(int argc, const char **argv);
+	bool Cmd_removePoint(int argc, const char **argv);
+	bool Cmd_removeAllPoints(int argc, const char **argv);
+	bool Cmd_continue(int argc, const char **argv);
+	bool Cmd_step(int argc, const char **argv);
+	bool Cmd_stepOver(int argc, const char **argv);
+	bool Cmd_stepOut(int argc, const char **argv);
+	bool Cmd_listPoints(int argc, const char **argv);
+	bool Cmd_stacktrace(int argc, const char **argv);
+	bool Cmd_localVars(int argc, const char **argv);
+	bool Cmd_globalVars(int argc, const char **argv);
+	bool Cmd_dynStrings(int argc, const char **argv);
 public:
-	Console();
+	Console(ScriptDebugger *scriptDebugger);
 	~Console() override;
 };
 

@@ -24,6 +24,7 @@
 
 #include "common/memstream.h"
 #include "topgun/script/IPlugin.h"
+#include "topgun/script/ScriptDebugger.h"
 #include "topgun/Scene.h"
 
 using Common::Array;
@@ -189,7 +190,7 @@ enum class ScriptOp {
 	kbufferCDC_128 = 128,
 	kSetKeyListener = 129,
 	kSetModifiedKeyListener = 130,
-	kSetReg3EF7 = 131,
+	kSetMouseEventListener = 131,
 	kBrowseEvents132 = 132,
 	kSetClickRect133 = 133,
 	kSetClickRect134 = 134,
@@ -381,19 +382,20 @@ struct ScriptKeyListener {
 };
 
 class Script {
+	friend class ScriptDebugger;
 public:
 	Script(TopGunEngine *engine);
 	~Script();
 
 	void runMessageQueue();
 	void runEntry(); ///< also sets up a new scene (e.g. loads plugin procedures)
+	int32 runMessage(uint32 index);
+	int32 runMessage(uint32 index, int32 arg);
 	int32 runMessage(uint32 index, uint32 localScopeSize, uint32 argCount, const int32 *args);
-	int32 runSimpleMessage(uint32 index, int32 arg);
-	void run(uint32 index);
-	void runRoot(Common::MemorySeekableReadWriteStream &stream);
-	void runSingleRootInstruction(Common::MemorySeekableReadWriteStream &stream);
-	int32 runCalc(Common::SeekableReadStream &stream);
-	int32 runProcedure(uint32 procId, const int32 *args, uint32 argCount);
+	void runRoot(Common::MemorySeekableReadWriteStream &stream, uint32 scriptIndex = UINT32_MAX);
+	void runSingleRootInstruction(Common::MemorySeekableReadWriteStream &stream, uint32 scriptIndex = UINT32_MAX);
+	int32 runCalc(Common::SeekableReadStream &stream, uint32 scriptIndex = UINT32_MAX);
+	int32 runProcedure(uint32 procId, const int32 *args, uint32 argCount, uint32 localScopeSize = 0);
 
 	void onKeyDown(Common::KeyState keyState);
 	void onKeyUp(Common::KeyState keyState);
@@ -404,7 +406,12 @@ public:
 	int32 evalValue(int32 valueOrIndex, bool isIndex);
 	Common::String getString(int32 index);
 
+	inline ScriptDebugger *getDebugger() {
+		return _debugger.get();
+	}
+
 private:
+	void runScript(uint32 index);
 	int32 runInternalProcedure(uint32 procId, const int32 *args, uint32 argCount);
 	int32 runPluginProcedure(uint32 procId, const int32 *args, uint32 argCount);
 
@@ -435,10 +442,12 @@ private:
 	static Common::String sprintfWithArray(const Common::String &format, const Array<FormatValue> &values);
 
 private:
+	ScopedPtr<ScriptDebugger> _debugger;
 	TopGunEngine *_engine;
 	Scene *_scene;
 
 	int32 _reg3E3F;
+	int32 _mouseEventHandler;
 	int32 _pauseEventHandler;
 	ScriptKeyListener _keyListeners[kWindowsKeyCount];
 

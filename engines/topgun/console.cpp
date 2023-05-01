@@ -20,18 +20,158 @@
  */
 
 #include "topgun/console.h"
+#include "topgun/topgun.h"
 
 namespace TopGun {
 
-Console::Console() : GUI::Debugger() {
-	registerCmd("test",   WRAP_METHOD(Console, Cmd_test));
+extern const char *scriptPointTypeNames[];
+
+Console::Console(ScriptDebugger *scriptDebugger) :
+	GUI::Debugger(),
+	_scriptDebugger(scriptDebugger) {
+	registerCmd("trace", WRAP_METHOD(Console, Cmd_addPoint));
+	registerCmd("break", WRAP_METHOD(Console, Cmd_addPoint));
+	registerCmd("delete", WRAP_METHOD(Console, Cmd_removePoint));
+	registerCmd("delete-all", WRAP_METHOD(Console, Cmd_removeAllPoints));
+	registerCmd("continue", WRAP_METHOD(Console, Cmd_continue));
+	registerCmd("step", WRAP_METHOD(Console, Cmd_step));
+	registerCmd("stepOver", WRAP_METHOD(Console, Cmd_stepOver));
+	registerCmd("stepOut", WRAP_METHOD(Console, Cmd_stepOut));
+	registerCmd("list-breaks", WRAP_METHOD(Console, Cmd_listPoints));
+	registerCmd("stacktrace", WRAP_METHOD(Console, Cmd_stacktrace));
+	registerCmd("localVars", WRAP_METHOD(Console, Cmd_localVars));
+	registerCmd("globalVar", WRAP_METHOD(Console, Cmd_globalVars));
+	registerCmd("globalVars", WRAP_METHOD(Console, Cmd_globalVars));
+	registerCmd("dynString", WRAP_METHOD(Console, Cmd_dynStrings));
+	registerCmd("dynStrings", WRAP_METHOD(Console, Cmd_dynStrings));
 }
 
 Console::~Console() {
 }
 
-bool Console::Cmd_test(int argc, const char **argv) {
-	debugPrintf("Test\n");
+bool Console::Cmd_addPoint(int argc, const char **argv) {
+	if (argc < 2 || argc > 4) {
+usage:
+		debugPrintf("usage: %s <type> [index] [offset]\n", argv[0]);
+		debugPrintf("types: ");
+		for (const char **type = scriptPointTypeNames; *type; type++)
+			debugPrintf(" %s", *type);
+		debugPrintf("\n");
+		return true;
+	}
+	bool breaks = argv[0][0] == 'b';
+	ScriptPointType type = ScriptPointType::kInvalid;
+	for (int i = 0; scriptPointTypeNames[i]; i++) {
+		if (!scumm_stricmp(scriptPointTypeNames[i], argv[1])) {
+			type = (ScriptPointType)i;
+			break;
+		}
+	}
+	if (type == ScriptPointType::kInvalid) {
+		debugPrintf("Invalid %s type\n", argv[0]);
+		goto usage;
+	}
+	if ((argc < 3 && ScriptDebugger::pointTypeNeedsIndex(type)) ||
+		(argc < 4 && ScriptDebugger::pointTypeNeedsOffset(type)))
+		goto usage;
+
+	uint32 index = 0, offset = 0;
+	if (argc > 2)
+		index = Common::String(argv[2]).asUint64Ext();
+	if (argc > 3)
+		offset = Common::String(argv[3]).asUint64Ext();
+
+	const auto id = _scriptDebugger->addPoint(type, breaks, index, offset);
+	debugPrintf("%s %d created\n", argv[0], id);
+	return true;
+}
+
+bool Console::Cmd_removePoint(int argc, const char **argv) {
+	if (argc != 2) {
+		debugPrintf("usage: delete <id>\n");
+		return true;
+	}
+
+	uint32 id = Common::String(argv[1]).asUint64Ext();
+	if (_scriptDebugger->removePoint(id))
+		debugPrintf("Point %d deleted\n", id);
+	else
+		debugPrintf("Invalid point id %d\n", id);
+	return true;
+}
+
+bool Console::Cmd_removeAllPoints(int argc, const char **argv) {
+	_scriptDebugger->removeAllPoints();
+	return true;
+}
+
+bool Console::Cmd_continue(int argc, const char **argv) {
+	_scriptDebugger->runContinue();
+	return true;
+}
+
+bool Console::Cmd_step(int argc, const char **argv) {
+	_scriptDebugger->runStep();
+	return true;
+}
+
+bool Console::Cmd_stepOver(int argc, const char **argv) {
+	_scriptDebugger->runStepOver();
+	return true;
+}
+
+bool Console::Cmd_stepOut(int argc, const char **argv) {
+	_scriptDebugger->runStepOut();
+	return true;
+}
+
+bool Console::Cmd_listPoints(int argc, const char **argv) {
+	_scriptDebugger->printAllPoints();
+	return true;
+}
+
+bool Console::Cmd_stacktrace(int argc, const char **argv) {
+	_scriptDebugger->printStacktrace();
+	return true;
+}
+
+bool Console::Cmd_localVars(int argc, const char **argv) {
+	if (argc == 1)
+		_scriptDebugger->printLocalScope();
+	else if (argc == 2) {
+		uint32 index = Common::String(argv[1]).asUint64Ext();
+		_scriptDebugger->printLocalScope(index);
+	}
+	else
+		debugPrintf("usage: localVars [scope index]\n");
+	return true;
+}
+
+bool Console::Cmd_globalVars(int argc, const char **argv) {
+	if (argc != 2 && argc != 3) { // let's not print 5001 variables
+		debugPrintf("usage: %s <index> [count]\n", argv[0]);
+		return true;
+	}
+	uint32 index = Common::String(argv[1]).asUint64Ext();
+	uint32 count = 1;
+	if (argc == 3)
+		count = Common::String(argv[2]).asUint64Ext();
+	_scriptDebugger->printGlobalVariables(index, count);
+	return true;
+}
+
+bool Console::Cmd_dynStrings(int argc, const char **argv) {
+	if (argc == 1)
+		_scriptDebugger->printDynamicStrings();
+	else if (argc == 2 || argc == 3) {
+		uint32 index = Common::String(argv[1]).asUint64Ext();
+		uint32 count = 1;
+		if (argc == 3)
+			count = Common::String(argv[2]).asUint64Ext();
+		_scriptDebugger->printDynamicStrings(index, count);
+	}
+	else
+		debugPrintf("usage: %s [index] [count]\n", argv[0]);
 	return true;
 }
 

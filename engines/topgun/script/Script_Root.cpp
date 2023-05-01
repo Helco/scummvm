@@ -25,7 +25,7 @@ using Common::String;
 
 namespace TopGun {
 
-void Script::runSingleRootInstruction(Common::MemorySeekableReadWriteStream &stream) {
+void Script::runSingleRootInstruction(Common::MemorySeekableReadWriteStream &stream, uint32 scriptIndex) {
 	const auto op = (ScriptOp)stream.readUint16LE();
 	debugCN(kSuperVerbose, kDebugScript, "root instruction %d\n", op);
 	switch (op) {
@@ -50,7 +50,7 @@ void Script::runSingleRootInstruction(Common::MemorySeekableReadWriteStream &str
 		const auto startPosition = stream.pos();
 		const int32 elseDistance = readSint(stream);
 		const int32 thenDistance = readSint(stream);
-		if (runCalc(stream))
+		if (runCalc(stream, scriptIndex))
 			stream.seek(startPosition + thenDistance - 2, SEEK_SET);
 		else
 			stream.seek(startPosition + elseDistance - 2, SEEK_SET);
@@ -60,16 +60,16 @@ void Script::runSingleRootInstruction(Common::MemorySeekableReadWriteStream &str
 		break;
 	case ScriptOp::kReturn:
 		readUint(stream);
-		_scriptResult = runCalc(stream);
+		_scriptResult = runCalc(stream, scriptIndex);
 		stream.seek(0, SEEK_END);
 		break;
 	case ScriptOp::kExit:
 		stream.seek(0, SEEK_END);
 		break;
 	case ScriptOp::kRunCalc: {
-		auto calcStream = stream.readStream(readUint(stream) - calcJumpOffset(1));
-		runCalc(*calcStream);
-		delete calcStream;
+		const auto endPosition = stream.pos() - 2 + readUint(stream);
+		runCalc(stream, scriptIndex);
+		stream.seek(endPosition, SEEK_SET);
 	}break;
 	case ScriptOp::kSimpleCalc: {
 		constexpr uint32 kMaxOpCount = 3;
@@ -132,7 +132,7 @@ void Script::runSingleRootInstruction(Common::MemorySeekableReadWriteStream &str
 		const auto offsetToCases = readUint(stream);
 		const auto defaultJumpDistance = readSint(stream);
 		const auto caseCount = stream.readUint16LE();
-		const auto result = runCalc(stream);
+		const auto result = runCalc(stream, scriptIndex);
 		jumpToCase(stream, result, offsetToCases, caseCount, defaultJumpDistance, startPos);
 	}break;
 

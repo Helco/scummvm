@@ -23,11 +23,13 @@
 
 namespace TopGun {
 
-int32 Script::runCalc(Common::SeekableReadStream &stream) {
+int32 Script::runCalc(Common::SeekableReadStream &stream, uint32 index) {
+	_debugger->onCallStart(ScriptCallType::kCalc, index);
+	_debugger->onCallIncrement(stream.pos());
 	const auto prevStackSize = _stack.size();
 	auto op = (ScriptCalcOp)stream.readByte();
 	while (op != ScriptCalcOp::kExit && !stream.err()) {
-		debugCN(kSuperVerbose, kDebugScript, "calc instruction: %d\n", op);
+		debugCN(kSuperVerbose, kDebugScript, "calc instruction: %d\n", op); // TODO: move into script debugger
 		switch (op) {
 		case ScriptCalcOp::kPushValue:
 			stackPush(readSint(stream));
@@ -68,9 +70,7 @@ int32 Script::runCalc(Common::SeekableReadStream &stream) {
 			const auto argCount = readUint(stream);
 			const auto procId = _stack[_stack.size() - argCount - 1];
 
-			_localScope += scopeSize;
-			const auto result = runProcedure(procId, _stack.data() + _stack.size() - argCount, argCount);
-			_localScope -= scopeSize;
+			const auto result = runProcedure(procId, _stack.data() + _stack.size() - argCount, argCount, scopeSize);
 
 			_stack.resize(_stack.size() - argCount - 1);
 			stackPush(result);
@@ -215,6 +215,7 @@ int32 Script::runCalc(Common::SeekableReadStream &stream) {
 		default:
 			error("Unknown calc script op: %d", op);
 		}
+		_debugger->onCallIncrement(stream.pos());
 		op = (ScriptCalcOp)stream.readByte();
 	}
 	if (stream.err())
@@ -222,6 +223,7 @@ int32 Script::runCalc(Common::SeekableReadStream &stream) {
 
 	const auto result = _stack[prevStackSize];
 	_stack.resize(prevStackSize);
+	_debugger->onCallEnd();
 	return result;
 }
 

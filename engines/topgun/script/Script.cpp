@@ -25,19 +25,28 @@
 namespace TopGun {
 
 Script::Script(TopGunEngine *engine) :
+	_debugger(new ScriptDebugger(engine)),
 	_engine(engine),
 	_scene(nullptr),
 	_nestedScriptCount(0),
 	_localScope(0),
 	_scriptResult(0),
 	_reg3E3F(0),
+	_mouseEventHandler(0),
 	_pauseEventHandler(-1) {
 	_systemVariables.resize(engine->getGameDesc()->_systemVarCount);
+	memset(_keyListeners, 0, sizeof(_keyListeners));
 }
 
 Script::~Script() {
 	for (auto procedure : _pluginProcedures)
 		delete procedure;
+}
+
+void Script::prepareSceneChange() {
+	_debugger->onScene(false);
+	memset(_keyListeners, 0, sizeof(_keyListeners));
+	_reg3E3F = 0;
 }
 
 void Script::runMessageQueue() {
@@ -60,17 +69,32 @@ void Script::runEntry() {
 		auto procedure = plugin->getScriptProcedure(resFile->_pluginProcedures[i]);
 		_pluginProcedures.push_back(procedure);
 	}
-	
-	run(resFile->_entryId);
+
+	_debugger->onScene(true);
+
+	debugCN(kTrace, kDebugScript, "Running scene entry %d\n", resFile->_entryId);
+	_debugger->onCallStart(ScriptCallType::kRoot, resFile->_entryId);
+	runScript(resFile->_entryId);
 }
 
 int32 Script::runMessage(uint32 index, uint32 localScopeSize, uint32 argCount, const int32 *args) {
 	const auto prevResult = _scriptResult;
 	_scriptResult = 0;
 
+	if (debugChannelSet(kTrace, kDebugScript)) { // TODO: Move this into script debugger
+		debugCN(kTrace, kDebugScript, "Running script %d", index);
+		if (argCount > 0) {
+			debugCN(kTrace, kDebugScript, " with");
+			for (uint32 i = 0; i < argCount; i++)
+				debugCN(kTrace, kDebugScript, " %d", args[i]);
+		}
+		debugCN(kTrace, kDebugScript, "\n");
+	}
+
 	_localScope += localScopeSize;
 	setupLocalArguments(args, argCount);
-	run(index);
+	_debugger->onCallStart(ScriptCallType::kRoot, index, argCount, localScopeSize);
+	runScript(index);
 	_localScope -= localScopeSize;
 
 	const auto newResult = _scriptResult;
@@ -78,13 +102,15 @@ int32 Script::runMessage(uint32 index, uint32 localScopeSize, uint32 argCount, c
 	return newResult;
 }
 
-int32 Script::runSimpleMessage(uint32 index, int32 arg) {
+int32 Script::runMessage(uint32 index, int32 arg) {
 	return runMessage(index, 0, 1, &arg);
 }
 
-void Script::run(uint32 index) {
-	debugCN(kTrace, kDebugScript, "Running %d\n", index);
+int32 Script::runMessage(uint32 index) {
+	return runMessage(index, 0, 0, nullptr);
+}
 
+void Script::runScript(uint32 index) {
 	constexpr uint32 maxNesting = 30;
 	if (++_nestedScriptCount > maxNesting)
 		error("Too many nested scripts");
@@ -92,31 +118,40 @@ void Script::run(uint32 index) {
 	auto scriptResource = _engine->loadResource<ScriptResource>(index);
 	auto &scriptData = scriptResource->getData();
 	Common::MemorySeekableReadWriteStream stream(scriptData.begin(), scriptData.size());
-	runRoot(stream);
+	runRoot(stream, index);
 
 	_nestedScriptCount--;
+	_debugger->onCallEnd();
 }
 
-void Script::runRoot(Common::MemorySeekableReadWriteStream &stream) {
+void Script::runRoot(Common::MemorySeekableReadWriteStream &stream, uint32 index) {
 	while (stream.pos() < stream.size() && !stream.err())
 	{
-		runSingleRootInstruction(stream);
+		runSingleRootInstruction(stream, index);
+		_debugger->onCallIncrement(stream.pos());
 	}
 
 	if (stream.err())
 		error("Stream error during script execution");
 }
 
-int32 Script::runProcedure(uint32 procId, const int32 *args, uint32 argCount) {
-	debugCN(kVerbose, kDebugScript, "procedure %d\n", procId);
-	return procId > _engine->getResourceFile()->_maxScrMsg
+int32 Script::runProcedure(uint32 procId, const int32 *args, uint32 argCount, uint32 scopeSize) {
+	_localScope += scopeSize;
+	_debugger->onCallStart(ScriptCallType::kProcedure, procId, argCount, scopeSize);
+
+	const auto result = procId > _engine->getResourceFile()->_maxScrMsg
 		? runPluginProcedure(procId, args, argCount)
 		: runInternalProcedure(procId, args, argCount);
+
+	_debugger->onCallEnd();
+	_localScope -= scopeSize;
+	return result;
 }
 
 int32 Script::runPluginProcedure(uint32 procId, const int32 *args, uint32 argCount) {
 	const auto resFile = _engine->getResourceFile();
 	const auto maxScrMsg = resFile->_maxScrMsg;
+	debugCN(kVerbose, kDebugScript, "plugin procedure %d\n", procId);
 	procId -= maxScrMsg;
 	if (procId >= _pluginProcedures.size() || _pluginProcedures[procId] == nullptr)
 		error("Unsupported plugin procedure id %d = (%s.%s)",
@@ -163,7 +198,9 @@ int32 Script::evalValue(int32 valueOrIndex, bool isIndex) {
 	const auto gameDesc = _engine->getGameDesc();
 	if (!isIndex)
 		return valueOrIndex;
-	else if (valueOrIndex < gameDesc->_globalVarCount)
+	_debugger->onVariable(false, valueOrIndex);
+
+	if (valueOrIndex < gameDesc->_globalVarCount)
 		return _scene->getVariable(valueOrIndex);
 	else if (valueOrIndex < gameDesc->_globalVarCount + gameDesc->_systemVarCount)
 		return _systemVariables[valueOrIndex - gameDesc->_globalVarCount];
@@ -178,6 +215,7 @@ int32 Script::evalValue(int32 valueOrIndex, bool isIndex) {
 
 void Script::setVariable(int32 index, int32 value) {
 	const auto gameDesc = _engine->getGameDesc();
+	_debugger->onVariable(true, index);
 	if (index < gameDesc->_globalVarCount)
 		_scene->setVariable(index, value);
 	else if (index < gameDesc->_globalVarCount + gameDesc->_systemVarCount)
@@ -231,13 +269,13 @@ void Script::onKeyDown(Common::KeyState keyState) {
 	else
 		script = _keyListeners[windowsKey]._scriptUnmodified;
 	if (script)
-		runSimpleMessage(script, windowsKey);
+		runMessage(script, windowsKey);
 }
 
 void Script::onKeyUp(Common::KeyState keyState) {
 	auto windowsKey = _engine->convertScummKeyToWindows(keyState.keycode);
 	if (windowsKey >= 0 && _keyListeners[windowsKey]._scriptUp)
-		runSimpleMessage(_keyListeners[windowsKey]._scriptUp, windowsKey);
+		runMessage(_keyListeners[windowsKey]._scriptUp, windowsKey);
 }
 
 void ScriptKeyListener::setDownScript(uint32 script, bool isForShift, bool isForControl) {

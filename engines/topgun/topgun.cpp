@@ -70,7 +70,8 @@ Common::String TopGunEngine::getGameId() const {
 }
 
 Common::Error TopGunEngine::run() {
-	setDebugger(new Console());
+	setDebugger(new Console(_script->getDebugger()));
+	_script->getDebugger()->runStep();
 
 	CursorMan.showMouse(true);
 	initGraphics(800, 600);
@@ -95,7 +96,8 @@ Common::Error TopGunEngine::run() {
 				switch ((TopGunEvent)e.customType) {
 				case TopGunEvent::kClearTopMostSprite:
 					if (_clearTopMostSpriteScript) {
-						_script->run(_clearTopMostSpriteScript);
+						debugCN(kTrace, kDebugScript, "Running clear-top-most-sprite-script %d\n", _clearTopMostSpriteScript);
+						_script->runMessage(_clearTopMostSpriteScript);
 						_clearTopMostSpriteScript = 0;
 					}
 					setTopMostSprite(nullptr);
@@ -180,16 +182,18 @@ SharedPtr<IResource> TopGunEngine::loadResource(uint32 index, ResourceType expec
 	const auto actualType = getResourceType(index);
 	if (actualType != expectedType && expectedType != ResourceType::kInvalid)
 		error("Attempted to load resource %i, expecting a type of %d, but it was %d", index, expectedType, actualType);
+	_script->getDebugger()->onResource(false, index);
 	if (isResourceLoaded(index))
 		return _resources[index];
-	debugCN(kTrace, kDebugResource, "Loading resource %d\n", index);
 
 	auto resourceLocation = _resFile->_resources[index];
 	switch (resourceLocation._type) {
 	case ResourceType::kBitmap:
+		debugCN(kTrace, kDebugResource, "Loading bitmap %d\n", index);
 		_resources[index].reset(new Bitmap(index));
 		break;
 	case ResourceType::kWave:
+		debugCN(kTrace, kDebugResource, "Loading wave %d\n", index);
 		_resources[index].reset(new RawDataResource(ResourceType::kWave, index));
 		warning("stub wave resource");
 		break;
@@ -197,18 +201,22 @@ SharedPtr<IResource> TopGunEngine::loadResource(uint32 index, ResourceType expec
 		_resources[index].reset(new Cell(index));
 		break;
 	case ResourceType::kGroup:
+		debugCN(kTrace, kDebugResource, "Loading resource group %d\n", index);
 		_resources[index].reset(new Group(index));
 		break;
 	case ResourceType::kQueue:
+		debugCN(kTrace, kDebugResource, "Loading queue %d\n", index);
 		_resources[index].reset(new SpriteMessageQueue(index));
 		break;
 	case ResourceType::kScript:
 		_resources[index].reset(new ScriptResource(index));
 		break;
 	case ResourceType::kSprite:
+		debugCN(kTrace, kDebugResource, "Loading sprite %d\n", index);
 		_resources[index] = _spriteCtx->createSprite(index);
 		break;
 	case ResourceType::kText:
+		debugCN(kTrace, kDebugResource, "Loading text %d\n", index);
 		_resources[index].reset(new Text(getSpriteCtx(), index));
 		break;
 	default:
@@ -218,6 +226,7 @@ SharedPtr<IResource> TopGunEngine::loadResource(uint32 index, ResourceType expec
 	auto data = _resFile->loadResource(index);
 	if (!_resources[index]->load(Common::move(data)))
 		error("Could not load resource %d (type %d)", index, resourceLocation._type);
+	_script->getDebugger()->onResource(true, index);
 
 	return _resources[index];
 }

@@ -37,10 +37,25 @@ Sprite::Sprite(SpriteContext *spriteCtx, uint32 index) :
 	_animateCellsForward(false),
 	_setToNextCellOnRepaint(false),
 	_rectPickable(false),
+	_breakLoops(false),
+	_priority(false),
+	_flipX(false),
+	_flipY(false),
+	_pickableMode(SpritePickableMode::kAlwaysPickable),
 	_cellIndexStart(0),
 	_cellIndexStop(0),
 	_curCellIndex(0),
+	_nextCellIndex(0),
+	_curMessageIndex(UINT32_MAX),
+	_motionDuration(0),
+	_nextMotionTrigger(0),
+	_speed(0),
+	_nextSpeedTrigger(0),
 	_level(0) {
+}
+
+Sprite::~Sprite() {
+	clearQueue();
 }
 
 bool Sprite::load(Common::Array<byte> &&data) {
@@ -90,6 +105,7 @@ bool Sprite::load(Common::Array<byte> &&data) {
 void Sprite::render(Rect outBounds) {
 	if (!_isVisible)
 		return;
+	setToNextCellIfNecessary();
 	if (_subRects.empty()) {
 		renderSubRect(_cells[_curCellIndex], _bounds, outBounds);
 	}
@@ -117,7 +133,10 @@ void Sprite::renderSubRect(Common::SharedPtr<ISurfaceResource> bitmap, Rect boun
 }
 
 void Sprite::animate() {
-
+	if (!_isEnabled || _curMessageIndex >= _queue.size())
+		return;
+	if (updateMessage())
+		initNextMessage();
 }
 
 void Sprite::setLevel(int32 newLevel) {
@@ -147,10 +166,19 @@ void Sprite::addCell(SharedPtr<ISurfaceResource> resource) {
 
 void Sprite::setBoundsByCurrentCell() {
 	const auto cellSurface = _cells[_curCellIndex]->getSurface();
-	auto center = _pos + _cells[_curCellIndex]->getOffset();
+	const auto cellOffset = _cells[_curCellIndex]->getOffset();
+	const auto halfWidth = (cellSurface->w - 1) / 2;
+	const auto halfHeight = (cellSurface->h - 1) / 2;
+	const auto xFactor = _flipX ? -1 : 1;
+	const auto yFactor = _flipY ? -1 : 1;
+
+	_bounds.left = _pos.x - halfWidth + xFactor * cellOffset.x;
+	_bounds.right = _bounds.left + cellSurface->w;
+	_bounds.top = _pos.y - halfHeight + yFactor * cellOffset.y;
+	_bounds.bottom = _bounds.top + cellSurface->h;
+
 	if (_isScrollable)
-		center += _scrollPos;
-	_bounds = Rect::center(center.x, center.y, cellSurface->w, cellSurface->h);
+		_bounds.translate(_scrollPos.x, _scrollPos.y);
 }
 
 void Sprite::transferTo(Common::SharedPtr<Sprite> dst) {
@@ -165,6 +193,106 @@ void Sprite::transferTo(Common::SharedPtr<Sprite> dst) {
 	_subRects.clear();
 	_isVisible = false;
 	_setToNextCellOnRepaint = false;
+}
+
+uint32 Sprite::setupCellAnimation(uint32 nextCell, uint32 cellStart, uint32 cellStop) {
+	if (cellStart >= _cells.size() || cellStop >= _cells.size())
+		return 0;
+	_cellIndexStart = cellStart;
+	_cellIndexStop = cellStop;
+	_animateCell = cellStart != cellStop;
+	_animateCellsForward = cellStop >= cellStart;
+	_setToNextCellOnRepaint = true;
+
+	uint32 frameCount;
+	if (_animateCellsForward) {
+		_nextCellIndex = nextCell < cellStart || nextCell >= cellStop ? cellStart : nextCell;
+		frameCount = cellStop - cellStart + 1;
+	}
+	else {
+		_nextCellIndex = nextCell <= cellStop || nextCell > cellStart ? cellStart : nextCell;
+		frameCount = cellStart - cellStop + 1;
+	}
+	return frameCount;
+}
+
+void Sprite::setToNextCellIfNecessary() {
+	if (!_setToNextCellOnRepaint)
+		return;
+	_subRects.clear();
+	_setToNextCellOnRepaint = false;
+
+	_curCellIndex = _nextCellIndex;
+	if (_animateCellsForward) {
+		if (++_nextCellIndex > _cellIndexStop)
+			_nextCellIndex = _cellIndexStart;
+	}
+	else {
+		if (--_nextCellIndex < _cellIndexStop)
+			_nextCellIndex = _cellIndexStart;
+	}
+
+	setBoundsByCurrentCell();
+}
+
+void Sprite::clearQueue() {
+	for (auto handler : _queue)
+		delete handler;
+	_queue.clear();
+	_curMessageIndex = UINT32_MAX;
+	_motionDuration = 0;
+	_nextMotionTrigger = 0;
+	_speed = 0;
+	_nextSpeedTrigger = 0;
+	_priority = 0;
+	_breakLoops = 0;
+}
+
+void Sprite::setQueue(const SpriteMessageQueue *queue) {
+	clearQueue();
+	_queue.reserve(queue->getMessageCount());
+	for (size_t i = 0; i < queue->getMessageCount(); i++) {
+		const auto &msg = queue->getMessage(i);
+		switch (msg._type) {
+		case (SpriteMessageType::kCellLoop):
+			_queue.push_back(new SpriteCellLoopHandler(this, msg));
+			break;
+		default:
+			error("Unknown sprite message type %d", msg._type);
+			break;
+		}
+	}
+
+	_curMessageIndex = UINT32_MAX;
+	initNextMessage();
+}
+
+bool Sprite::initNextMessage() {
+	assert(_queue.size() > 0);
+	_curMessageIndex++;
+
+	// ugly special-casing, original, but maybe we find a way to replace this
+	while (_curMessageIndex < _queue.size() &&
+		_queue[_curMessageIndex]->getMessage()._type == SpriteMessageType::kMessageLoop) {
+		if (_queue[_curMessageIndex]->update())
+			_curMessageIndex = _queue[_curMessageIndex]->getMessage()._messageLoop._jumpIndex;
+		else
+			_curMessageIndex++;
+	}
+
+	if (_curMessageIndex >= _queue.size())
+		clearQueue();
+	else
+		_queue[_curMessageIndex]->init();
+	return _curMessageIndex < _queue.size();
+}
+
+bool Sprite::updateMessage() {
+	return _queue[_curMessageIndex]->update();
+}
+
+void Sprite::setVisible(bool visible) {
+	_isVisible = visible;
 }
 
 }

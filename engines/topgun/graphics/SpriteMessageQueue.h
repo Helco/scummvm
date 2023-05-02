@@ -53,11 +53,6 @@ enum class SpriteMessageType {
 	kProc266
 };
 
-struct ValueOrIndirect {
-	bool _isIndirect;
-	int32 _value;
-};
-
 struct SpriteMessage {
 	static constexpr int32 kMaxSubRects = 8;
 	static constexpr int32 kMaxArgs = 6;

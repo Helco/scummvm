@@ -126,7 +126,7 @@ Common::Error TopGunEngine::run() {
 		_script->runMessageQueue();
 
 		_spriteCtx->render();
-		g_system->delayMillis(15);
+		g_system->delayMillis(10);
 	}
 
 	return Common::kNoError;

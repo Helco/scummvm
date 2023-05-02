@@ -23,7 +23,7 @@
 #define TOPGUN_SPRITE_H
 
 #include "topgun/Resource.h"
-#include "topgun/graphics/SpriteMessageQueue.h"
+#include "topgun/graphics/SpriteMessageHandler.h"
 
 namespace TopGun {
 
@@ -42,12 +42,33 @@ struct SpriteSubRect {
 
 class Sprite : public IResource {
 	friend class SpriteContext;
+	friend class ISpriteMessageHandler;
+	friend class SpriteCellLoopHandler;
+	friend class SpriteSetSubRectsHandler;
+	friend class SpriteCompToBackgroundHandler;
+	friend class SpriteMoveCurveHandler;
+	friend class SpriteMessageLoopHandler;
+	friend class SpriteOffsetAndFlipHandler;
+	friend class SpriteHideHandler;
+	friend class SpriteMoveLinearHandler;
+	friend class SpriteDelayedMoveHandler;
+	friend class SpriteDelayHandler;
+	friend class SpriteSetPosHandler;
+	friend class SpriteSetPriorityHandler;
+	friend class SpriteSetRedrawHandler;
+	friend class SpriteSetMotionDurationHandler;
+	friend class SpriteSetCellAnimationHandler;
+	friend class SpriteSetSpeedHandler;
+	friend class SpriteShowCellHandler;
+	friend class SpriteChangeSceneHandler;
+	friend class SpriteRunRootOpHandler;
+	friend class SpriteRunScriptHandler;
+	friend class SpriteWaitForMovieHandler;
 
 	Sprite(SpriteContext *spriteContext, uint32 index);
 public:
 	static constexpr ResourceType kResourceType = ResourceType::kSprite;
-
-	virtual ~Sprite() = default;
+	virtual ~Sprite();
 
 	virtual bool load(Common::Array<byte> &&data) override;
 
@@ -55,6 +76,9 @@ public:
 	void animate();
 	void setLevel(int32 newLevel);
 	void addCell(Common::SharedPtr<ISurfaceResource> resource);
+	void clearQueue();
+	void setQueue(const SpriteMessageQueue *queue);
+	void setVisible(bool visible);
 
 	inline SpriteContext *getSpriteContext() {
 		return _spriteCtx;
@@ -70,11 +94,16 @@ private:
 	void renderSubRect(Common::SharedPtr<ISurfaceResource> bitmap, Rect bounds, Rect outBounds);
 	void setBoundsByCurrentCell();
 	void transferTo(Common::SharedPtr<Sprite> dst);
+	uint32 setupCellAnimation(uint32 nextCell, uint32 cellStart, uint32 cellStop); ///< returns frame count
+	void setToNextCellIfNecessary();
+	bool initNextMessage();
+	bool updateMessage();
 
 private:
 	SpriteContext *_spriteCtx;
 	Common::Array<Common::SharedPtr<ISurfaceResource> > _cells;
 	Common::Array<SpriteSubRect> _subRects;
+	Common::Array<ISpriteMessageHandler *> _queue;
 
 	Point _pos;
 	Point _scrollPos;
@@ -87,9 +116,15 @@ private:
 	bool _animateCellsForward;
 	bool _setToNextCellOnRepaint;
 	bool _rectPickable;
+	bool _breakLoops;
+	bool _priority;
+	bool _flipX, _flipY;
 	SpritePickableMode _pickableMode;
 	uint32 _cellIndexStart, _cellIndexStop;
-	uint32 _curCellIndex;
+	uint32 _curCellIndex, _nextCellIndex;
+	uint32 _curMessageIndex;
+	uint32 _motionDuration, _nextMotionTrigger;
+	uint32 _speed, _nextSpeedTrigger;
 	int32 _level;
 };
 

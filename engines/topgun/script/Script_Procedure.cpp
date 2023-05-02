@@ -103,6 +103,15 @@ int32 Script::runInternalProcedure(uint32 procId, const int32 *args, uint32 argC
 		checkArgCount(argCount, 4);
 		_engine->getSpriteCtx()->copySpriteTo(args[0], args[1], args[2], args[3]);
 		break;
+	case ScriptOp::kEmptyQueue:
+		checkArgCount(argCount, 2);
+		return setSpriteQueue(args[0], 0, args[1]);
+	case ScriptOp::kSetQueue:
+		checkArgCount(argCount, 2);
+		return setSpriteQueue(args[0], args[1], false);
+	case ScriptOp::kSetQueueAndHide:
+		checkArgCount(argCount, 2, 3);
+		return setSpriteQueue(args[0], args[1], argCount < 3 ? false : args[2]);
 	case ScriptOp::kLoadResource:
 		checkArgCount(argCount, 1);
 		_engine->loadResource(args[0], ResourceType::kInvalid);
@@ -289,6 +298,26 @@ int32 Script::runInternalProcedure(uint32 procId, const int32 *args, uint32 argC
 	}
 
 	return static_cast<int32>(procId);
+}
+
+bool Script::setSpriteQueue(uint32 spriteIndex, uint32 queueIndex, bool hideSprite) {
+	if (!spriteIndex || _engine->getResourceType(spriteIndex) != ResourceType::kSprite)
+		return false;
+	if (!queueIndex && !_engine->isResourceLoaded(spriteIndex))
+		return true;
+
+	auto sprite = _engine->loadResource<Sprite>(spriteIndex);
+	if (hideSprite)
+		sprite->setVisible(false);
+	if (queueIndex) {
+		if (_engine->getResourceType(queueIndex) == ResourceType::kQueue)
+			sprite->setQueue(_engine->loadResource<SpriteMessageQueue>(queueIndex).get());
+		else
+			return false;
+	}
+	else
+		sprite->clearQueue();
+	return true;
 }
 
 const char *internalProcedureNames[] = {

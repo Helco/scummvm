@@ -32,6 +32,11 @@ namespace TopGun {
 
 class TopGunEngine;
 
+struct ValueOrIndirect {
+	bool _isIndirect;
+	int32 _value;
+};
+
 class IResource {
 public:
 	IResource(ResourceType type, uint32 index);

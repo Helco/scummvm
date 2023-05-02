@@ -109,7 +109,7 @@ enum class ScriptOp {
 	kFixedPointDiv = 42,
 	kPickedSprite43 = 43,
 	kStartTextInput = 44,
-	kSetQueue45 = 45,
+	kEmptyQueue = 45,
 	kSetClickRect46 = 46,
 	kSetClickRect47 = 47,
 	kBufferCDC_48 = 48,
@@ -242,8 +242,8 @@ enum class ScriptOp {
 	kSetBackgroundColorWithAnimation = 182,
 	kExtractFile = 183,
 	kSpriteSetPos = 184,
-	kSetQueue185 = 185,
-	kSetQueue186 = 186,
+	kSetQueueAndHide = 185,
+	kSetQueue = 186,
 	kSetBackgroundColorRGB = 187,
 	kSetBackgroundColorRGBWithAnimation = 188,
 	kSetScrollBox = 189,
@@ -416,6 +416,9 @@ public:
 	void toggleKeyListener(int32 key, bool toggle);
 
 	int32 evalValue(int32 valueOrIndex, bool isIndex);
+	inline int32 evalValue(ValueOrIndirect value) {
+		return evalValue(value._value, value._isIndirect);
+	}
 	Common::String getString(int32 index);
 
 	inline ScriptDebugger *getDebugger() {
@@ -448,6 +451,7 @@ private:
 
 	void setTimer(int32 id, uint32 script, uint32 duration, bool repeats);
 	void deleteTimer(int32 id);
+	bool setSpriteQueue(uint32 spriteIndex, uint32 queueIndex, bool hideSprite);
 
 	struct FormatValue {
 		bool _isInteger;

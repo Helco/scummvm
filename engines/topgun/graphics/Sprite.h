@@ -49,7 +49,6 @@ class Sprite : public IResource {
 	friend class SpriteMoveCurveHandler;
 	friend class SpriteMessageLoopHandler;
 	friend class SpriteOffsetAndFlipHandler;
-	friend class SpriteHideHandler;
 	friend class SpriteMoveLinearHandler;
 	friend class SpriteDelayedMoveHandler;
 	friend class SpriteDelayHandler;

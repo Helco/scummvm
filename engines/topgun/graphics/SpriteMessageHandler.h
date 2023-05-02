@@ -57,6 +57,38 @@ private:
 	uint32 _frameCount;
 };
 
+class SpriteHideHandler : public ISpriteMessageHandler {
+public:
+	SpriteHideHandler(Sprite *sprite, const SpriteMessage &message);
+
+	virtual bool update() override;
+};
+
+class SpriteDelayHandler : public ISpriteMessageHandler {
+public:
+	SpriteDelayHandler(Sprite *sprite, const SpriteMessage &message);
+
+	virtual void init() override;
+	virtual bool update() override;
+
+private:
+	bool _hasStarted;
+};
+
+class SpriteSetPriorityHandler : public ISpriteMessageHandler {
+public:
+	SpriteSetPriorityHandler(Sprite *sprite, const SpriteMessage &message);
+
+	virtual bool update() override;
+};
+
+class SpriteRunRootOpHandler : public ISpriteMessageHandler {
+public:
+	SpriteRunRootOpHandler(Sprite *sprite, const SpriteMessage &message);
+
+	virtual bool update() override;
+};
+
 }
 
 #endif // TOPGUN_SPRITEMESSAGEHANDLER_H

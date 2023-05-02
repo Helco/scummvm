@@ -404,9 +404,7 @@ public:
 	int32 runMessage(uint32 index);
 	int32 runMessage(uint32 index, int32 arg);
 	int32 runMessage(uint32 index, uint32 localScopeSize, uint32 argCount, const int32 *args);
-	void runRoot(Common::MemorySeekableReadWriteStream &stream, uint32 scriptIndex = UINT32_MAX);
-	void runSingleRootInstruction(Common::MemorySeekableReadWriteStream &stream, uint32 scriptIndex = UINT32_MAX);
-	int32 runCalc(Common::SeekableReadStream &stream, uint32 scriptIndex = UINT32_MAX);
+	void runQueueRootOp(Common::Array<byte> &data, uint32 index);
 	int32 runProcedure(uint32 procId, const int32 *args, uint32 argCount, uint32 localScopeSize = 0);
 
 	void onKeyDown(Common::KeyState keyState);
@@ -427,6 +425,9 @@ public:
 
 private:
 	void runScript(uint32 index);
+	void runRoot(Common::MemorySeekableReadWriteStream &stream, uint32 scriptIndex = UINT32_MAX);
+	void runSingleRootInstruction(Common::MemorySeekableReadWriteStream &stream, uint32 scriptIndex = UINT32_MAX);
+	int32 runCalc(Common::SeekableReadStream &stream, uint32 scriptIndex = UINT32_MAX);
 	int32 runInternalProcedure(uint32 procId, const int32 *args, uint32 argCount);
 	int32 runPluginProcedure(uint32 procId, const int32 *args, uint32 argCount);
 

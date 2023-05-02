@@ -62,4 +62,54 @@ bool SpriteCellLoopHandler::update() {
 	return !--_frameCount && !_sprite->_motionDuration;
 }
 
+SpriteSetPriorityHandler::SpriteSetPriorityHandler(Sprite *sprite, const SpriteMessage &message) :
+	ISpriteMessageHandler(sprite, message, SpriteMessageType::kSetPriority) {
+}
+
+bool SpriteSetPriorityHandler::update() {
+	_sprite->_priority = _msg._priority;
+	_sprite->_nextMotionTrigger = 0;
+	_sprite->_nextSpeedTrigger = 0;
+	if (_sprite->initNextMessage())
+		return _sprite->updateMessage();
+	return true;
+}
+
+SpriteHideHandler::SpriteHideHandler(Sprite *sprite, const SpriteMessage &message) :
+	ISpriteMessageHandler(sprite, message, SpriteMessageType::kHide) {
+}
+
+bool SpriteHideHandler::update() {
+	_sprite->setVisible(false);
+	return true;
+}
+
+SpriteDelayHandler::SpriteDelayHandler(Sprite *sprite, const SpriteMessage &message) :
+	ISpriteMessageHandler(sprite, message, SpriteMessageType::kDelay),
+	_hasStarted(false) {
+}
+
+void SpriteDelayHandler::init() {
+	_hasStarted = false;
+}
+
+bool SpriteDelayHandler::update() {
+	if (_hasStarted)
+		return _sprite->_nextSpeedTrigger <= g_system->getMillis();
+	_hasStarted = true;
+
+	if (!_sprite->_priority || !_sprite->_nextSpeedTrigger)
+		_sprite->_nextSpeedTrigger = g_system->getMillis();
+	_sprite->_nextSpeedTrigger = _script->evalValue(_msg._delay);
+}
+
+SpriteRunRootOpHandler::SpriteRunRootOpHandler(Sprite *sprite, const SpriteMessage &message) :
+	ISpriteMessageHandler(sprite, message, SpriteMessageType::kRunRootOp) {
+}
+
+bool SpriteRunRootOpHandler::update() {
+	_script->runQueueRootOp(_msg._rootOp, UINT32_MAX);
+	return true;
+}
+
 }

@@ -115,6 +115,13 @@ int32 Script::runMessage(uint32 index) {
 	return runMessage(index, 0, 0, nullptr);
 }
 
+void Script::runQueueRootOp(Common::Array<byte> &scriptData, uint32 index) {
+	getDebugger()->onCallStart(ScriptCallType::kRoot, index, 0);
+	Common::MemorySeekableReadWriteStream stream(scriptData.begin(), scriptData.size());
+	runRoot(stream, index);
+	getDebugger()->onCallEnd();
+}
+
 void Script::runScript(uint32 index) {
 	constexpr uint32 maxNesting = 30;
 	if (++_nestedScriptCount > maxNesting)

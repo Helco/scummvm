@@ -257,6 +257,18 @@ void Sprite::setQueue(const SpriteMessageQueue *queue) {
 		case (SpriteMessageType::kCellLoop):
 			_queue.push_back(new SpriteCellLoopHandler(this, msg));
 			break;
+		case (SpriteMessageType::kHide):
+			_queue.push_back(new SpriteHideHandler(this, msg));
+			break;
+		case (SpriteMessageType::kDelay):
+			_queue.push_back(new SpriteDelayHandler(this, msg));
+			break;
+		case (SpriteMessageType::kSetPriority):
+			_queue.push_back(new SpriteSetPriorityHandler(this, msg));
+			break;
+		case (SpriteMessageType::kRunRootOp):
+			_queue.push_back(new SpriteRunRootOpHandler(this, msg));
+			break;
 		default:
 			error("Unknown sprite message type %d", msg._type);
 			break;

@@ -49,7 +49,7 @@ TopGunEngine::TopGunEngine(OSystem *syst, const TopGunGameDescription *gameDesc)
 	_windowsToScummKey{ Common::KEYCODE_INVALID }  {
 	g_engine = this;
 
-	gDebugLevel = kVerbose;
+	gDebugLevel = kTrace;
 	DebugMan.enableAllDebugChannels();
 }
 

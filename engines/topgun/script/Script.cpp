@@ -86,14 +86,14 @@ int32 Script::runMessage(uint32 index, uint32 localScopeSize, uint32 argCount, c
 	const auto prevResult = _scriptResult;
 	_scriptResult = 0;
 
-	if (debugChannelSet(kTrace, kDebugScript)) { // TODO: Move this into script debugger
-		debugCN(kTrace, kDebugScript, "Running script %d", index);
+	if (debugChannelSet(kVerbose, kDebugScript)) { // TODO: Move this into script debugger
+		debugCN(kVerbose, kDebugScript, "Running script %d", index);
 		if (argCount > 0) {
-			debugCN(kTrace, kDebugScript, " with");
+			debugCN(kVerbose, kDebugScript, " with");
 			for (uint32 i = 0; i < argCount; i++)
-				debugCN(kTrace, kDebugScript, " %d", args[i]);
+				debugCN(kVerbose, kDebugScript, " %d", args[i]);
 		}
-		debugCN(kTrace, kDebugScript, "\n");
+		debugCN(kVerbose, kDebugScript, "\n");
 	}
 
 	_localScope += localScopeSize;

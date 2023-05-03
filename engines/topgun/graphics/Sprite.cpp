@@ -204,9 +204,9 @@ Rect Sprite::calcBoundsFor(Common::SharedPtr<ISurfaceResource> bitmap) {
 
 	Rect bounds;
 	bounds.left = _pos.x - halfWidth + xFactor * offset.x;
-	bounds.right = _bounds.left + surface->w;
+	bounds.right = bounds.left + surface->w;
 	bounds.top = _pos.y - halfHeight + yFactor * offset.y;
-	bounds.bottom = _bounds.top + surface->h;
+	bounds.bottom = bounds.top + surface->h;
 
 	if (_isScrollable)
 		bounds.translate(_scrollPos.x, _scrollPos.y);
@@ -260,7 +260,7 @@ void Sprite::setToNextCellIfNecessary() {
 			_nextCellIndex = _cellIndexStart;
 	}
 	else {
-		if (--_nextCellIndex < _cellIndexStop)
+		if (_nextCellIndex == 0 || --_nextCellIndex < _cellIndexStop)
 			_nextCellIndex = _cellIndexStart;
 	}
 

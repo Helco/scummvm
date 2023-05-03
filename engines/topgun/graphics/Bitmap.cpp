@@ -45,6 +45,8 @@ bool Bitmap::load(Common::Array<byte> &&data) {
 		decompressComplexRLE(stream, width, height);
 	else
 		decompressSimpleRLE(stream, width, height);
+	if (!(flags & 0x40))
+		getSurface()->flipVertical(Rect(width, height));
 
 	return !stream.err();
 }

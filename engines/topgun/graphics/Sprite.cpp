@@ -129,7 +129,7 @@ void Sprite::renderSubRect(Common::SharedPtr<ISurfaceResource> bitmap, Rect boun
 	Point dstPos(
 		clippedBounds.left - _spriteCtx->_screenBounds.left,
 		clippedBounds.top - _spriteCtx->_screenBounds.top);
-	_spriteCtx->_screen->blitFrom(*bitmap->getSurface(), srcRect, dstPos);
+	_spriteCtx->_screen->transBlitFrom(*bitmap->getSurface(), srcRect, dstPos, 0, _flipX);
 }
 
 void Sprite::animate() {

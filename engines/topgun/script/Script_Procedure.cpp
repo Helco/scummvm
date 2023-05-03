@@ -293,6 +293,10 @@ int32 Script::runInternalProcedure(uint32 procId, const int32 *args, uint32 argC
 				getString(args[2]).c_str(),
 				getString(args[3]).c_str());
 	}break;
+
+	case ScriptOp::kAudioPlayWave146:
+		warning("stub procedure AudioPlayWave146");
+		break;
 	default:
 		error("Unknown or unimplemented internal procedure: %d", procId);
 	}

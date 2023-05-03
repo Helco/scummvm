@@ -62,6 +62,42 @@ bool SpriteCellLoopHandler::update() {
 	return !--_frameCount && !_sprite->_motionDuration;
 }
 
+SpriteSetSubRectsHandler::SpriteSetSubRectsHandler(Sprite *sprite, const SpriteMessage &message) :
+	ISpriteMessageHandler(sprite, message, SpriteMessageType::kSetSubRects),
+	_hadBeenInit(false),
+	_frameCount(0) {
+}
+
+void SpriteSetSubRectsHandler::init() {
+	_frameCount = 0;
+}
+
+bool SpriteSetSubRectsHandler::update() {
+	if (_sprite->_nextSpeedTrigger > g_system->getMillis())
+		return false;
+	if (_hadBeenInit)
+		return true;
+
+	if (_msg._subRects._duration._value != -1)
+		_sprite->_motionDuration = _script->evalValue(_msg._subRects._duration);
+
+	if (!_sprite->_priority || !_sprite->_nextSpeedTrigger)
+		_sprite->_nextSpeedTrigger = g_system->getMillis();
+	_sprite->_nextSpeedTrigger += _sprite->_motionDuration;
+
+	_sprite->_subRects.resize(_msg._subRects._subRectCount);
+	for (uint32 i = 0; i < _msg._subRects._subRectCount; i++) {
+		auto cellIndex = _script->evalValue(_msg._subRects._subRectCells[i]);
+		_sprite->_subRects[i]._bitmap = _sprite->_cells[cellIndex];
+	}
+	_sprite->setSubRectBounds();
+
+	_sprite->_isVisible = true;
+	_sprite->_setToNextCellOnRepaint = false;
+	_hadBeenInit = true;
+	return _sprite->_motionDuration == 0;
+}
+
 SpriteSetPriorityHandler::SpriteSetPriorityHandler(Sprite *sprite, const SpriteMessage &message) :
 	ISpriteMessageHandler(sprite, message, SpriteMessageType::kSetPriority) {
 }
@@ -72,6 +108,21 @@ bool SpriteSetPriorityHandler::update() {
 	_sprite->_nextSpeedTrigger = 0;
 	if (_sprite->initNextMessage())
 		return _sprite->updateMessage();
+	return true;
+}
+
+SpriteOffsetAndFlipHandler::SpriteOffsetAndFlipHandler(Sprite *sprite, const SpriteMessage &message) :
+	ISpriteMessageHandler(sprite, message, SpriteMessageType::kOffsetAndFlip) {
+}
+
+bool SpriteOffsetAndFlipHandler::update() {
+	_sprite->_flipX = _script->evalValue(_msg._offsetAndFlip._flipX);
+	_sprite->_flipY = _script->evalValue(_msg._offsetAndFlip._flipY);
+	const Point offset(_script->evalValue(_msg._offsetAndFlip._offsetX), _script->evalValue(_msg._offsetAndFlip._offsetY));
+	_sprite->translate(offset, true);
+
+	if (!_sprite->_subRects.empty())
+		_sprite->setSubRectBounds();
 	return true;
 }
 

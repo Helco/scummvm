@@ -73,6 +73,7 @@ public:
 
 	void render(Rect outBounds);
 	void animate();
+	void translate(Point target, bool relative);
 	void setLevel(int32 newLevel);
 	void addCell(Common::SharedPtr<ISurfaceResource> resource);
 	void clearQueue();
@@ -92,6 +93,8 @@ public:
 private:
 	void renderSubRect(Common::SharedPtr<ISurfaceResource> bitmap, Rect bounds, Rect outBounds);
 	void setBoundsByCurrentCell();
+	void setSubRectBounds();
+	Rect calcBoundsFor(Common::SharedPtr<ISurfaceResource> bitmap);
 	void transferTo(Common::SharedPtr<Sprite> dst);
 	uint32 setupCellAnimation(uint32 nextCell, uint32 cellStart, uint32 cellStop); ///< returns frame count
 	void setToNextCellIfNecessary();

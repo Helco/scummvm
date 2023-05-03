@@ -164,21 +164,53 @@ void Sprite::addCell(SharedPtr<ISurfaceResource> resource) {
 	_animateCell = _cellIndexStart != _cellIndexStop;
 }
 
+void Sprite::translate(Point target, bool relative) {
+	setToNextCellIfNecessary();
+
+	auto delta = target;
+	if (relative)
+		_pos += target;
+	else {
+		delta = _pos - target;
+		_pos = target;
+	}
+
+	_bounds.translate(delta.x, delta.y);
+	for (size_t i = 0; i < _subRects.size(); i++)
+		_subRects[i]._bounds.translate(delta.x, delta.y);
+}
+
 void Sprite::setBoundsByCurrentCell() {
-	const auto cellSurface = _cells[_curCellIndex]->getSurface();
-	const auto cellOffset = _cells[_curCellIndex]->getOffset();
-	const auto halfWidth = (cellSurface->w - 1) / 2;
-	const auto halfHeight = (cellSurface->h - 1) / 2;
+	_bounds = calcBoundsFor(_cells[_curCellIndex]);
+}
+
+void Sprite::setSubRectBounds() {
+	for (size_t i = 0; i < _subRects.size(); i++) {
+		auto subRectBounds = _subRects[i]._bounds = calcBoundsFor(_subRects[i]._bitmap);
+		if (i)
+			_bounds.extend(subRectBounds);
+		else
+			_bounds = subRectBounds;
+	}
+}
+
+Rect Sprite::calcBoundsFor(Common::SharedPtr<ISurfaceResource> bitmap) {
+	const auto surface = bitmap->getSurface();
+	const auto offset = bitmap->getOffset();
+	const auto halfWidth = (surface->w - 1) / 2;
+	const auto halfHeight = (surface->h - 1) / 2;
 	const auto xFactor = _flipX ? -1 : 1;
 	const auto yFactor = _flipY ? -1 : 1;
 
-	_bounds.left = _pos.x - halfWidth + xFactor * cellOffset.x;
-	_bounds.right = _bounds.left + cellSurface->w;
-	_bounds.top = _pos.y - halfHeight + yFactor * cellOffset.y;
-	_bounds.bottom = _bounds.top + cellSurface->h;
+	Rect bounds;
+	bounds.left = _pos.x - halfWidth + xFactor * offset.x;
+	bounds.right = _bounds.left + surface->w;
+	bounds.top = _pos.y - halfHeight + yFactor * offset.y;
+	bounds.bottom = _bounds.top + surface->h;
 
 	if (_isScrollable)
-		_bounds.translate(_scrollPos.x, _scrollPos.y);
+		bounds.translate(_scrollPos.x, _scrollPos.y);
+	return bounds;
 }
 
 void Sprite::transferTo(Common::SharedPtr<Sprite> dst) {
@@ -256,6 +288,12 @@ void Sprite::setQueue(const SpriteMessageQueue *queue) {
 		switch (msg._type) {
 		case (SpriteMessageType::kCellLoop):
 			_queue.push_back(new SpriteCellLoopHandler(this, msg));
+			break;
+		case (SpriteMessageType::kSetSubRects):
+			_queue.push_back(new SpriteSetSubRectsHandler(this, msg));
+			break;
+		case (SpriteMessageType::kOffsetAndFlip):
+			_queue.push_back(new SpriteOffsetAndFlipHandler(this, msg));
 			break;
 		case (SpriteMessageType::kHide):
 			_queue.push_back(new SpriteHideHandler(this, msg));

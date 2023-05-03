@@ -23,8 +23,8 @@
 
 namespace TopGun {
 
-int32 Script::runCalc(Common::SeekableReadStream &stream, uint32 scriptIndex) {
-	_debugger->onCallStart(ScriptCallType::kCalc, scriptIndex, stream.pos());
+int32 Script::runCalc(Common::SeekableReadStream &stream, uint32 callingScriptIndex) {
+	_debugger->onCallStart(ScriptCallType::kCalc, callingScriptIndex, stream.pos());
 	const auto prevStackSize = _stack.size();
 	auto op = (ScriptCalcOp)stream.readByte();
 	while (op != ScriptCalcOp::kExit && !stream.err()) {

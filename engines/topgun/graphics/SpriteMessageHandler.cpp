@@ -151,7 +151,7 @@ bool SpriteDelayHandler::update() {
 
 	if (!_sprite->_priority || !_sprite->_nextSpeedTrigger)
 		_sprite->_nextSpeedTrigger = g_system->getMillis();
-	_sprite->_nextSpeedTrigger = _script->evalValue(_msg._delay);
+	_sprite->_nextSpeedTrigger += _script->evalValue(_msg._delay);
 }
 
 SpriteRunRootOpHandler::SpriteRunRootOpHandler(Sprite *sprite, const SpriteMessage &message) :

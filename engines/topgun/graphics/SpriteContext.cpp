@@ -146,11 +146,42 @@ void SpriteContext::copySpriteTo(uint32 from, uint32 to, uint32 queue, bool dest
 		_engine->freeResource(from);
 }
 
+static const byte defaultLowColors[30] = {
+	0, 0, 0,
+	128, 0, 0,
+	0, 128, 0,
+	128, 128, 0,
+	0, 0, 128,
+	128, 0, 128,
+	0, 128, 128,
+	192, 192, 192,
+	192, 220, 192,
+	166, 202, 240
+};
+static const byte defaultHighColors[30] = {
+	255, 251, 240,
+	160, 160, 164,
+	128, 128, 128,
+	255, 0, 0,
+	0, 255, 0,
+	255, 255, 0,
+	0, 0, 255,
+	255, 0, 255,
+	0, 255, 255,
+	255, 255, 255
+};
+
 void SpriteContext::setPaletteFromResourceFile() {
 	auto& resFilePalette = _engine->getResourceFile()->_palette;
-	const size_t maxCopyBytes = kHighSystemColors - kLowSystemColors - _engine->getResourceFile()->_maxTransColors;
+	const size_t maxCopyBytes = (kHighSystemColors - kLowSystemColors - _engine->getResourceFile()->_maxTransColors) * 3;
 	const size_t copyBytes = MIN(maxCopyBytes, (size_t)resFilePalette.size());
+	for (int i = 0; i < 256; i++) {
+		_targetPalette[i * 3 + 0] = _targetPalette[i * 3 + 2] = 255;
+		_targetPalette[i * 3 + 1] = 0;
+	}
+	Common::copy(defaultLowColors, defaultLowColors + sizeof(defaultLowColors), _targetPalette);
 	Common::copy(resFilePalette.begin(), resFilePalette.begin() + copyBytes, _targetPalette + kLowSystemColors * 3);
+	Common::copy(defaultHighColors, defaultHighColors + sizeof(defaultHighColors), _targetPalette + kHighSystemColors * 3);
 	_sceneColorCount = resFilePalette.size() / 3;
 
 	g_system->getPaletteManager()->setPalette(_targetPalette, 0, kPaletteSize);

@@ -253,7 +253,7 @@ bool ResourceFile::readPalette() {
 	if (!_mainFile.seek(range._offset, SEEK_SET))
 		return false;
 
-	for (size_t i = 0; i < _palette.size() / 3; i += 3) {
+	for (size_t i = 0; i < _palette.size(); i += 3) {
 		_palette[i + 0] = _mainFile.readByte();
 		_palette[i + 1] = _mainFile.readByte();
 		_palette[i + 2] = _mainFile.readByte();

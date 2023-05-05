@@ -70,12 +70,11 @@ Common::String TopGunEngine::getGameId() const {
 }
 
 Common::Error TopGunEngine::run() {
-	setDebugger(new Console(_script->getDebugger()));
-	//_script->getDebugger()->runStep();
-
 	CursorMan.showMouse(true);
 	initGraphics(800, 600);
 	_spriteCtx.reset(new SpriteContext(this));
+
+	setDebugger(new Console(this));
 
 	// If a savegame was selected from the launcher, load it
 	int saveSlot = ConfMan.getInt("save_slot");

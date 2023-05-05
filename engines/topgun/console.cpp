@@ -26,9 +26,10 @@ namespace TopGun {
 
 extern const char *scriptPointTypeNames[];
 
-Console::Console(ScriptDebugger *scriptDebugger) :
+Console::Console(TopGunEngine *engine) :
 	GUI::Debugger(),
-	_scriptDebugger(scriptDebugger) {
+	_engine(engine),
+	_scriptDebugger(engine->_script->getDebugger()) {
 	registerCmd("trace", WRAP_METHOD(Console, Cmd_addPoint));
 	registerCmd("break", WRAP_METHOD(Console, Cmd_addPoint));
 	registerCmd("delete", WRAP_METHOD(Console, Cmd_removePoint));
@@ -44,6 +45,8 @@ Console::Console(ScriptDebugger *scriptDebugger) :
 	registerCmd("globalVars", WRAP_METHOD(Console, Cmd_globalVars));
 	registerCmd("dynString", WRAP_METHOD(Console, Cmd_dynStrings));
 	registerCmd("dynStrings", WRAP_METHOD(Console, Cmd_dynStrings));
+
+	registerVar("drawSpriteIDs", &engine->_spriteCtx->_debugDrawSpriteIDs);
 }
 
 Console::~Console() {

@@ -24,6 +24,7 @@
 #include "graphics/wincursor.h"
 #include "graphics/palette.h"
 #include "graphics/fonts/ttf.h"
+#include "graphics/fontman.h"
 
 #include "topgun/topgun.h"
 #include "topgun/graphics/SpriteContext.h"
@@ -40,7 +41,9 @@ SpriteContext::SpriteContext(TopGunEngine *engine) :
 	_currentPalette{0},
 	_targetPalette{0},
 	_nestedSpriteLoops(0),
-	_curSpriteIndex(0) {
+	_curSpriteIndex(0),
+	_debugDrawSpriteIDs(false),
+	_debugFont(nullptr) {
 
 	loadCursors();
 	_screenBounds.left = (_screen->w - 1) / -2;
@@ -74,6 +77,21 @@ void SpriteContext::render() {
 		_screen->fillRect(r, i);
 		r.translate(r.width(), 0);
 	}*/
+
+	if (_debugDrawSpriteIDs) {
+		if (_debugFont == nullptr)
+			_debugFont = FontMan.getFontByUsage(Graphics::FontManager::kConsoleFont);
+		for (auto sprite : _sprites) {
+			if (!sprite->_isVisible)
+				continue;
+			const auto spriteId = Common::String::format("%d @ %d", sprite->getResourceIndex(), sprite->_curCellIndex);
+			auto bounds = sprite->_bounds;
+			bounds.translate(-_screenBounds.left, -_screenBounds.top);
+			_debugFont->drawString(_screen.get(), spriteId, bounds.left, bounds.top, _debugFont->getStringWidth(spriteId), 0, Graphics::kTextAlignCenter);
+		}
+
+		_screen->markAllDirty();
+	}
 
 	_screen->update();
 }

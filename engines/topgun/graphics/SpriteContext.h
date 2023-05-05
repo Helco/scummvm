@@ -114,6 +114,7 @@ private:
 
 	Array<SharedPtr<Graphics::Font> > _fonts;
 	Array<Common::Pair<Common::String, int> > _fontTopGunNames;
+	const Graphics::Font *_debugFont;
 
 	SharedPtr<Bitmap> _bitmapBackground;
 	byte _colorBackground;
@@ -121,6 +122,9 @@ private:
 	byte _targetPalette[kPaletteSize * 3];
 	byte _currentPalette[kPaletteSize * 3];
 	byte _sceneColorCount;
+
+public:
+	bool _debugDrawSpriteIDs;
 };
 
 }

@@ -27,10 +27,12 @@
 
 namespace TopGun {
 
+class TopGunEngine;
 class ScriptDebugger;
 
 class Console : public GUI::Debugger {
 private:
+	TopGunEngine *_engine;
 	ScriptDebugger *_scriptDebugger;
 
 	bool Cmd_addPoint(int argc, const char **argv);
@@ -46,7 +48,7 @@ private:
 	bool Cmd_globalVars(int argc, const char **argv);
 	bool Cmd_dynStrings(int argc, const char **argv);
 public:
-	Console(ScriptDebugger *scriptDebugger);
+	Console(TopGunEngine *engine);
 	~Console() override;
 };
 

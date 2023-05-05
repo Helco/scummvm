@@ -59,6 +59,7 @@ bool SpriteCellLoopHandler::update() {
 	_sprite->_nextSpeedTrigger += _sprite->_motionDuration;
 	_sprite->_setToNextCellOnRepaint = true;
 	_sprite->_isVisible = true;
+	_sprite->setToNextCellIfNecessary();
 	return !--_frameCount && !_sprite->_motionDuration;
 }
 

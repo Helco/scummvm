@@ -62,6 +62,7 @@ enum class TopGunEvent : Common::CustomEventType {
 
 class TopGunEngine : public Engine {
 private:
+	friend class Console;
 	friend class ScriptDebugger;
 	const TopGunGameDescription *_gameDescription;
 	Common::RandomSource _randomSource;

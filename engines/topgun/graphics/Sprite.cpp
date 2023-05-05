@@ -105,7 +105,6 @@ bool Sprite::load(Common::Array<byte> &&data) {
 void Sprite::render(Rect outBounds) {
 	if (!_isVisible)
 		return;
-	setToNextCellIfNecessary();
 	if (_subRects.empty()) {
 		renderSubRect(_cells[_curCellIndex], _bounds, outBounds);
 	}
@@ -236,16 +235,12 @@ uint32 Sprite::setupCellAnimation(uint32 nextCell, uint32 cellStart, uint32 cell
 	_animateCellsForward = cellStop >= cellStart;
 	_setToNextCellOnRepaint = true;
 
-	uint32 frameCount;
-	if (_animateCellsForward) {
-		_nextCellIndex = nextCell < cellStart || nextCell >= cellStop ? cellStart : nextCell;
-		frameCount = cellStop - cellStart + 1;
-	}
-	else {
-		_nextCellIndex = nextCell <= cellStop || nextCell > cellStart ? cellStart : nextCell;
-		frameCount = cellStart - cellStop + 1;
-	}
-	return frameCount;
+	const auto minCell = MIN(cellStart, cellStop);
+	const auto maxCell = MAX(cellStart, cellStop);
+	_nextCellIndex = nextCell < minCell || nextCell > maxCell
+		? cellStart
+		: nextCell;
+	return maxCell - minCell + 1;
 }
 
 void Sprite::setToNextCellIfNecessary() {

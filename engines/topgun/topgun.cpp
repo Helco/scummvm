@@ -58,6 +58,7 @@ TopGunEngine::~TopGunEngine() {
 		delete scene;
 	for (auto plugin : _plugins)
 		delete plugin;
+	_resources.clear(); // Group objects will need access to the _resources array during deconstruction, so we clear it manually first
 	g_engine = nullptr;
 }
 

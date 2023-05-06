@@ -107,6 +107,16 @@ void SpriteContext::animate() {
 	_nestedSpriteLoops--;
 }
 
+void SpriteContext::pause(bool paused) {
+	for (auto sprite : _sprites)
+		sprite->pause(paused);
+}
+
+void SpriteContext::handleEnginePause(bool paused) {
+	for (auto sprite : _sprites)
+		sprite->handleEnginePause(paused);
+}
+
 void SpriteContext::resetScene() {
 	// TODO: reset scrollBox
 	setClipBox();

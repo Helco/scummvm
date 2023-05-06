@@ -59,6 +59,8 @@ public:
 
 	void render();
 	void animate();
+	void pause(bool pause);
+	void handleEnginePause(bool pause);
 
 	void resetScene();
 	SharedPtr<Sprite> createSprite(uint32 index);

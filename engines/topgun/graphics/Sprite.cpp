@@ -41,6 +41,8 @@ Sprite::Sprite(SpriteContext *spriteCtx, uint32 index) :
 	_priority(false),
 	_flipX(false),
 	_flipY(false),
+	_paused(false),
+	_wasPausedByGameplay(false),
 	_pickableMode(SpritePickableMode::kAlwaysPickable),
 	_cellIndexStart(0),
 	_cellIndexStop(0),
@@ -51,6 +53,7 @@ Sprite::Sprite(SpriteContext *spriteCtx, uint32 index) :
 	_nextMotionTrigger(0),
 	_speed(0),
 	_nextSpeedTrigger(0),
+	_timeAtPause(0),
 	_level(0) {
 }
 
@@ -136,6 +139,28 @@ void Sprite::animate() {
 		return;
 	if (updateMessage())
 		initNextMessage();
+}
+
+void Sprite::handleEnginePause(bool paused) {
+	if (paused) {
+		_wasPausedByGameplay = _paused;
+		pause(true);
+	}
+	else if (!_wasPausedByGameplay)
+		pause(false);
+}
+
+void Sprite::pause(bool paused) {
+	if (_paused == paused)
+		return;
+	_paused = paused;
+	if (paused)
+		_timeAtPause = g_system->getMillis();
+	else {
+		const auto durationPaused = g_system->getMillis() - _timeAtPause;
+		_nextSpeedTrigger += durationPaused;
+		// TODO: original game does not increase nextMotionTrigger, but maybe it should?
+	}
 }
 
 void Sprite::setLevel(int32 newLevel) {

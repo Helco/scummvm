@@ -135,6 +135,7 @@ Common::Error TopGunEngine::run() {
 void TopGunEngine::pauseEngineIntern(bool pause) {
 	Engine::pauseEngineIntern(pause);
 	_script->handleEnginePause(pause);
+	_spriteCtx->handleEnginePause(pause);
 }
 
 Common::Error TopGunEngine::syncGame(Common::Serializer &s) {

@@ -73,6 +73,8 @@ public:
 
 	void render(Rect outBounds);
 	void animate();
+	void pause(bool pause);
+	void handleEnginePause(bool pause);
 	void translate(Point target, bool relative);
 	void setLevel(int32 newLevel);
 	void addCell(Common::SharedPtr<ISurfaceResource> resource);
@@ -121,12 +123,14 @@ private:
 	bool _breakLoops;
 	bool _priority;
 	bool _flipX, _flipY;
+	bool _paused, _wasPausedByGameplay;
 	SpritePickableMode _pickableMode;
 	uint32 _cellIndexStart, _cellIndexStop;
 	uint32 _curCellIndex, _nextCellIndex;
 	uint32 _curMessageIndex;
 	uint32 _motionDuration, _nextMotionTrigger;
 	uint32 _speed, _nextSpeedTrigger;
+	uint32 _timeAtPause;
 	int32 _level;
 };
 

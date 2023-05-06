@@ -35,8 +35,7 @@ void ISpriteMessageHandler::init() {
 }
 
 SpriteCellLoopHandler::SpriteCellLoopHandler(Sprite *sprite, const SpriteMessage &message) :
-	ISpriteMessageHandler(sprite, message, SpriteMessageType::kCellLoop),
-	_frameCount(0) {
+	ISpriteMessageHandler(sprite, message, SpriteMessageType::kCellLoop) {
 }
 
 void SpriteCellLoopHandler::init() {
@@ -64,9 +63,7 @@ bool SpriteCellLoopHandler::update() {
 }
 
 SpriteSetSubRectsHandler::SpriteSetSubRectsHandler(Sprite *sprite, const SpriteMessage &message) :
-	ISpriteMessageHandler(sprite, message, SpriteMessageType::kSetSubRects),
-	_hadBeenInit(false),
-	_frameCount(0) {
+	ISpriteMessageHandler(sprite, message, SpriteMessageType::kSetSubRects) {
 }
 
 void SpriteSetSubRectsHandler::init() {
@@ -137,8 +134,7 @@ bool SpriteHideHandler::update() {
 }
 
 SpriteDelayHandler::SpriteDelayHandler(Sprite *sprite, const SpriteMessage &message) :
-	ISpriteMessageHandler(sprite, message, SpriteMessageType::kDelay),
-	_hasStarted(false) {
+	ISpriteMessageHandler(sprite, message, SpriteMessageType::kDelay) {
 }
 
 void SpriteDelayHandler::init() {
@@ -153,6 +149,7 @@ bool SpriteDelayHandler::update() {
 	if (!_sprite->_priority || !_sprite->_nextSpeedTrigger)
 		_sprite->_nextSpeedTrigger = g_system->getMillis();
 	_sprite->_nextSpeedTrigger += _script->evalValue(_msg._delay);
+	return false;
 }
 
 SpriteRunRootOpHandler::SpriteRunRootOpHandler(Sprite *sprite, const SpriteMessage &message) :

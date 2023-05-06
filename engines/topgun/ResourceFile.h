@@ -130,17 +130,17 @@ private:
 	bool readPluginIndices();
 
 public:
-	Architecture _architecture;
-	ResourceFileVersion _version;
+	Architecture _architecture = Architecture::kBits32;
+	ResourceFileVersion _version = ResourceFileVersion::kUseExtensionFiles;
 	Common::String _title, _subTitle;
-	uint32 _entryId,
-		_staticResources,
-		_dynamicResources,
-		_totalResources,
-		_dynamicStringCount,
-		_maxFadeColors,
-		_maxTransColors,
-		_maxScrMsg;
+	uint32 _entryId = 0,
+		_staticResources = 0,
+		_dynamicResources = 0,
+		_totalResources = 0,
+		_dynamicStringCount = 0,
+		_maxFadeColors = 0,
+		_maxTransColors = 0,
+		_maxScrMsg = 0;
 
 	KeyResourceLocation _keyResources[(size_t)KeyResource::kCount];
 	Common::Array<ResourceLocation> _resources;

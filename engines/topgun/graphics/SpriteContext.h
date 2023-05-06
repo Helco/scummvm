@@ -106,8 +106,8 @@ private:
 	ScopedPtr<Graphics::Screen> _screen;
 
 	Array<SharedPtr<Sprite> > _sprites; // intentionally not using SortedArray
-	uint32 _nestedSpriteLoops;
-	uint32 _curSpriteIndex;
+	uint32 _nestedSpriteLoops = 0;
+	uint32 _curSpriteIndex = 0;
 
 	Array<Graphics::Cursor *> _cursors; // unowned pointers
 	ScopedPtr<Graphics::Cursor> _busyCursor;
@@ -116,17 +116,17 @@ private:
 
 	Array<SharedPtr<Graphics::Font> > _fonts;
 	Array<Common::Pair<Common::String, int> > _fontTopGunNames;
-	const Graphics::Font *_debugFont;
+	const Graphics::Font *_debugFont = nullptr;
 
 	SharedPtr<Bitmap> _bitmapBackground;
-	byte _colorBackground;
+	byte _colorBackground = 0;
 
-	byte _targetPalette[kPaletteSize * 3];
-	byte _currentPalette[kPaletteSize * 3];
-	byte _sceneColorCount;
+	byte _targetPalette[kPaletteSize * 3] = { 0 };
+	byte _currentPalette[kPaletteSize * 3] = { 0 };
+	byte _sceneColorCount = 0;
 
 public:
-	bool _debugDrawSpriteIDs;
+	bool _debugDrawSpriteIDs = false;
 };
 
 }

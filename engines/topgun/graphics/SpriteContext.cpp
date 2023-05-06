@@ -37,13 +37,7 @@ static uint32 roundingFractionMul(uint32 v, uint32 num, uint32 denom) {
 
 SpriteContext::SpriteContext(TopGunEngine *engine) :
 	_engine(engine),
-	_screen(new Graphics::Screen()),
-	_currentPalette{0},
-	_targetPalette{0},
-	_nestedSpriteLoops(0),
-	_curSpriteIndex(0),
-	_debugDrawSpriteIDs(false),
-	_debugFont(nullptr) {
+	_screen(new Graphics::Screen()) {
 
 	loadCursors();
 	_screenBounds.left = (_screen->w - 1) / -2;

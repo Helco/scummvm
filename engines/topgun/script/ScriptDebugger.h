@@ -108,9 +108,9 @@ private:
 	Common::Array<ScriptCallStackEntry> _callStack;
 	Common::Array<uint32> _stopsAtCallDepth;
 
-	uint32 _nextPointId;
-	bool _stopsNextStep;
-	bool _isPaused;
+	uint32 _nextPointId = 0;
+	bool _stopsNextStep = false;
+	bool _isPaused = false;
 };
 
 }

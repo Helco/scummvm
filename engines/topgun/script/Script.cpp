@@ -26,18 +26,7 @@ namespace TopGun {
 
 Script::Script(TopGunEngine *engine) :
 	_debugger(new ScriptDebugger(engine)),
-	_engine(engine),
-	_scene(nullptr),
-	_nestedScriptCount(0),
-	_localScope(0),
-	_scriptResult(0),
-	_reg3E3F(0),
-	_mouseEventHandler(0),
-	_pauseEventHandler(-1),
-	_areTimersPaused(false),
-	_timeAtPausingTimers(0),
-	_curTimerIndex(0),
-	_wereTimersPausedByGameplay(false) {
+	_engine(engine) {
 	_systemVariables.resize(engine->getGameDesc()->_systemVarCount);
 	memset(_keyListeners, 0, sizeof(_keyListeners));
 }

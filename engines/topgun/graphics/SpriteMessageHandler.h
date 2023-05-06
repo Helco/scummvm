@@ -54,7 +54,7 @@ public:
 	virtual bool update() override;
 
 private:
-	uint32 _frameCount;
+	uint32 _frameCount = 0;
 };
 
 class SpriteSetSubRectsHandler : public ISpriteMessageHandler {
@@ -65,8 +65,8 @@ public:
 	virtual bool update() override;
 
 private:
-	bool _hadBeenInit;
-	uint32 _frameCount;
+	bool _hadBeenInit = false;
+	uint32 _frameCount = 0;
 };
 
 class SpriteOffsetAndFlipHandler : public ISpriteMessageHandler {
@@ -91,7 +91,7 @@ public:
 	virtual bool update() override;
 
 private:
-	bool _hasStarted;
+	bool _hasStarted = false;
 };
 
 class SpriteSetPriorityHandler : public ISpriteMessageHandler {

@@ -464,21 +464,21 @@ private:
 private:
 	ScopedPtr<ScriptDebugger> _debugger;
 	TopGunEngine *_engine;
-	Scene *_scene;
+	Scene *_scene = nullptr;
 
-	int32 _reg3E3F;
-	int32 _mouseEventHandler;
-	int32 _pauseEventHandler;
+	int32 _reg3E3F = 0;
+	int32 _mouseEventHandler = 0;
+	int32 _pauseEventHandler = -1;
 	ScriptKeyListener _keyListeners[kWindowsKeyCount];
 
-	bool _areTimersPaused, _wereTimersPausedByGameplay;
-	uint32 _timeAtPausingTimers,
-		_curTimerIndex;
+	bool _areTimersPaused = false, _wereTimersPausedByGameplay = false;
+	uint32 _timeAtPausingTimers = 0,
+		_curTimerIndex = 0;
 	Common::Array<ScriptTimer> _timers;
 
-	int32 _scriptResult;
-	uint32 _nestedScriptCount;
-	uint32 _localScope; ///< index of first local variable in current scope
+	int32 _scriptResult = 0;
+	uint32 _nestedScriptCount = 0;
+	uint32 _localScope = 0; ///< index of first local variable in current scope
 	Array<int32> _systemVariables;
 	Array<int32> _localVariables;
 	Array<int32> _stack; // using Array to easily grab a couple arguments for runProcedure

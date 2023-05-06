@@ -29,32 +29,7 @@ namespace TopGun {
 
 Sprite::Sprite(SpriteContext *spriteCtx, uint32 index) :
 	IResource(kResourceType, index),
-	_spriteCtx(spriteCtx),
-	_isEnabled(true),
-	_isVisible(false),
-	_isScrollable(false),
-	_animateCell(false),
-	_animateCellsForward(false),
-	_setToNextCellOnRepaint(false),
-	_rectPickable(false),
-	_breakLoops(false),
-	_priority(false),
-	_flipX(false),
-	_flipY(false),
-	_paused(false),
-	_wasPausedByGameplay(false),
-	_pickableMode(SpritePickableMode::kAlwaysPickable),
-	_cellIndexStart(0),
-	_cellIndexStop(0),
-	_curCellIndex(0),
-	_nextCellIndex(0),
-	_curMessageIndex(UINT32_MAX),
-	_motionDuration(0),
-	_nextMotionTrigger(0),
-	_speed(0),
-	_nextSpeedTrigger(0),
-	_timeAtPause(0),
-	_level(0) {
+	_spriteCtx(spriteCtx) {
 }
 
 Sprite::~Sprite() {

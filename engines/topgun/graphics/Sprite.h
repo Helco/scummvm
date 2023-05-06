@@ -113,25 +113,25 @@ private:
 	Point _scrollPos;
 	Rect _bounds;
 
-	bool _isEnabled;
-	bool _isVisible;
-	bool _isScrollable;
-	bool _animateCell;
-	bool _animateCellsForward;
-	bool _setToNextCellOnRepaint;
-	bool _rectPickable;
-	bool _breakLoops;
-	bool _priority;
-	bool _flipX, _flipY;
-	bool _paused, _wasPausedByGameplay;
-	SpritePickableMode _pickableMode;
-	uint32 _cellIndexStart, _cellIndexStop;
-	uint32 _curCellIndex, _nextCellIndex;
-	uint32 _curMessageIndex;
-	uint32 _motionDuration, _nextMotionTrigger;
-	uint32 _speed, _nextSpeedTrigger;
-	uint32 _timeAtPause;
-	int32 _level;
+	bool _isEnabled = true;
+	bool _isVisible = false;
+	bool _isScrollable = false;
+	bool _animateCell = false;
+	bool _animateCellsForward = false;
+	bool _setToNextCellOnRepaint = false;
+	bool _rectPickable = false;
+	bool _breakLoops = false;
+	bool _priority = false;
+	bool _flipX = false, _flipY = false;
+	bool _paused = false, _wasPausedByGameplay = false;
+	SpritePickableMode _pickableMode = SpritePickableMode::kAlwaysPickable;
+	uint32 _cellIndexStart = 0, _cellIndexStop = 0;
+	uint32 _curCellIndex = 0, _nextCellIndex = 0;
+	uint32 _curMessageIndex = UINT32_MAX;
+	uint32 _motionDuration = 0, _nextMotionTrigger = 0;
+	uint32 _speed = 0, _nextSpeedTrigger = 0;
+	uint32 _timeAtPause = 0;
+	int32 _level = 0;
 };
 
 }

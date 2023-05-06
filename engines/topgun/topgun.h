@@ -162,7 +162,6 @@ public:
 	void postChangeScene(const Common::String &name);
 
 private:
-	bool _debug;
 	ScopedPtr<ResourceFile> _resFile;
 	ScopedPtr<SpriteContext> _spriteCtx;
 	ScopedPtr<Script> _script;
@@ -173,11 +172,11 @@ private:
 	Array<IPlugin *> _plugins;
 
 	Common::String _nextSceneName;
-	uint32 _curSceneIndex, _lastSceneIndex;
-	uint32 _topMostSpriteIndex;
-	int32 _clearTopMostSpriteScript;
+	uint32 _curSceneIndex = 0, _lastSceneIndex = 0;
+	uint32 _topMostSpriteIndex = 0;
+	int32 _clearTopMostSpriteScript = 0;
 
-	Common::KeyCode _windowsToScummKey[kWindowsKeyCount];
+	Common::KeyCode _windowsToScummKey[kWindowsKeyCount] = { Common::KEYCODE_INVALID };
 };
 
 extern TopGunEngine *g_engine;

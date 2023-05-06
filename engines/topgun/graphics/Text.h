@@ -70,11 +70,11 @@ private:
 	Point _offset;
 	Point _pos;
 	Point _size;
-	TextAlignment _alignment;
-	byte _color;
-	bool _wrap;
-	bool _isPassword;
-	bool _showLastPasswordCharacter;
+	TextAlignment _alignment = TextAlignment::kCenter;
+	byte _color = 0;
+	bool _wrap = false;
+	bool _isPassword = false;
+	bool _showLastPasswordCharacter = false;
 };
 
 }

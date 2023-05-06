@@ -68,10 +68,7 @@ bool ScriptTracePoint::appliesTo(const ScriptCallStackEntry &call) {
 }
 
 ScriptDebugger::ScriptDebugger(TopGunEngine *engine) :
-	_engine(engine),
-	_stopsNextStep(false),
-	_isPaused(false),
-	_nextPointId(0) {
+	_engine(engine) {
 }
 
 uint32 ScriptDebugger::addPoint(ScriptPointType type, bool shouldBreak, uint32 index, uint32 offset) {

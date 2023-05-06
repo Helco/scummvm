@@ -30,12 +30,7 @@ constexpr bool operator&(TextAlignment a, TextAlignment b) {
 
 Text::Text(SpriteContext *spriteCtx, uint32 index) :
 	ISurfaceResource(kResourceType, index),
-	_spriteCtx(spriteCtx),
-	_color(0),
-	_alignment(TextAlignment::kCenter),
-	_wrap(false),
-	_isPassword(false),
-	_showLastPasswordCharacter(false) {
+	_spriteCtx(spriteCtx) {
 }
 
 bool Text::load(Common::Array<byte> &&data) {

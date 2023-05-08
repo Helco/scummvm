@@ -44,8 +44,17 @@ public:
 	}
 
 private:
+	struct Symbol
+	{
+		uint16 prevSymbol = 0;
+		byte data = 0;
+		byte length = 0;
+	};
+
 	void decompressSimpleRLE(Common::SeekableReadStream &stream, uint32 width, uint32 height);
 	void decompressComplexRLE(Common::SeekableReadStream &stream, uint32 width, uint32 height);
+	void decompressLZWPacket(Common::SeekableReadStream &stream, byte *&destPtr, int bits, Array<Symbol> &symbols);
+	static void pushSymbol(byte *&destPtr, uint16 symbol, const Array<Symbol> &symbols, byte &newLastData);
 
 private:
 	ScopedPtr<Graphics::ManagedSurface> _surface;

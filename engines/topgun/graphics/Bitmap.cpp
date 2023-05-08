@@ -19,6 +19,7 @@
  *
  */
 
+#include "common/bitstream.h"
 #include "topgun/topgun.h"
 #include "Bitmap.h"
 
@@ -41,10 +42,10 @@ bool Bitmap::load(Common::Array<byte> &&data) {
 	_offset.y = stream.readSint32LE();
 	stream.skip(4);
 
-	if (flags & 0x80000000)
-		decompressComplexRLE(stream, width, height);
-	else
+	if (flags & 0x00000080)
 		decompressSimpleRLE(stream, width, height);
+	else
+		decompressComplexRLE(stream, width, height);
 	if (!(flags & 0x40))
 		getSurface()->flipVertical(Rect(width, height));
 
@@ -88,7 +89,86 @@ void Bitmap::decompressSimpleRLE(Common::SeekableReadStream &stream, uint32 widt
 }
 
 void Bitmap::decompressComplexRLE(Common::SeekableReadStream &stream, uint32 width, uint32 height) {
-	error("Complex RLE is not supported yet");
+	const auto alignedWidth = (width + 3) & ~3u;
+	auto pixels = (byte *)malloc(alignedWidth * height);
+	if (pixels == nullptr)
+		error("Could not allocate %d bytes for bitmap", alignedWidth * height);
+	getSurface()->init(width, height, alignedWidth, pixels, Graphics::PixelFormat::createFormatCLUT8());
+
+	Array<Symbol> symbols;
+	byte *destPtr = (byte *)pixels;
+	while (true) {
+		const uint16 packetHeader = stream.readUint16LE();
+		const uint16 packetType = packetHeader & 0xE000;
+		const uint16 packetSize = packetHeader & 0x1FFF;
+
+		int bits;
+		switch (packetType)
+		{
+		case 0xE000: return;
+		case 0:
+			stream.read(destPtr, packetSize);
+			destPtr += packetSize;
+			continue;
+		case 0x4000: bits = 10; break;
+		case 0x6000: bits = 11; break;
+		case 0x8000: bits = 12; break;
+		default:
+			error("Invalid data in complex RLE bitmap");
+			return;
+		}
+
+		symbols.reserve((1 << bits) - 1);
+		const auto packetEnd = stream.pos() + packetSize;
+		while (stream.pos() < packetEnd)
+		{
+			const auto subPacketSize = stream.readUint16LE();
+			const auto subPacketEnd = stream.pos() + subPacketSize;
+			decompressLZWPacket(stream, destPtr, bits, symbols);
+			stream.seek(subPacketEnd, SEEK_SET);
+		}
+	}
+	if (stream.err())
+		error("Stream error in complex RLE bitmap");
+}
+
+void Bitmap::decompressLZWPacket(Common::SeekableReadStream &stream, byte *&destPtr, int bits, Array<Symbol> &symbols) {
+	const auto maxSymbols = (1 << bits) - 1;
+	symbols.resize(256);
+	Common::BitStream8MSB bitStream(stream);
+
+	uint16 symbol = bitStream.getBits(bits);
+	*destPtr++ = (byte)symbol;
+	uint16 prevSymbol = symbol;
+	byte newLastData, lastData = (byte)symbol;
+
+	while (true) {
+		symbol = bitStream.getBits(bits);
+		if (symbol == maxSymbols)
+			break;
+		else if (symbol < symbols.size())
+			pushSymbol(destPtr, symbol, symbols, newLastData);
+		else {
+			pushSymbol(destPtr, prevSymbol, symbols, newLastData);
+			*destPtr++ = lastData;
+		}
+		lastData = newLastData;
+
+		if (symbols.size() < maxSymbols)
+			symbols.push_back(Symbol{ prevSymbol, lastData, (byte)(symbols[prevSymbol].length + 1) });
+		prevSymbol = symbol;
+	}
+}
+
+void Bitmap::pushSymbol(byte *&destPtr, uint16 symbol, const Array<Symbol> &symbols, byte &newLastData) {
+	auto length = symbols[symbol].length;
+	for (int i = 0; i < length; i++)
+	{
+		destPtr[length - i] = symbols[symbol].data;
+		symbol = symbols[symbol].prevSymbol;
+	}
+	newLastData = destPtr[0] = (byte)symbol;
+	destPtr += length + 1;
 }
 
 }

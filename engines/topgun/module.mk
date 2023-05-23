@@ -3,6 +3,7 @@ MODULE := engines/topgun
 MODULE_OBJS = \
 	topgun.o \
 	console.o \
+	convertKey.o \
 	metaengine.o \
 	Resource.o \
 	ResourceFile.o \
@@ -12,6 +13,7 @@ MODULE_OBJS = \
 	graphics/Cell.o \
 	graphics/Sprite.o \
 	graphics/SpriteContext.o \
+	graphics/SpriteMessageHandler.o \
 	graphics/SpriteMessageQueue.o \
 	graphics/Text.o \
 	plugins/loadPlugin.o \
@@ -20,7 +22,8 @@ MODULE_OBJS = \
 	script/Script.o \
 	script/Script_Calc.o \
 	script/Script_Procedure.o \
-	script/Script_Root.o
+	script/Script_Root.o \
+	script/ScriptDebugger.o
 
 # This module can be built as a plugin
 ifeq ($(ENABLE_TOPGUN), DYNAMIC_PLUGIN)

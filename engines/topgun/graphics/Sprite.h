@@ -80,6 +80,8 @@ public:
 	void addCell(Common::SharedPtr<ISurfaceResource> resource);
 	void clearQueue();
 	void setQueue(const SpriteMessageQueue *queue);
+	void sendMessage(const int32 *args, uint32 argCount);
+	void postMessage(const int32 *args, uint32 argCount);
 	void setVisible(bool visible);
 
 	inline SpriteContext *getSpriteContext() {
@@ -131,6 +133,7 @@ private:
 	uint32 _motionDuration = 0, _nextMotionTrigger = 0;
 	uint32 _speed = 0, _nextSpeedTrigger = 0;
 	uint32 _timeAtPause = 0;
+	uint32 _lastLoopMarker = UINT32_MAX;
 	int32 _level = 0;
 };
 

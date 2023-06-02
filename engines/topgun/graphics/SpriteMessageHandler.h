@@ -34,6 +34,8 @@ public:
 	ISpriteMessageHandler(Sprite *sprite, const SpriteMessage &message, SpriteMessageType expectedType);
 	virtual ~ISpriteMessageHandler() = default;
 
+	static ISpriteMessageHandler *create(Sprite *sprite, const SpriteMessage &message);
+
 	virtual void init();
 	virtual bool update() = 0; ///< returns true if message is done
 

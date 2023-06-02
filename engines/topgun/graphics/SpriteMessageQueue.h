@@ -29,7 +29,7 @@ namespace TopGun {
 enum class SpriteMessageType {
 	kCellLoop = 1,
 	kSetSubRects,
-	kUnused3,
+	kSetLoopMarker,
 	kCompToBackground,
 	kMoveCurve,
 	kMessageLoop,
@@ -56,6 +56,9 @@ enum class SpriteMessageType {
 struct SpriteMessage {
 	static constexpr int32 kMaxSubRects = 8;
 	static constexpr int32 kMaxArgs = 6;
+
+	SpriteMessage();
+	SpriteMessage(const int32 *args, uint32 argCount);
 
 	size_t _offset;
 	SpriteMessageType _type;

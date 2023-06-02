@@ -112,6 +112,14 @@ int32 Script::runInternalProcedure(uint32 procId, const int32 *args, uint32 argC
 	case ScriptOp::kSetQueueAndHide:
 		checkArgCount(argCount, 2, 3);
 		return setSpriteQueue(args[0], args[1], argCount < 3 ? false : args[2]);
+	case ScriptOp::kSpritePostMessage:
+		checkArgCount(argCount, 2, UINT32_MAX);
+		_engine->loadResource<Sprite>(args[0])->postMessage(args + 1, argCount - 1);
+		break;
+	case ScriptOp::kSpriteSendMessage:
+		checkArgCount(argCount, 2, UINT32_MAX);
+		_engine->loadResource<Sprite>(args[0])->sendMessage(args + 1, argCount - 1);
+		break;
 	case ScriptOp::kLoadResource:
 		checkArgCount(argCount, 1);
 		_engine->loadResource(args[0], ResourceType::kInvalid);

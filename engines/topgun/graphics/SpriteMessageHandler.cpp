@@ -31,6 +31,27 @@ ISpriteMessageHandler::ISpriteMessageHandler(Sprite *sprite, const SpriteMessage
 	(void)expectedType;
 }
 
+ISpriteMessageHandler *ISpriteMessageHandler::create(Sprite *sprite, const SpriteMessage &msg) {
+	switch (msg._type) {
+	case (SpriteMessageType::kCellLoop):
+		return new SpriteCellLoopHandler(sprite, msg);
+	case (SpriteMessageType::kSetSubRects):
+		return new SpriteSetSubRectsHandler(sprite, msg);
+	case (SpriteMessageType::kOffsetAndFlip):
+		return new SpriteOffsetAndFlipHandler(sprite, msg);
+	case (SpriteMessageType::kHide):
+		return new SpriteHideHandler(sprite, msg);
+	case (SpriteMessageType::kDelay):
+		return new SpriteDelayHandler(sprite, msg);
+	case (SpriteMessageType::kSetPriority):
+		return new SpriteSetPriorityHandler(sprite, msg);
+	case (SpriteMessageType::kRunRootOp):
+		return new SpriteRunRootOpHandler(sprite, msg);
+	default:
+		error("Unknown sprite message type %d", msg._type);
+	}
+}
+
 void ISpriteMessageHandler::init() {
 }
 

@@ -280,36 +280,39 @@ void Sprite::setQueue(const SpriteMessageQueue *queue) {
 	_queue.reserve(queue->getMessageCount());
 	for (size_t i = 0; i < queue->getMessageCount(); i++) {
 		const auto &msg = queue->getMessage(i);
-		switch (msg._type) {
-		case (SpriteMessageType::kCellLoop):
-			_queue.push_back(new SpriteCellLoopHandler(this, msg));
-			break;
-		case (SpriteMessageType::kSetSubRects):
-			_queue.push_back(new SpriteSetSubRectsHandler(this, msg));
-			break;
-		case (SpriteMessageType::kOffsetAndFlip):
-			_queue.push_back(new SpriteOffsetAndFlipHandler(this, msg));
-			break;
-		case (SpriteMessageType::kHide):
-			_queue.push_back(new SpriteHideHandler(this, msg));
-			break;
-		case (SpriteMessageType::kDelay):
-			_queue.push_back(new SpriteDelayHandler(this, msg));
-			break;
-		case (SpriteMessageType::kSetPriority):
-			_queue.push_back(new SpriteSetPriorityHandler(this, msg));
-			break;
-		case (SpriteMessageType::kRunRootOp):
-			_queue.push_back(new SpriteRunRootOpHandler(this, msg));
-			break;
-		default:
-			error("Unknown sprite message type %d", msg._type);
-			break;
-		}
+		_queue.push_back(ISpriteMessageHandler::create(this, msg));
 	}
 
 	_curMessageIndex = UINT32_MAX;
 	initNextMessage();
+}
+
+void Sprite::sendMessage(const int32 *args, uint32 argCount) {
+	SpriteMessage message(args, argCount);
+	if (message._type == SpriteMessageType::kSetLoopMarker ||
+		message._type == SpriteMessageType::kMessageLoop ||
+		message._type == SpriteMessageType::kDelay)
+		return;
+
+	clearQueue();
+	_queue.push_back(ISpriteMessageHandler::create(this, message));
+
+	_curMessageIndex = UINT32_MAX;
+	initNextMessage();
+	updateMessage();
+}
+
+void Sprite::postMessage(const int32 *args, uint32 argCount) {
+	SpriteMessage message(args, argCount);
+	switch (message._type) {
+	case (SpriteMessageType::kSetLoopMarker):
+		_lastLoopMarker = _queue.size();
+		break;
+	case (SpriteMessageType::kMessageLoop):
+		message._messageLoop._jumpIndex = _lastLoopMarker;
+		break;
+	}
+	_queue.push_back(ISpriteMessageHandler::create(this, message));
 }
 
 bool Sprite::initNextMessage() {

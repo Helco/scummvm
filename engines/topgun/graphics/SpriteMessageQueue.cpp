@@ -41,7 +41,7 @@ bool SpriteMessageQueue::load(Common::Array<byte> &&data) {
 		msg._offset = stream.pos();
 		msg._type = (SpriteMessageType)stream.readUint16LE();
 		switch (msg._type) {
-		case SpriteMessageType::kUnused3:
+		case SpriteMessageType::kSetLoopMarker:
 		case SpriteMessageType::kCompToBackground:
 		case SpriteMessageType::kHide:
 		case SpriteMessageType::kChangeScene:
@@ -208,6 +208,119 @@ bool SpriteMessageQueue::load(Common::Array<byte> &&data) {
 	}
 
 	return !stream.err();
+}
+
+SpriteMessage::SpriteMessage() {
+	memset(this, 0, sizeof(*this));
+}
+
+SpriteMessage::SpriteMessage(const int32 *args, const uint32 argCount) : SpriteMessage() {
+	// TODO: Replace assert with errors
+	assert(argCount > 0);
+	_type = (SpriteMessageType)args[0];
+	switch (_type) {
+	case (SpriteMessageType::kCellLoop):
+		assert(argCount >= 4);
+		_cellLoop._cellStart._value = args[1];
+		_cellLoop._cellStop._value = args[2];
+		_cellLoop._duration._value = args[3];
+		break;
+	case (SpriteMessageType::kSetSubRects):
+		// one unused argument
+		assert(argCount >= 4 && argCount <= 10);
+		_subRects._subRectCount = argCount - 3;
+		for (int i = 0; i < _subRects._subRectCount; i++)
+			_subRects._subRectCells[i]._value = *++args;
+		_subRects._duration._value = *args;
+		break;
+	case (SpriteMessageType::kSetLoopMarker):
+	case (SpriteMessageType::kCompToBackground):
+	case (SpriteMessageType::kHide):
+		// no arguments need to be read
+		break;
+	case (SpriteMessageType::kMoveCurve):
+		assert(argCount >= 7);
+		_curve._point1X._value = *++args;
+		_curve._point1Y._value = *++args;
+		_curve._point2X._value = *++args;
+		_curve._point2Y._value = *++args;
+		_curve._duration._value = *++args;
+		_curve._isRelative = *args;
+		break;
+	case (SpriteMessageType::kMessageLoop):
+		_messageLoop._jumpIndex = UINT32_MAX; // set by Sprite::addMessage with a kSetLoopMarker message
+		_messageLoop._loopsRemaining = _messageLoop._loopCount = argCount > 1 ? args[1] : 0;
+		break;
+	case (SpriteMessageType::kOffsetAndFlip):
+		assert(argCount >= 3);
+		_offsetAndFlip._flipX._value = *++args;
+		_offsetAndFlip._flipX._value = *++args;
+		break;
+	case (SpriteMessageType::kMoveLinear):
+		assert(argCount >= 6);
+		_linear._targetX._value = *++args;
+		_linear._targetY._value = *++args;
+		_linear._duration._value = *++args;
+		_linear._durationIsSpeed = *++args;
+		_linear._isRelative = *++args;
+		break;
+	case (SpriteMessageType::kDelayedMove):
+		assert(argCount == 5); // one unused, but by the game expected
+		_delayedMove._targetX._value = *++args;
+		_delayedMove._targetY._value = *++args;
+		_delayedMove._isRelative = *++args;
+		break;
+	case (SpriteMessageType::kDelay):
+		assert(argCount >= 2);
+		_delay._value = *++args;
+		break;
+	case (SpriteMessageType::kSetPos):
+		assert(argCount >= 3);
+		_pos._targetX._value = *++args;
+		_pos._targetY._value = *++args;
+		_pos._isRelative = argCount > 3 ? *++args : false;
+		break;
+	case (SpriteMessageType::kSetPriority):
+		assert(argCount >= 2);
+		_priority = *++args != 0;
+		break;
+	case (SpriteMessageType::kSetRedraw):
+		assert(argCount >= 2);
+		_redraw = *++args != 0;
+		break;
+	case (SpriteMessageType::kSetMotionDuration):
+		assert(argCount >= 2);
+		_motionDuration._value = *++args;
+		break;
+	case (SpriteMessageType::kSetCellAnimation):
+		assert(argCount >= 4);
+		_cellAnimation._nextCell._value = *++args;
+		_cellAnimation._cellStart._value = *++args;
+		_cellAnimation._cellStop._value = *++args;
+		break;
+	case (SpriteMessageType::kSetSpeed):
+		assert(argCount >= 2);
+		_speed._speed._value = *++args;
+		_speed._duration._value = argCount > 2 ? *++args : 0;
+		break;
+	case (SpriteMessageType::kShowCell):
+		_showCellIndex = argCount > 1 ? *++args : -1;
+		break;
+	case (SpriteMessageType::kRunScript):
+		assert(argCount >= 3 && argCount <= 9); // one unused
+		_script._resIndex = *++args;
+		_script._argCount = argCount - 3;
+		for (uint32 i = 0; i < _script._argCount; i++)
+			_script._args[i] = *++args;
+		break;
+	case (SpriteMessageType::kProc266):
+		assert(argCount >= 3);
+		_proc266._sprite._value = *++args;
+		_proc266._flag._value = *++args;
+		break;
+	default:
+		error("Unknown sprite message type: %d", args[0]);
+	}
 }
 
 }

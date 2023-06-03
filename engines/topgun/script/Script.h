@@ -476,6 +476,7 @@ private:
 	Scene *_scene = nullptr;
 
 	int32 _reg3E3F = 0;
+	int32 _reg3EE7 = 0;
 	int32 _mouseEventHandler = 0;
 	int32 _pauseEventHandler = -1;
 	int32 _spritePickedEventHandler = 0;

@@ -389,6 +389,13 @@ struct ScriptTimer {
 	bool _repeats;
 };
 
+struct QueuedMessage {
+	static constexpr int kMaxArguments = 4;
+	uint32 _script;
+	uint32 _argCount;
+	int32 _args[kMaxArguments];
+};
+
 class Script {
 	friend class ScriptDebugger;
 public:
@@ -406,12 +413,14 @@ public:
 	int32 runMessage(uint32 index, uint32 localScopeSize, uint32 argCount, const int32 *args);
 	void runQueueRootOp(Common::Array<byte> &data, uint32 index);
 	int32 runProcedure(uint32 procId, const int32 *args, uint32 argCount, uint32 localScopeSize = 0);
+	void postMessage(uint32 index, uint32 argCount, const int32 *args);
 
 	void onKeyDown(Common::KeyState keyState);
 	void onKeyUp(Common::KeyState keyState);
 	void setKeyListener(int32 key, uint32 script, bool isForShift, bool isForControl);
 	void setKeyUpListener(int32 key, uint32 script);
 	void toggleKeyListener(int32 key, bool toggle);
+	void postSpritePicked(uint32 sprite, bool entered);
 
 	int32 evalValue(int32 valueOrIndex, bool isIndex);
 	inline int32 evalValue(ValueOrIndirect value) {
@@ -469,6 +478,7 @@ private:
 	int32 _reg3E3F = 0;
 	int32 _mouseEventHandler = 0;
 	int32 _pauseEventHandler = -1;
+	int32 _spritePickedEventHandler = 0;
 	ScriptKeyListener _keyListeners[kWindowsKeyCount];
 
 	bool _areTimersPaused = false, _wereTimersPausedByGameplay = false;
@@ -483,6 +493,8 @@ private:
 	Array<int32> _localVariables;
 	Array<int32> _stack; // using Array to easily grab a couple arguments for runProcedure
 	Array<ScriptPluginProcedure *> _pluginProcedures;
+	Array<QueuedMessage> _messageQueues[2];
+	Array<QueuedMessage> *_curMessageQueue;
 };
 
 }

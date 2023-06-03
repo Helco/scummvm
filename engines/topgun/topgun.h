@@ -158,6 +158,9 @@ public:
 
 	void setTopMostSprite(Sprite *sprite);
 	void postClearTopMostSprite(int32 script);
+	void updatePickedSprite();
+	void updatePickedSprite(int32 x, int32 y);
+	void leavePickedSprite();
 	void postQuitScene();
 	void postChangeScene(const Common::String &name);
 
@@ -175,6 +178,7 @@ private:
 	uint32 _curSceneIndex = 0, _lastSceneIndex = 0;
 	uint32 _topMostSpriteIndex = 0;
 	int32 _clearTopMostSpriteScript = 0;
+	uint32 _pickedSprite = 0;
 
 	Common::KeyCode _windowsToScummKey[kWindowsKeyCount] = { Common::KEYCODE_INVALID };
 };

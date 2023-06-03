@@ -26,7 +26,8 @@ namespace TopGun {
 
 Script::Script(TopGunEngine *engine) :
 	_debugger(new ScriptDebugger(engine)),
-	_engine(engine) {
+	_engine(engine),
+	_curMessageQueue(&_messageQueues[0]) {
 	_systemVariables.resize(engine->getGameDesc()->_systemVarCount);
 	memset(_keyListeners, 0, sizeof(_keyListeners));
 }
@@ -44,6 +45,14 @@ void Script::prepareSceneChange() {
 }
 
 void Script::runMessageQueue() {
+	auto myQueue = _curMessageQueue;
+	_curMessageQueue = _curMessageQueue == &_messageQueues[0]
+		? &_messageQueues[1]
+		: &_messageQueues[0];
+
+	for (const auto &message : *myQueue)
+		runMessage(message._script, 0, message._argCount, message._args);
+	myQueue->clear();
 }
 
 void Script::runEntry() {
@@ -160,6 +169,17 @@ int32 Script::runPluginProcedure(uint32 procId, const int32 *args, uint32 argCou
 			resFile->_plugins[resFile->_pluginIndexPerProcedure[procId]].c_str(),
 			resFile->_pluginProcedures[procId].c_str());
 	return (*_pluginProcedures[procId])(args, argCount);
+}
+
+void Script::postMessage(uint32 script, uint32 argCount, const int *args) {
+	if (argCount > QueuedMessage::kMaxArguments)
+		error("Tried to post message with too many arguments");
+
+	QueuedMessage message;
+	message._script = script;
+	message._argCount = argCount;
+	Common::copy(args, args + argCount, message._args);
+	_curMessageQueue->push_back(message);
 }
 
 int32 Script::readSint(Common::ReadStream &stream) {
@@ -326,6 +346,14 @@ void Script::toggleKeyListener(int32 key, bool toggle) {
 		for (int32 i = 0; i < kWindowsKeyCount; i++)
 			_keyListeners[i]._isDisabled = !toggle;
 	}
+}
+
+void Script::postSpritePicked(uint32 sprite, bool entered) {
+	if (!_spritePickedEventHandler)
+		return;
+
+	int32 args[2] = { (int32)sprite, entered };
+	postMessage(_spritePickedEventHandler, 2, args);
 }
 
 void Script::updateTimers() {

@@ -266,6 +266,21 @@ void TopGunEngine::postClearTopMostSprite(int32 script) {
 	g_system->getEventManager()->pushEvent(ev);
 }
 
+void TopGunEngine::updatePickedSprite() {
+	warning("stub: updatePickedSprite\n");
+}
+
+void TopGunEngine::updatePickedSprite(int32 x, int32 y) {
+	warning("stub: updatePickedSprite\n");
+}
+
+void TopGunEngine::leavePickedSprite() {
+	if (!_pickedSprite)
+		return;
+	_script->postSpritePicked(_pickedSprite, false);
+	_pickedSprite = 0;
+}
+
 void TopGunEngine::postQuitScene() {
 	if (_curSceneIndex == _lastSceneIndex) {
 		debugCN(kInfo, kDebugRuntime, "Quit scene to quit game\n");

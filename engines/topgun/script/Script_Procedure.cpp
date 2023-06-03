@@ -34,304 +34,6 @@ static void checkArgCount(uint32 actual, uint32 min, uint32 max) {
 		error("Invalid number of procedure arguments, expected %d-%d but got %d", min, max, actual);
 }
 
-const char *internalProcedureNames[];
-
-int32 Script::runInternalProcedure(uint32 procId, const int32 *args, uint32 argCount) {
-	if (debugChannelSet(kVerbose, kDebugScript)) {
-		debugCN(kVerbose, kDebugScript, "procedure %d %s", procId, internalProcedureNames[procId]);
-		if (argCount > 0) {
-			debugCN(kVerbose, kDebugScript, " with");
-			for (uint32 i = 0; i < argCount; i++)
-				debugCN(kVerbose, kDebugScript, " %d", args[i]);
-		}
-		debugCN(kVerbose, kDebugScript, "\n");
-	}
-
-	switch ((ScriptOp)procId) {
-	case ScriptOp::kSetScriptReg3E3F:
-		checkArgCount(argCount, 1);
-		_reg3E3F = args[0];
-		break;
-	case ScriptOp::kSetCursor:
-		checkArgCount(argCount, 1);
-		_engine->getSpriteCtx()->setCursor(args[0]);
-		break;
-	case ScriptOp::kChangeScene:
-		checkArgCount(argCount, 2);
-		if (args[1])
-			_engine->setTopMostSprite(nullptr);
-		prepareSceneChange();
-		_engine->postChangeScene(getString(args[0]));
-		break;
-	case ScriptOp::kQuitScene:
-		checkArgCount(argCount, 1);
-		if (args[0])
-			_engine->setTopMostSprite(nullptr);
-		prepareSceneChange();
-		_engine->postQuitScene();
-		break;
-	case ScriptOp::kChangeSceneToTmpString:
-		checkArgCount(argCount, 0);
-		warning("stub procedure kChangeSceneToTmpString");
-		debugCN(kInfo, kDebugScript, "Quit game due to empty tmp string in changeSceneToTmpString procedure\n");
-		g_engine->quitGame();
-		break;
-	case ScriptOp::kFade:
-		checkArgCount(argCount, 1);
-		warning("stub procedure fade");
-		break;
-	case ScriptOp::kStopFade:
-		// TODO: Implement, was postponed because non-essential
-		warning("stub procedure kStopFade");
-		break;
-	case ScriptOp::kGetFreeGlobalMemory:
-		// seems to be used for compatibility checks so any number higher is alright
-		return INT32_MAX;
-	case ScriptOp::kIsResourceLoaded:
-		checkArgCount(argCount, 1);
-		return _engine->isResourceLoaded(args[0]);
-	case ScriptOp::kSpriteSetLevel:
-		checkArgCount(argCount, 2);
-		if (_engine->isResourceLoaded(args[0]) && _engine->getResourceType(args[0]) == ResourceType::kSprite)
-			_engine->loadResource<Sprite>(args[0])->setLevel(args[1]);
-		break;
-	case ScriptOp::kClearTopMostSpriteNextFrame:
-		checkArgCount(argCount, 1);
-		_engine->postClearTopMostSprite(args[0]);
-		break;
-	case ScriptOp::kSpriteTransfer:
-		checkArgCount(argCount, 4);
-		_engine->getSpriteCtx()->copySpriteTo(args[0], args[1], args[2], args[3]);
-		break;
-	case ScriptOp::kEmptyQueue:
-		checkArgCount(argCount, 2);
-		return setSpriteQueue(args[0], 0, args[1]);
-	case ScriptOp::kSetQueue:
-		checkArgCount(argCount, 2);
-		return setSpriteQueue(args[0], args[1], false);
-	case ScriptOp::kSetQueueAndHide:
-		checkArgCount(argCount, 2, 3);
-		return setSpriteQueue(args[0], args[1], argCount < 3 ? false : args[2]);
-	case ScriptOp::kSpritePostMessage:
-		checkArgCount(argCount, 2, UINT32_MAX);
-		_engine->loadResource<Sprite>(args[0])->postMessage(args + 1, argCount - 1);
-		break;
-	case ScriptOp::kSpriteSendMessage:
-		checkArgCount(argCount, 2, UINT32_MAX);
-		_engine->loadResource<Sprite>(args[0])->sendMessage(args + 1, argCount - 1);
-		break;
-	case ScriptOp::kLoadResource:
-		checkArgCount(argCount, 1);
-		_engine->loadResource(args[0], ResourceType::kInvalid);
-		return 1;
-	case ScriptOp::kSetPauseEventScript:
-		checkArgCount(argCount, 1);
-		_pauseEventHandler = args[0];
-		break;
-	case ScriptOp::kSetTimer:
-	case ScriptOp::kSetTimer_dup:
-		checkArgCount(argCount, 4);
-		setTimer(args[0], args[2], args[1], args[3]);
-		break;
-	case ScriptOp::kDeleteTimer:
-	case ScriptOp::kDeleteTimer_dup:
-		checkArgCount(argCount, 1);
-		if (args[0] == -1)
-			_timers.clear();
-		else
-			deleteTimer(args[0]);
-		break;
-	case ScriptOp::kPauseTimers:
-		pauseTimers(args[0]);
-		break;
-		
-	case ScriptOp::kSetBackgroundColor:
-	case ScriptOp::kSetBackgroundColorWithAnimation:
-		checkArgCount(argCount, 1, 4);
-		_engine->getSpriteCtx()->setBackground(args[0]);
-		break;
-	case ScriptOp::kSetBackgroundColorRGB:
-	case ScriptOp::kSetBackgroundColorRGBWithAnimation:
-		// animation is only supported for bitmap in the original game
-		checkArgCount(argCount, 3, 6);
-		_engine->getSpriteCtx()->setBackground(args[0], args[1], args[2]);
-		break;
-	case ScriptOp::kSetBackgroundBitmap:
-		checkArgCount(argCount, 1);
-		_engine->getSpriteCtx()->setBackground(args[0], args[0]);
-		break;
-	case ScriptOp::kSetBackgroundBitmapWithAnimation:
-		checkArgCount(argCount, 4);
-		_engine->getSpriteCtx()->setBackground(args[0], args[0], (BackgroundAnimation)args[1], args[2], args[3]);
-		break;
-	case ScriptOp::kSpriteSetClipBox:
-		checkArgCount(argCount, 4);
-		_engine->getSpriteCtx()->setClipBox(Rect(args[0], args[1], args[2], args[3]));
-		break;
-
-	case ScriptOp::kSetKeyListener:
-		checkArgCount(argCount, 2);
-		setKeyListener(args[0], args[1], false, false);
-		break;
-	case ScriptOp::kSetModifiedKeyListener:
-		checkArgCount(argCount, 4);
-		setKeyListener(args[0], args[3], args[2] != 0, args[1] != 0);
-		break;
-	case ScriptOp::kDeleteKeyListener:
-		checkArgCount(argCount, 1);
-		setKeyListener(args[0], 0, false, false);
-		break;
-	case ScriptOp::kDeleteModifiedKeyListener:
-		checkArgCount(argCount, 3);
-		setKeyListener(args[0], 0, args[2] != 0, args[1] != 0);
-		break;
-	case ScriptOp::kToggleKeyListener:
-	case ScriptOp::kToggleModifiedKeyListener:
-		checkArgCount(argCount, 2, 4);
-		toggleKeyListener(args[0], args[argCount - 1] != 0);
-		break;
-	case ScriptOp::kSetMouseEventListener: {
-		checkArgCount(argCount, 1);
-		const auto prevHandler = _mouseEventHandler;
-		_mouseEventHandler = args[0];
-		return prevHandler;
-	}break;
-
-	case ScriptOp::kGetRegistryString:
-	case ScriptOp::kGetRegistryString_dup: {
-		checkArgCount(argCount, 3, 4);
-		const auto newValue = _engine->getSavestate()->getRegistryString(
-			Savestate::kRegistryLocalMachineKey,
-			nullptr,
-			getString(args[0]).c_str(),
-			getString(args[1]).c_str());
-		setString(args[2], newValue);
-	}break;
-	case ScriptOp::kSetOrDeleteRegistryString:
-	case ScriptOp::kSetOrDeleteRegistryString_dup: {
-		checkArgCount(argCount, 3, 4);
-		const auto newValue = getString(args[2]);
-		if (newValue.size())
-			_engine->getSavestate()->setRegistryString(
-				Savestate::kRegistryLocalMachineKey,
-				nullptr,
-				getString(args[0]).c_str(),
-				getString(args[1]).c_str(),
-				newValue.c_str());
-		else
-			_engine->getSavestate()->deleteRegistryValue(
-				Savestate::kRegistryLocalMachineKey,
-				nullptr,
-				getString(args[0]).c_str(),
-				getString(args[1]).c_str());
-	}break;
-	case ScriptOp::kGetRegistryNumber: {
-		checkArgCount(argCount, 3, 4);
-		const auto newValue = _engine->getSavestate()->getRegistryNumber(
-			Savestate::kRegistryLocalMachineKey,
-			nullptr,
-			getString(args[0]).c_str(),
-			getString(args[1]).c_str());
-		setVariable(args[2], newValue);
-	}break;
-	case ScriptOp::kSetOrDeleteRegistryNumber: {
-		checkArgCount(argCount, 3, 5);
-		if (argCount < 4 || args[3] == 0)
-			_engine->getSavestate()->setRegistryNumber(
-				Savestate::kRegistryLocalMachineKey,
-				nullptr,
-				getString(args[0]).c_str(),
-				getString(args[1]).c_str(),
-				args[2]);
-		else
-			_engine->getSavestate()->deleteRegistryValue(
-				Savestate::kRegistryLocalMachineKey,
-				nullptr,
-				getString(args[0]).c_str(),
-				getString(args[1]).c_str());
-	}break;
-	case ScriptOp::kGetRegistryNumberWithSubKey: {
-		checkArgCount(argCount, 5, 6);
-		const auto newValue = _engine->getSavestate()->getRegistryNumber(
-			args[0],
-			getString(args[1]).c_str(),
-			getString(args[2]).c_str(),
-			getString(args[3]).c_str());
-		setVariable(args[4], newValue);
-	}break;
-	case ScriptOp::kGetRegistryStringWithSubKey: {
-		checkArgCount(argCount, 5, 6);
-		const auto newValue = _engine->getSavestate()->getRegistryString(
-			args[0],
-			getString(args[1]).c_str(),
-			getString(args[2]).c_str(),
-			getString(args[3]).c_str());
-		setString(args[4], newValue);
-	}break;
-	case ScriptOp::kSetOrDeleteRegistryNumberWithSubKey: {
-		checkArgCount(argCount, 5, 7);
-		if (argCount < 6 || args[5] == 0)
-			_engine->getSavestate()->setRegistryNumber(
-				args[0],
-				getString(args[1]).c_str(),
-				getString(args[2]).c_str(),
-				getString(args[3]).c_str(),
-				args[4]);
-		else
-			_engine->getSavestate()->deleteRegistryValue(
-				args[0],
-				getString(args[1]).c_str(),
-				getString(args[2]).c_str(),
-				getString(args[3]).c_str());
-	}break;
-	case ScriptOp::kSetOrDeleteRegistryStringWithSubKey: {
-		checkArgCount(argCount, 5, 6);
-		const auto newValue = getString(args[5]);
-		if (newValue.size())
-			_engine->getSavestate()->setRegistryString(
-				args[0],
-				getString(args[1]).c_str(),
-				getString(args[2]).c_str(),
-				getString(args[3]).c_str(),
-				newValue.c_str());
-		else
-			_engine->getSavestate()->deleteRegistryValue(
-				args[0],
-				getString(args[1]).c_str(),
-				getString(args[2]).c_str(),
-				getString(args[3]).c_str());
-	}break;
-
-	case ScriptOp::kAudioPlayWave146:
-		warning("stub procedure AudioPlayWave146");
-		break;
-	default:
-		error("Unknown or unimplemented internal procedure: %d", procId);
-	}
-
-	return static_cast<int32>(procId);
-}
-
-bool Script::setSpriteQueue(uint32 spriteIndex, uint32 queueIndex, bool hideSprite) {
-	if (!spriteIndex || _engine->getResourceType(spriteIndex) != ResourceType::kSprite)
-		return false;
-	if (!queueIndex && !_engine->isResourceLoaded(spriteIndex))
-		return true;
-
-	auto sprite = _engine->loadResource<Sprite>(spriteIndex);
-	if (hideSprite)
-		sprite->setVisible(false);
-	if (queueIndex) {
-		if (_engine->getResourceType(queueIndex) == ResourceType::kQueue)
-			sprite->setQueue(_engine->loadResource<SpriteMessageQueue>(queueIndex).get());
-		else
-			return false;
-	}
-	else
-		sprite->clearQueue();
-	return true;
-}
-
 const char *internalProcedureNames[] = {
 	"Unknown0",
 	"RunMessage",
@@ -605,5 +307,317 @@ const char *internalProcedureNames[] = {
 	"SetSecondsSinceB84",
 	"BitmapMerge270"
 };
+
+
+int32 Script::runInternalProcedure(uint32 procId, const int32 *args, uint32 argCount) {
+	if (debugChannelSet(kVerbose, kDebugScript)) {
+		debugCN(kVerbose, kDebugScript, "procedure %d %s", procId,
+			procId >= sizeof(internalProcedureNames) / sizeof(const char *) ? "<unknown>" : internalProcedureNames[procId]);
+		if (argCount > 0) {
+			debugCN(kVerbose, kDebugScript, " with");
+			for (uint32 i = 0; i < argCount; i++)
+				debugCN(kVerbose, kDebugScript, " %d", args[i]);
+		}
+		debugCN(kVerbose, kDebugScript, "\n");
+	}
+
+	switch ((ScriptOp)procId) {
+	case ScriptOp::kSetScriptReg3E3F:
+		checkArgCount(argCount, 1);
+		_reg3E3F = args[0];
+		break;
+	case ScriptOp::kSetOnSpritePicked: {
+		checkArgCount(argCount, 1);
+		auto prevHandler = _spritePickedEventHandler;
+		if (!args[0] || _engine->getResourceType(args[0]) == ResourceType::kScript) {
+			_engine->leavePickedSprite();
+			_spritePickedEventHandler = args[0];
+			if (args[0])
+				_engine->updatePickedSprite();
+		}
+		return prevHandler;
+	}break;
+	case ScriptOp::kSetCursor:
+		checkArgCount(argCount, 1);
+		_engine->getSpriteCtx()->setCursor(args[0]);
+		break;
+	case ScriptOp::kChangeScene:
+		checkArgCount(argCount, 2);
+		if (args[1])
+			_engine->setTopMostSprite(nullptr);
+		prepareSceneChange();
+		_engine->postChangeScene(getString(args[0]));
+		break;
+	case ScriptOp::kQuitScene:
+		checkArgCount(argCount, 1);
+		if (args[0])
+			_engine->setTopMostSprite(nullptr);
+		prepareSceneChange();
+		_engine->postQuitScene();
+		break;
+	case ScriptOp::kChangeSceneToTmpString:
+		checkArgCount(argCount, 0);
+		warning("stub procedure kChangeSceneToTmpString");
+		debugCN(kInfo, kDebugScript, "Quit game due to empty tmp string in changeSceneToTmpString procedure\n");
+		g_engine->quitGame();
+		break;
+	case ScriptOp::kFade:
+		checkArgCount(argCount, 1);
+		warning("stub procedure fade");
+		break;
+	case ScriptOp::kStopFade:
+		// TODO: Implement, was postponed because non-essential
+		warning("stub procedure kStopFade");
+		break;
+	case ScriptOp::kGetFreeGlobalMemory:
+		// seems to be used for compatibility checks so any number higher is alright
+		return INT32_MAX;
+	case ScriptOp::kIsResourceLoaded:
+		checkArgCount(argCount, 1);
+		return _engine->isResourceLoaded(args[0]);
+	case ScriptOp::kSpriteSetLevel:
+		checkArgCount(argCount, 2);
+		if (_engine->isResourceLoaded(args[0]) && _engine->getResourceType(args[0]) == ResourceType::kSprite)
+			_engine->loadResource<Sprite>(args[0])->setLevel(args[1]);
+		break;
+	case ScriptOp::kClearTopMostSpriteNextFrame:
+		checkArgCount(argCount, 1);
+		_engine->postClearTopMostSprite(args[0]);
+		break;
+	case ScriptOp::kSpriteTransfer:
+		checkArgCount(argCount, 4);
+		_engine->getSpriteCtx()->copySpriteTo(args[0], args[1], args[2], args[3]);
+		break;
+	case ScriptOp::kEmptyQueue:
+		checkArgCount(argCount, 2);
+		return setSpriteQueue(args[0], 0, args[1]);
+	case ScriptOp::kSetQueue:
+		checkArgCount(argCount, 2);
+		return setSpriteQueue(args[0], args[1], false);
+	case ScriptOp::kSetQueueAndHide:
+		checkArgCount(argCount, 2, 3);
+		return setSpriteQueue(args[0], args[1], argCount < 3 ? false : args[2]);
+	case ScriptOp::kSpritePostMessage:
+		checkArgCount(argCount, 2, UINT32_MAX);
+		_engine->loadResource<Sprite>(args[0])->postMessage(args + 1, argCount - 1);
+		break;
+	case ScriptOp::kSpriteSendMessage:
+		checkArgCount(argCount, 2, UINT32_MAX);
+		_engine->loadResource<Sprite>(args[0])->sendMessage(args + 1, argCount - 1);
+		break;
+	case ScriptOp::kLoadResource:
+		checkArgCount(argCount, 1);
+		_engine->loadResource(args[0], ResourceType::kInvalid);
+		return 1;
+	case ScriptOp::kSetPauseEventScript:
+		checkArgCount(argCount, 1);
+		_pauseEventHandler = args[0];
+		break;
+	case ScriptOp::kSetTimer:
+	case ScriptOp::kSetTimer_dup:
+		checkArgCount(argCount, 4);
+		setTimer(args[0], args[2], args[1], args[3]);
+		break;
+	case ScriptOp::kDeleteTimer:
+	case ScriptOp::kDeleteTimer_dup:
+		checkArgCount(argCount, 1);
+		if (args[0] == -1)
+			_timers.clear();
+		else
+			deleteTimer(args[0]);
+		break;
+	case ScriptOp::kPauseTimers:
+		pauseTimers(args[0]);
+		break;
+		
+	case ScriptOp::kSetBackgroundColor:
+	case ScriptOp::kSetBackgroundColorWithAnimation:
+		checkArgCount(argCount, 1, 4);
+		_engine->getSpriteCtx()->setBackground(args[0]);
+		break;
+	case ScriptOp::kSetBackgroundColorRGB:
+	case ScriptOp::kSetBackgroundColorRGBWithAnimation:
+		// animation is only supported for bitmap in the original game
+		checkArgCount(argCount, 3, 6);
+		_engine->getSpriteCtx()->setBackground(args[0], args[1], args[2]);
+		break;
+	case ScriptOp::kSetBackgroundBitmap:
+		checkArgCount(argCount, 1);
+		_engine->getSpriteCtx()->setBackground(args[0], args[0]);
+		break;
+	case ScriptOp::kSetBackgroundBitmapWithAnimation:
+		checkArgCount(argCount, 4);
+		_engine->getSpriteCtx()->setBackground(args[0], args[0], (BackgroundAnimation)args[1], args[2], args[3]);
+		break;
+	case ScriptOp::kSpriteSetClipBox:
+		checkArgCount(argCount, 4);
+		_engine->getSpriteCtx()->setClipBox(Rect(args[0], args[1], args[2], args[3]));
+		break;
+
+	case ScriptOp::kSetKeyListener:
+		checkArgCount(argCount, 2);
+		setKeyListener(args[0], args[1], false, false);
+		break;
+	case ScriptOp::kSetModifiedKeyListener:
+		checkArgCount(argCount, 4);
+		setKeyListener(args[0], args[3], args[2] != 0, args[1] != 0);
+		break;
+	case ScriptOp::kDeleteKeyListener:
+		checkArgCount(argCount, 1);
+		setKeyListener(args[0], 0, false, false);
+		break;
+	case ScriptOp::kDeleteModifiedKeyListener:
+		checkArgCount(argCount, 3);
+		setKeyListener(args[0], 0, args[2] != 0, args[1] != 0);
+		break;
+	case ScriptOp::kToggleKeyListener:
+	case ScriptOp::kToggleModifiedKeyListener:
+		checkArgCount(argCount, 2, 4);
+		toggleKeyListener(args[0], args[argCount - 1] != 0);
+		break;
+	case ScriptOp::kSetMouseEventListener: {
+		checkArgCount(argCount, 1);
+		const auto prevHandler = _mouseEventHandler;
+		_mouseEventHandler = args[0];
+		return prevHandler;
+	}break;
+
+	case ScriptOp::kGetRegistryString:
+	case ScriptOp::kGetRegistryString_dup: {
+		checkArgCount(argCount, 3, 4);
+		const auto newValue = _engine->getSavestate()->getRegistryString(
+			Savestate::kRegistryLocalMachineKey,
+			nullptr,
+			getString(args[0]).c_str(),
+			getString(args[1]).c_str());
+		setString(args[2], newValue);
+	}break;
+	case ScriptOp::kSetOrDeleteRegistryString:
+	case ScriptOp::kSetOrDeleteRegistryString_dup: {
+		checkArgCount(argCount, 3, 4);
+		const auto newValue = getString(args[2]);
+		if (newValue.size())
+			_engine->getSavestate()->setRegistryString(
+				Savestate::kRegistryLocalMachineKey,
+				nullptr,
+				getString(args[0]).c_str(),
+				getString(args[1]).c_str(),
+				newValue.c_str());
+		else
+			_engine->getSavestate()->deleteRegistryValue(
+				Savestate::kRegistryLocalMachineKey,
+				nullptr,
+				getString(args[0]).c_str(),
+				getString(args[1]).c_str());
+	}break;
+	case ScriptOp::kGetRegistryNumber: {
+		checkArgCount(argCount, 3, 4);
+		const auto newValue = _engine->getSavestate()->getRegistryNumber(
+			Savestate::kRegistryLocalMachineKey,
+			nullptr,
+			getString(args[0]).c_str(),
+			getString(args[1]).c_str());
+		setVariable(args[2], newValue);
+	}break;
+	case ScriptOp::kSetOrDeleteRegistryNumber: {
+		checkArgCount(argCount, 3, 5);
+		if (argCount < 4 || args[3] == 0)
+			_engine->getSavestate()->setRegistryNumber(
+				Savestate::kRegistryLocalMachineKey,
+				nullptr,
+				getString(args[0]).c_str(),
+				getString(args[1]).c_str(),
+				args[2]);
+		else
+			_engine->getSavestate()->deleteRegistryValue(
+				Savestate::kRegistryLocalMachineKey,
+				nullptr,
+				getString(args[0]).c_str(),
+				getString(args[1]).c_str());
+	}break;
+	case ScriptOp::kGetRegistryNumberWithSubKey: {
+		checkArgCount(argCount, 5, 6);
+		const auto newValue = _engine->getSavestate()->getRegistryNumber(
+			args[0],
+			getString(args[1]).c_str(),
+			getString(args[2]).c_str(),
+			getString(args[3]).c_str());
+		setVariable(args[4], newValue);
+	}break;
+	case ScriptOp::kGetRegistryStringWithSubKey: {
+		checkArgCount(argCount, 5, 6);
+		const auto newValue = _engine->getSavestate()->getRegistryString(
+			args[0],
+			getString(args[1]).c_str(),
+			getString(args[2]).c_str(),
+			getString(args[3]).c_str());
+		setString(args[4], newValue);
+	}break;
+	case ScriptOp::kSetOrDeleteRegistryNumberWithSubKey: {
+		checkArgCount(argCount, 5, 7);
+		if (argCount < 6 || args[5] == 0)
+			_engine->getSavestate()->setRegistryNumber(
+				args[0],
+				getString(args[1]).c_str(),
+				getString(args[2]).c_str(),
+				getString(args[3]).c_str(),
+				args[4]);
+		else
+			_engine->getSavestate()->deleteRegistryValue(
+				args[0],
+				getString(args[1]).c_str(),
+				getString(args[2]).c_str(),
+				getString(args[3]).c_str());
+	}break;
+	case ScriptOp::kSetOrDeleteRegistryStringWithSubKey: {
+		checkArgCount(argCount, 5, 6);
+		const auto newValue = getString(args[5]);
+		if (newValue.size())
+			_engine->getSavestate()->setRegistryString(
+				args[0],
+				getString(args[1]).c_str(),
+				getString(args[2]).c_str(),
+				getString(args[3]).c_str(),
+				newValue.c_str());
+		else
+			_engine->getSavestate()->deleteRegistryValue(
+				args[0],
+				getString(args[1]).c_str(),
+				getString(args[2]).c_str(),
+				getString(args[3]).c_str());
+	}break;
+
+	case ScriptOp::kAudioPlayWave146:
+		warning("stub procedure AudioPlayWave146");
+		break;
+	default:
+		if (procId >= sizeof(internalProcedureNames) / sizeof(const char *))
+			error("Unknown internal procedure: %d", procId);
+		else
+			error("Unimplemented internal procedure: %s (%d)", internalProcedureNames[procId], procId);
+	}
+
+	return static_cast<int32>(procId);
+}
+
+bool Script::setSpriteQueue(uint32 spriteIndex, uint32 queueIndex, bool hideSprite) {
+	if (!spriteIndex || _engine->getResourceType(spriteIndex) != ResourceType::kSprite)
+		return false;
+	if (!queueIndex && !_engine->isResourceLoaded(spriteIndex))
+		return true;
+
+	auto sprite = _engine->loadResource<Sprite>(spriteIndex);
+	if (hideSprite)
+		sprite->setVisible(false);
+	if (queueIndex) {
+		if (_engine->getResourceType(queueIndex) == ResourceType::kQueue)
+			sprite->setQueue(_engine->loadResource<SpriteMessageQueue>(queueIndex).get());
+		else
+			return false;
+	}
+	else
+		sprite->clearQueue();
+	return true;
+}
 
 }

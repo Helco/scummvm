@@ -35,6 +35,8 @@ ScriptPluginProcedure *TamaPlugin::getScriptProcedure(const Common::String &name
 		return new ScriptPluginProcedureMem<TamaPlugin>(this, &TamaPlugin::volumeGetIncrements);
 	else if (!name.compareToIgnoreCase("Dialog_SignalAttention"))
 		return new ScriptPluginProcedureMem<TamaPlugin>(this, &TamaPlugin::dialogSignalAttention);
+	else if (!name.compareToIgnoreCase("Dialog_SetLanguage"))
+		return new ScriptPluginProcedureMem<TamaPlugin>(this, &TamaPlugin::dialogSignalAttention);
 	// TODO: Implement those stubs
 	else if (!name.compareToIgnoreCase("Volume_GetMidiVolume"))
 		return new ScriptPluginProcedureMem<TamaPlugin>(this, &TamaPlugin::dialogSignalAttention);

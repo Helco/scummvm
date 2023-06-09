@@ -78,7 +78,11 @@ int32 Script::runCalc(Common::SeekableReadStream &stream, uint32 callingScriptIn
 			const auto scopeSize = readUint(stream);
 			const auto argCount = readUint(stream);
 			const auto scriptIndex = _stack[_stack.size() - argCount - 1];
-			runMessage(scriptIndex, scopeSize, argCount, _stack.data() + _stack.size() - argCount);
+
+			const auto result = runMessage(scriptIndex, scopeSize, argCount, _stack.data() + _stack.size() - argCount);
+
+			_stack.resize(_stack.size() - argCount - 1);
+			stackPush(result);
 		}break;
 		case ScriptCalcOp::kNegate: stackPush(-stackPop()); break;
 		case ScriptCalcOp::kBooleanNot: stackPush(stackPop() == 0); break;
@@ -220,6 +224,8 @@ int32 Script::runCalc(Common::SeekableReadStream &stream, uint32 callingScriptIn
 	if (stream.err())
 		error("Stream error during calc script execution");
 
+	if (prevStackSize >= _stack.size())
+		error("Invalid stack state after calc script");
 	const auto result = _stack[prevStackSize];
 	_stack.resize(prevStackSize);
 	_debugger->onCallEnd();

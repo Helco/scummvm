@@ -43,7 +43,7 @@ TopGunEngine::TopGunEngine(OSystem *syst, const TopGunGameDescription *gameDesc)
 	_savestate(new Savestate())  {
 	g_engine = this;
 
-	gDebugLevel = kTrace;
+	gDebugLevel = kVerbose;
 	DebugMan.enableAllDebugChannels();
 }
 
@@ -267,11 +267,11 @@ void TopGunEngine::postClearTopMostSprite(int32 script) {
 }
 
 void TopGunEngine::updatePickedSprite() {
-	warning("stub: updatePickedSprite\n");
+	warning("stub: updatePickedSprite");
 }
 
 void TopGunEngine::updatePickedSprite(int32 x, int32 y) {
-	warning("stub: updatePickedSprite\n");
+	warning("stub: updatePickedSprite");
 }
 
 void TopGunEngine::leavePickedSprite() {

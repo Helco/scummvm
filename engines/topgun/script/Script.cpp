@@ -85,13 +85,13 @@ int32 Script::runMessage(uint32 index, uint32 localScopeSize, uint32 argCount, c
 	_scriptResult = 0;
 
 	if (debugChannelSet(kVerbose, kDebugScript)) { // TODO: Move this into script debugger
-		debugCN(kVerbose, kDebugScript, "Running script %d", index);
+		debugCN(kSuperVerbose, kDebugScript, "Running script %d", index);
 		if (argCount > 0) {
-			debugCN(kVerbose, kDebugScript, " with");
+			debugCN(kSuperVerbose, kDebugScript, " with");
 			for (uint32 i = 0; i < argCount; i++)
-				debugCN(kVerbose, kDebugScript, " %d", args[i]);
+				debugCN(kSuperVerbose, kDebugScript, " %d", args[i]);
 		}
-		debugCN(kVerbose, kDebugScript, "\n");
+		debugCN(kSuperVerbose, kDebugScript, "\n");
 	}
 
 	_localScope += localScopeSize;

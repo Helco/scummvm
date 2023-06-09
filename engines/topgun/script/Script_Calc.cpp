@@ -198,16 +198,16 @@ int32 Script::runCalc(Common::SeekableReadStream &stream, uint32 callingScriptIn
 			setVariable(variable, varValue);
 		}break;
 		case ScriptCalcOp::kJumpZero: {
-			const auto jumpDistance = readSint(stream);
+			const auto jumpTarget = stream.pos() + readSint(stream);
 			if (!stackTop()) {
-				stream.seek(jumpDistance, SEEK_CUR);
+				stream.seek(jumpTarget, SEEK_SET);
 				stackPush(0);
 			}
 		}break;
 		case ScriptCalcOp::kJumpNonZero: {
-			const auto jumpDistance = readSint(stream);
+			const auto jumpTarget = stream.pos() + readSint(stream);
 			if (stackTop()) {
-				stream.seek(jumpDistance, SEEK_CUR);
+				stream.seek(jumpTarget, SEEK_SET);
 				stackPush(1);
 			}
 		}break;

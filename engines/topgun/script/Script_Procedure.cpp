@@ -322,6 +322,11 @@ int32 Script::runInternalProcedure(uint32 procId, const int32 *args, uint32 argC
 	}
 
 	switch ((ScriptOp)procId) {
+	case ScriptOp::kPost:
+	case ScriptOp::kPost_dup:
+		checkArgCount(argCount, 3);
+		postMessage(args[0], 2, args + 1);
+		break;
 	case ScriptOp::kSetScriptReg3E3F:
 		checkArgCount(argCount, 1);
 		_reg3E3F = args[0];

@@ -492,6 +492,80 @@ int32 Script::runInternalProcedure(uint32 procId, const int32 *args, uint32 argC
 		return prevHandler;
 	}break;
 
+	case ScriptOp::kSetClickRect: {
+		checkArgCount(argCount, 6);
+		SetClickRectOp op;
+		op._rect = Rect(args[0], args[1], args[2], args[3]);
+		op._scriptIndex = (uint32)args[4];
+		op._scriptArg = args[5];
+		setClickRect(op);
+	}break;
+	case ScriptOp::kSetSpriteClick: {
+		checkArgCount(argCount, 3);
+		SetClickRectOp op;
+		op._spriteIndex = (uint32)args[0];
+		op._scriptIndex = (uint32)args[1];
+		op._scriptArg = args[2];
+		setClickRect(op);
+	}break;
+	case ScriptOp::kToggleAllClickRects: {
+		checkArgCount(argCount, 1);
+		SetClickRectOp op;
+		op._modifyAll = true;
+		op._doDisable = args[0];
+		op._doEnable = !args[0];
+		setClickRect(op);
+	}break;
+	case ScriptOp::kToggleClickRect: {
+		checkArgCount(argCount, 5);
+		SetClickRectOp op;
+		op._rect = Rect(args[0], args[1], args[2], args[3]);
+		op._doDisable = args[4];
+		op._doEnable = !args[4];
+		setClickRect(op);
+	}break;
+	case ScriptOp::kRemoveClickRect: {
+		checkArgCount(argCount, 4);
+		SetClickRectOp op;
+		op._rect = Rect(args[0], args[1], args[2], args[3]);
+		setClickRect(op);
+	}break;
+	case ScriptOp::kClearClickRects: {
+		checkArgCount(argCount, 0);
+		SetClickRectOp op;
+		op._modifyAll = true;
+		setClickRect(op);
+	}break;
+	case ScriptOp::kRemoveSpriteClick: {
+		checkArgCount(argCount, 1);
+		SetClickRectOp op;
+		op._spriteIndex = (uint32)args[0];
+		setClickRect(op);
+	}break;
+	case ScriptOp::kSetAllClickScripts: {
+		checkArgCount(argCount, 1);
+		SetClickRectOp op;
+		op._modifyAll = true;
+		op._scriptIndex = (uint32)args[0];
+		setClickRect(op);
+	}break;
+	case ScriptOp::kSetClickRectScripts: {
+		checkArgCount(argCount, 1);
+		_engine->setClickRectScripts((uint32)args[0]);
+	}break;
+	case ScriptOp::kSetSpriteClicks: {
+		checkArgCount(argCount, 1);
+		_engine->getSpriteCtx()->setAllSpriteClickScripts((uint32)args[0]);
+	}break;
+	case ScriptOp::kSetSpriteClickable: {
+		checkArgCount(argCount, 2);
+		SetClickRectOp op;
+		op._spriteIndex = (uint32)args[0];
+		op._doDisable = args[1];
+		op._doEnable = !args[1];
+		setClickRect(op);
+	}break;
+
 	case ScriptOp::kGetRegistryString:
 	case ScriptOp::kGetRegistryString_dup: {
 		checkArgCount(argCount, 3, 4);

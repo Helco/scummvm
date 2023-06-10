@@ -168,6 +168,16 @@ void SpriteContext::copySpriteTo(uint32 from, uint32 to, uint32 queue, bool dest
 		_engine->freeResource(from);
 }
 
+void SpriteContext::setAllSpriteClickScripts(uint32 index) {
+	for (auto &sprite : _sprites)
+		sprite->setClickScript(index);
+}
+
+void SpriteContext::toggleAllSpriteClickable(bool toggle) {
+	for (auto &sprite : _sprites)
+		sprite->setClickable(toggle);
+}
+
 static const byte defaultLowColors[30] = {
 	0, 0, 0,
 	128, 0, 0,

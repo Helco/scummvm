@@ -60,6 +60,13 @@ enum class TopGunEvent : Common::CustomEventType {
 	kChangeScene = 0x4C9
 };
 
+struct ClickRect {
+	Rect _rect;
+	uint32 _scriptIndex;
+	int32 _scriptArg;
+	bool _enabled;
+};
+
 class TopGunEngine : public Engine {
 private:
 	friend class Console;
@@ -144,6 +151,8 @@ private:
 	void resetCurrentScene();
 	void handleChangeScene();
 
+	size_t getClickRectIndex(Rect rect);
+
 public:
 	bool sceneIn(const Common::String &name);
 
@@ -161,6 +170,13 @@ public:
 	void updatePickedSprite();
 	void updatePickedSprite(int32 x, int32 y);
 	void leavePickedSprite();
+
+	void setClickRectScripts(uint32 scriptIndex);
+	void toggleClickRects(bool toggle);
+	void toggleClickRect(Rect rect, bool toggle);
+	void setClickRect(Rect rect, uint32 scriptIndex, int32 scriptArg);
+	void removeClickRect(Rect rect);
+
 	void postQuitScene();
 	void postChangeScene(const Common::String &name);
 
@@ -179,6 +195,7 @@ private:
 	uint32 _topMostSpriteIndex = 0;
 	int32 _clearTopMostSpriteScript = 0;
 	uint32 _pickedSprite = 0;
+	Array<ClickRect> _clickRects;
 
 	Common::KeyCode _windowsToScummKey[kWindowsKeyCount] = { Common::KEYCODE_INVALID };
 };

@@ -42,14 +42,17 @@ bool Sprite::load(Common::Array<byte> &&data) {
 	constexpr uint32 kMinStoredResources = 8;
 
 	auto stream = Common::MemorySeekableReadWriteStream(data.data(), data.size());
-	stream.skip(8);
+	_clickScriptIndex = stream.readUint32LE();
+	_clickScriptArg = stream.readSint32LE();
 	const auto resourceCount = stream.readUint32LE();
-	stream.skip(12);
+	stream.skip(4);
+	_dragScriptIndex = stream.readUint32LE();
+	stream.skip(4);
 	const auto colorCount = stream.readUint32LE();
 	setLevel(stream.readSint32LE());
-	stream.skip(1);
-	_rectPickable = stream.readByte() != 0;
-	stream.skip(1);
+	_isClickable = stream.readByte() != 0;
+	_isRectPickable = stream.readByte() != 0;
+	_isDraggable = stream.readByte() != 0;
 	const auto isTopMostSprite = stream.readByte() != 0;
 	_pickableMode = (SpritePickableMode)stream.readByte();
 	_isScrollable = stream.readByte() != 0;
@@ -341,6 +344,26 @@ bool Sprite::updateMessage() {
 
 void Sprite::setVisible(bool visible) {
 	_isVisible = visible;
+}
+
+void Sprite::setClickable(bool toggle) {
+	_isClickable = toggle;
+}
+
+void Sprite::setClickScript(uint32 index) {
+	_clickScriptIndex = index;
+}
+
+void Sprite::setClickScriptArg(int32 arg) {
+	_clickScriptArg = arg;
+}
+
+bool Sprite::postClick(int32 arg0) {
+	if (!_isClickable || _clickScriptIndex == 0)
+		return false;
+	int32 args[2] = { arg0, _clickScriptArg };
+	_spriteCtx->getEngine()->getScript()->postMessage(_clickScriptIndex, 2, args);
+	return true;
 }
 
 }

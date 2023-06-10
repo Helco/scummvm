@@ -97,25 +97,25 @@ enum class ScriptOp {
 	kDebugStr = 30,
 	kBrowseEvents31 = 31,
 	kBrowseEvents32 = 32,
-	kSetClickRect33 = 33,
+	kRemoveClickRect = 33,
 	kFreeResource = 34,
 	kDeleteIniSection = 35,
-	kSetClickRect36 = 36,
+	kClearClickRects = 36,
 	kDeleteKeyListener = 37,
 	kDeleteModifiedKeyListener = 38,
-	kSetClickRect39 = 39,
+	kRemoveSpriteClick = 39,
 	kSetHitDetectTrigger40 = 40,
 	kDistance = 41,
 	kFixedPointDiv = 42,
 	kPickedSprite43 = 43,
 	kStartTextInput = 44,
 	kEmptyQueue = 45,
-	kSetClickRect46 = 46,
-	kSetClickRect47 = 47,
+	kToggleAllClickRects = 46,
+	kToggleClickRect = 47,
 	kBufferCDC_48 = 48,
 	kToggleKeyListener = 50,
 	kToggleModifiedKeyListener = 51,
-	kSetClickRect52 = 52,
+	kSetSpriteClickable = 52,
 	kPickedSprite53 = 53,
 	kChangeScene54 = 54,
 	kChangeScene = 55,
@@ -184,16 +184,16 @@ enum class ScriptOp {
 	kAudioMute = 122,
 	kAudioMute_dup = 123,
 	kSpriteOffset = 124,
-	kSetClickRect125 = 125,
-	kDeleteClickRect = 126,
-	kSpriteSetData127 = 127,
+	kSetAllClickScripts = 125,
+	kSetClickRectScripts = 126,
+	kSetSpriteClicks = 127,
 	kbufferCDC_128 = 128,
 	kSetKeyListener = 129,
 	kSetModifiedKeyListener = 130,
 	kSetMouseEventListener = 131,
 	kBrowseEvents132 = 132,
-	kSetClickRect133 = 133,
-	kSetClickRect134 = 134,
+	kSetClickRect = 133,
+	kSetSpriteClick = 134,
 	kSetHitDetectTrigger135 = 135,
 	kPickedSprite136 = 136,
 	kAudioPause = 137,
@@ -469,6 +469,19 @@ private:
 		int32 _integer;
 	};
 	static Common::String sprintfWithArray(const Common::String &format, const Array<FormatValue> &values);
+
+	// A method (also originally present in the engine) used by 10 script ops/procedures
+	// that all rely on the same weird internal behaviour of this method.
+	struct SetClickRectOp {
+		bool _modifyAll = false,
+			_doDisable = false,
+			_doEnable = false;
+		uint32 _spriteIndex = 0,
+			_scriptIndex = 0;
+		int32 _scriptArg = 0;
+		Rect _rect;
+	};
+	void setClickRect(const SetClickRectOp &op);
 
 private:
 	ScopedPtr<ScriptDebugger> _debugger;

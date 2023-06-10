@@ -84,6 +84,11 @@ public:
 	void postMessage(const int32 *args, uint32 argCount);
 	void setVisible(bool visible);
 
+	void setClickable(bool toggle);
+	void setClickScript(uint32 index);
+	void setClickScriptArg(int32 arg);
+	bool postClick(int32 arg0);
+
 	inline SpriteContext *getSpriteContext() {
 		return _spriteCtx;
 	}
@@ -118,10 +123,12 @@ private:
 	bool _isEnabled = true;
 	bool _isVisible = false;
 	bool _isScrollable = false;
+	bool _isClickable = false;
+	bool _isDraggable = false;
+	bool _isRectPickable = false;
 	bool _animateCell = false;
 	bool _animateCellsForward = false;
 	bool _setToNextCellOnRepaint = false;
-	bool _rectPickable = false;
 	bool _breakLoops = false;
 	bool _priority = false;
 	bool _flipX = false, _flipY = false;
@@ -134,6 +141,9 @@ private:
 	uint32 _speed = 0, _nextSpeedTrigger = 0;
 	uint32 _timeAtPause = 0;
 	uint32 _lastLoopMarker = UINT32_MAX;
+	uint32 _clickScriptIndex = 0;
+	uint32 _dragScriptIndex = 0;
+	int32 _clickScriptArg = 0;
 	int32 _level = 0;
 };
 

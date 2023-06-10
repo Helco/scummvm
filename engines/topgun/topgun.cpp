@@ -281,6 +281,52 @@ void TopGunEngine::leavePickedSprite() {
 	_pickedSprite = 0;
 }
 
+size_t TopGunEngine::getClickRectIndex(Rect rect) {
+	size_t i;
+	for (i = 0; i < _clickRects.size(); i++) {
+		if (_clickRects[i]._rect == rect)
+			break;
+	}
+	if (i == _clickRects.size())
+		_clickRects.push_back(ClickRect());
+	return i;
+}
+
+void TopGunEngine::setClickRectScripts(uint32 scriptIndex) {
+	if (!scriptIndex) {
+		_clickRects.clear();
+		return;
+	}
+
+	for (auto &clickRect : _clickRects) {
+		clickRect._enabled = false;
+		clickRect._scriptIndex = scriptIndex;
+	}
+}
+
+void TopGunEngine::toggleClickRects(bool toggle) {
+	for (auto &clickRect : _clickRects)
+		clickRect._enabled = toggle;
+}
+
+void TopGunEngine::toggleClickRect(Rect rect, bool toggle) {
+	size_t i = getClickRectIndex(rect);
+	_clickRects[i]._enabled = toggle;
+}
+
+void TopGunEngine::setClickRect(Rect rect, uint32 scriptIndex, int32 scriptArg) {
+	size_t i = getClickRectIndex(rect);
+	_clickRects[i]._enabled = false;
+	_clickRects[i]._rect = rect;
+	_clickRects[i]._scriptIndex = scriptIndex;
+	_clickRects[i]._scriptArg = scriptArg;
+}
+
+void TopGunEngine::removeClickRect(Rect rect) {
+	size_t i = getClickRectIndex(rect);
+	_clickRects.remove_at(i);
+}
+
 void TopGunEngine::postQuitScene() {
 	if (_curSceneIndex == _lastSceneIndex) {
 		debugCN(kInfo, kDebugRuntime, "Quit scene to quit game\n");
@@ -309,8 +355,9 @@ void TopGunEngine::handleChangeScene() {
 
 void TopGunEngine::resetCurrentScene() {
 	_resources.clear();
+	_clickRects.clear();
 
-	// TODO: clear movies, timers, hitdetects, clickrects, probably browseevents
+	// TODO: clear movies, timers, hitdetects, probably browseevents
 
 	_spriteCtx->resetScene();
 	clearPlugins();

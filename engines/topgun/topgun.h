@@ -162,7 +162,7 @@ public:
 	SharedPtr<IResource> loadResource(uint32 index, ResourceType expectedType);
 	template<class TResource>
 	inline SharedPtr<TResource> loadResource(uint32 index) {
-		return loadResource(index, TResource::kResourceType).dynamicCast<TResource>();
+		return loadResource(index, TResource::kResourceType).template dynamicCast<TResource>();
 	}
 
 	void setTopMostSprite(Sprite *sprite);

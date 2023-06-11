@@ -36,7 +36,7 @@ ScriptPluginProcedure *TamaPlugin::getScriptProcedure(const Common::String &name
 	else if (!name.compareToIgnoreCase("Dialog_SignalAttention"))
 		return new ScriptPluginProcedureMem<TamaPlugin>(this, &TamaPlugin::dialogSignalAttention);
 	else if (!name.compareToIgnoreCase("Dialog_SetLanguage"))
-		return new ScriptPluginProcedureMem<TamaPlugin>(this, &TamaPlugin::dialogSignalAttention);
+		return new ScriptPluginProcedureMem<TamaPlugin>(this, &TamaPlugin::stubReturnOne);
 	// TODO: Implement those stubs
 	else if (!name.compareToIgnoreCase("Volume_GetMidiVolume"))
 		return new ScriptPluginProcedureMem<TamaPlugin>(this, &TamaPlugin::dialogSignalAttention);
@@ -63,6 +63,10 @@ int32 TamaPlugin::volumeGetIncrements(const int32 *args, uint32 argCount) {
 int32 TamaPlugin::dialogSignalAttention(const int32 *args, uint32 argCount) {
 	// if we really wanted to we could check if the game is in focus and if not beep
 	return 0;
+}
+
+int32 TamaPlugin::stubReturnOne(const int32 *args, uint32 argCount) {
+	return 1;
 }
 
 }

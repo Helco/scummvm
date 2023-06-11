@@ -37,6 +37,7 @@ private:
 	int32 tama7thMakePersistent(const int *args, uint32 argCount);
 	int32 volumeGetIncrements(const int *args, uint32 argCount);
 	int32 dialogSignalAttention(const int *args, uint32 argCount);
+	int32 stubReturnOne(const int *args, uint32 argCount);
 };
 
 }

@@ -162,10 +162,10 @@ int32 Script::runPluginProcedure(uint32 procId, const int32 *args, uint32 argCou
 	const auto resFile = _engine->getResourceFile();
 	const auto maxScrMsg = resFile->_maxScrMsg;
 	debugCN(kVerbose, kDebugScript, "plugin procedure %d\n", procId);
-	procId -= maxScrMsg;
+	procId -= maxScrMsg + 1;
 	if (procId >= _pluginProcedures.size() || _pluginProcedures[procId] == nullptr)
 		error("Unsupported plugin procedure id %d = (%s.%s)",
-			procId + maxScrMsg,
+			procId + maxScrMsg + 1,
 			resFile->_plugins[resFile->_pluginIndexPerProcedure[procId]].c_str(),
 			resFile->_pluginProcedures[procId].c_str());
 	return (*_pluginProcedures[procId])(args, argCount);

@@ -38,6 +38,9 @@ private:
 	int32 volumeGetIncrements(const int *args, uint32 argCount);
 	int32 dialogSignalAttention(const int *args, uint32 argCount);
 	int32 stubReturnOne(const int *args, uint32 argCount);
+	int32 internetOpenURL(const int *args, uint32 argCount);
+	int32 tamagoGetNumActive(const int *args, uint32 argCount);
+	int32 windowGenerateMouseMove(const int *args, uint32 argCount);
 };
 
 }

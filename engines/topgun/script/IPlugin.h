@@ -24,6 +24,7 @@
 
 #include "common/hashmap.h"
 #include "common/func.h"
+#include "common/ptr.h"
 
 namespace TopGun {
 class TopGunEngine;

@@ -30,7 +30,7 @@
 #include "common/random.h"
 #include "common/serializer.h"
 #include "common/util.h"
-#include <common/events.h>
+#include "common/events.h"
 #include "engines/engine.h"
 #include "engines/savestate.h"
 #include "graphics/screen.h"

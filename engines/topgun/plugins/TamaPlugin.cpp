@@ -19,12 +19,15 @@
  *
  */
 
+#include "common/translation.h"
+#include "gui/message.h"
 #include "topgun/plugins/TamaPlugin.h"
 #include "topgun/topgun.h"
 
 namespace TopGun {
 
 TamaPlugin::TamaPlugin(TopGunEngine *engine) : IPlugin(engine) {
+	_tamaResources.reset(Common::WinResources::createFromEXE("TAMA7TH.R32"));
 }
 
 ScriptPluginProcedure *TamaPlugin::getScriptProcedure(const Common::String &name) {
@@ -36,6 +39,8 @@ ScriptPluginProcedure *TamaPlugin::getScriptProcedure(const Common::String &name
 		return new ScriptPluginProcedureMem<TamaPlugin>(this, &TamaPlugin::volumeGetIncrements);
 	else if (!name.compareToIgnoreCase("Dialog_SignalAttention"))
 		return new ScriptPluginProcedureMem<TamaPlugin>(this, &TamaPlugin::dialogSignalAttention);
+	else if (!name.compareToIgnoreCase("Dialog_Prompt"))
+		return new ScriptPluginProcedureMem<TamaPlugin>(this, &TamaPlugin::dialogPrompt);
 	else if (!name.compareToIgnoreCase("Save_MakeFileName"))
 		// this would create an absolute path from a relative one, no need for ScummVM
 		return new ScriptPluginProcedureMem<TamaPlugin>(this, &TamaPlugin::stubReturnOne);
@@ -79,6 +84,79 @@ int32 TamaPlugin::volumeGetIncrements(const int32 *args, uint32 argCount) {
 int32 TamaPlugin::dialogSignalAttention(const int32 *args, uint32 argCount) {
 	// if we really wanted to we could check if the game is in focus and if not beep
 	return 0;
+}
+
+struct DialogPromptData
+{
+	uint32 textResource;
+	uint32 defaultButtonResource;
+	uint32 altButtonResource;
+	bool formatText;
+};
+
+constexpr int32 kWinMessageOK = 1;
+constexpr int32 kWinMessageYes = 6;
+constexpr int32 kWinMessageNo = 7;
+constexpr int32 kDialogYesNoFlag = 4;
+constexpr int32 kDialogStripString = 7;
+constexpr DialogPromptData kDialogPrompts[] = {
+	{ 8195, 8196, 8197, false },
+	{ 0, 0, 0, false }, // undefined prompt id
+	{ 8213, 0, 0, false },
+	{ 8214, 0, 0, true },
+	{ 8215, 0, 0, true },
+	{ 0, 0, 0, false },
+	{ 8235, 0, 0, false },
+	{ 8217, 0, 0, false },
+	{ 8236, 0, 0, true },
+	{ 0, 0, 0, false },
+	{ 8243, 0, 0, false },
+	{ 8246, 0, 0, false },
+	{ 8248, 0, 0, false }
+};
+
+int32 TamaPlugin::dialogPrompt(const int32 *args, uint32 argCount) {
+	// TODO: icon flags and the title text are currently ignored
+	if (argCount != 3)
+		error("Expected three arguments for Dialog_Prompt");
+	if (args[0] < 0 || args[0] >= sizeof(kDialogPrompts) / sizeof(DialogPromptData) ||
+		kDialogPrompts[args[0]].textResource == 0)
+		return 0;
+
+	const auto &data = kDialogPrompts[args[0]];
+	auto text = _tamaResources->loadString(data.textResource);
+	if (data.formatText && args[1]) {
+		auto arg = _engine->getScript()->getString(args[1]);
+		text = Common::String::format(text.c_str(), arg.c_str());
+	}
+	if (args[0] == kDialogStripString) {
+		auto arg = _engine->getScript()->getString(args[1]);
+		auto i = arg.findFirstNotOf(' ');
+		if (i == Common::String::npos)
+			arg.clear();
+		else if (i > 0)
+			arg.erase(0, i);
+		_engine->getScript()->setString(args[1], arg);
+	}
+
+	Common::String defaultButton, altButton;
+	if (data.defaultButtonResource) {
+		defaultButton = _tamaResources->loadString(data.defaultButtonResource);
+		altButton = _tamaResources->loadString(data.altButtonResource);
+	}
+	else if (args[2] & kDialogYesNoFlag) {
+		defaultButton = _("Yes");
+		altButton = _("No");
+	}
+	else
+		defaultButton = _("OK");
+
+	GUI::MessageDialog dialog(text, defaultButton, altButton);
+	auto positive = dialog.runModal() == GUI::kMessageOK;
+	if (altButton.empty())
+		return kWinMessageOK;
+	else
+		return positive ? kWinMessageYes : kWinMessageNo;
 }
 
 int32 TamaPlugin::stubReturnOne(const int32 *args, uint32 argCount) {

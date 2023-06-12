@@ -427,6 +427,7 @@ public:
 		return evalValue(value._value, value._isIndirect);
 	}
 	Common::String getString(int32 index);
+	void setString(int32 index, const Common::String &value);
 
 	inline ScriptDebugger *getDebugger() {
 		return _debugger.get();
@@ -447,7 +448,6 @@ private:
 	int32 stackTop() const;
 	int32 stackPop();
 	void stackPush(int32 value);
-	void setString(int32 index, const Common::String &value);
 	int32 calcJumpOffset(uint32 nativeIntCount, uint32 additionalBytes = 0) const;
 	void jumpToCase(Common::SeekableReadStream &stream,
 					int32 switchValue,

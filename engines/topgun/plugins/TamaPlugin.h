@@ -22,6 +22,7 @@
 #ifndef TOPGUN_TAMAPLUGIN_H
 #define TOPGUN_TAMAPLUGIN_H
 
+#include "common/formats/winexe.h"
 #include "topgun/script/IPlugin.h"
 
 namespace TopGun {
@@ -36,11 +37,14 @@ public:
 private:
 	int32 tama7thMakePersistent(const int *args, uint32 argCount);
 	int32 volumeGetIncrements(const int *args, uint32 argCount);
+	int32 dialogPrompt(const int *args, uint32 argCount);
 	int32 dialogSignalAttention(const int *args, uint32 argCount);
 	int32 stubReturnOne(const int *args, uint32 argCount);
 	int32 internetOpenURL(const int *args, uint32 argCount);
 	int32 tamagoGetNumActive(const int *args, uint32 argCount);
 	int32 windowGenerateMouseMove(const int *args, uint32 argCount);
+
+	Common::ScopedPtr<Common::WinResources> _tamaResources;
 };
 
 }

@@ -80,6 +80,7 @@ public:
 	void addCell(Common::SharedPtr<ISurfaceResource> resource);
 	void clearQueue();
 	void setQueue(const SpriteMessageQueue *queue);
+	bool setQueue(uint32 queueResIndex, bool hide = false);
 	void sendMessage(const int32 *args, uint32 argCount);
 	void postMessage(const int32 *args, uint32 argCount);
 	void setVisible(bool visible);

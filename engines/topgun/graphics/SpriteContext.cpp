@@ -144,28 +144,30 @@ void SpriteContext::copySpriteTo(uint32 from, uint32 to, uint32 queue, bool dest
 		warning("Invalid sprite indices for copySpriteTo");
 		return; // this can happen in original games...
 	}
+	if (from != to) {
+		auto fromSprite = _engine->loadResource<Sprite>(from);
+		const auto wasToLoaded = _engine->isResourceLoaded(to);
+		auto toSprite = _engine->loadResource<Sprite>(to);
 
-	auto fromSprite = _engine->loadResource<Sprite>(from);
-	const auto wasToLoaded = _engine->isResourceLoaded(to);
-	auto toSprite = _engine->loadResource<Sprite>(to);
+		fromSprite->clearQueue();
 
-	// TODO: empty queue
+		if (wasToLoaded && toSprite->_isVisible)
+			warning("I do not support that resource concat madness, let's see what happens without it");
+		fromSprite->transferTo(toSprite);
 
-	if (wasToLoaded && toSprite->_isVisible)
-		warning("I do not support that resource concat madness, let's see what happens without it");
-	fromSprite->transferTo(toSprite);
+		const auto fromIndex = getSpriteIndex(fromSprite.get());
+		const auto toIndex = getSpriteIndex(toSprite.get());
+		if (fromIndex >= 0 && toIndex >= 0 &&
+			fromSprite->_level == toSprite->_level &&
+			fromIndex > toIndex) {
+			_sprites[fromIndex] = toSprite;
+			_sprites[toIndex] = fromSprite;
+		}
 
-	const auto fromIndex = getSpriteIndex(fromSprite.get());
-	const auto toIndex = getSpriteIndex(toSprite.get());
-	if (fromIndex >= 0 && toIndex >= 0 &&
-		fromSprite->_level == toSprite->_level &&
-		fromIndex > toIndex) {
-		_sprites[fromIndex] = toSprite;
-		_sprites[toIndex] = fromSprite;
+		if (destroyFrom)
+			_engine->freeResource(from);
 	}
-
-	if (destroyFrom)
-		_engine->freeResource(from);
+	_engine->loadResource<Sprite>(to)->setQueue(queue);
 }
 
 void SpriteContext::setAllSpriteClickScripts(uint32 index) {

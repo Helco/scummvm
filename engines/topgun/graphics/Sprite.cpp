@@ -217,7 +217,7 @@ Rect Sprite::calcBoundsFor(Common::SharedPtr<ISurfaceResource> bitmap) {
 
 void Sprite::transferTo(Common::SharedPtr<Sprite> dst) {
 	dst->_curCellIndex = _curCellIndex;
-	dst->_subRects = _subRects;
+	dst->_subRects = std::move(_subRects);
 	dst->_isVisible = _isVisible;
 	dst->_bounds = _bounds;
 	dst->_pos = _pos;
@@ -288,6 +288,21 @@ void Sprite::setQueue(const SpriteMessageQueue *queue) {
 
 	_curMessageIndex = UINT32_MAX;
 	initNextMessage();
+}
+
+bool Sprite::setQueue(uint32 queueResIndex, bool hide) {
+	if (hide)
+		setVisible(false);
+	if (queueResIndex == 0) {
+		clearQueue();
+		return true;
+	}
+	else if (_spriteCtx->getEngine()->getResourceType(queueResIndex) != ResourceType::kQueue)
+		return false;
+
+	auto queue = _spriteCtx->getEngine()->loadResource<SpriteMessageQueue>(queueResIndex);
+	setQueue(queue.get());
+	return true;
 }
 
 void Sprite::sendMessage(const int32 *args, uint32 argCount) {

@@ -688,20 +688,9 @@ bool Script::setSpriteQueue(uint32 spriteIndex, uint32 queueIndex, bool hideSpri
 	if (!spriteIndex || _engine->getResourceType(spriteIndex) != ResourceType::kSprite)
 		return false;
 	if (!queueIndex && !_engine->isResourceLoaded(spriteIndex))
-		return true;
+		return true; // yes, this success-condition is weird.
 
-	auto sprite = _engine->loadResource<Sprite>(spriteIndex);
-	if (hideSprite)
-		sprite->setVisible(false);
-	if (queueIndex) {
-		if (_engine->getResourceType(queueIndex) == ResourceType::kQueue)
-			sprite->setQueue(_engine->loadResource<SpriteMessageQueue>(queueIndex).get());
-		else
-			return false;
-	}
-	else
-		sprite->clearQueue();
-	return true;
+	return _engine->loadResource<Sprite>(spriteIndex)->setQueue(queueIndex, hideSprite);
 }
 
 }

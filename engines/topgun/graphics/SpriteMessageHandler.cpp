@@ -47,6 +47,8 @@ ISpriteMessageHandler *ISpriteMessageHandler::create(Sprite *sprite, const Sprit
 		return new SpriteSetPriorityHandler(sprite, msg);
 	case (SpriteMessageType::kRunRootOp):
 		return new SpriteRunRootOpHandler(sprite, msg);
+	case (SpriteMessageType::kRunScript):
+		return new SpriteRunScriptHandler(sprite, msg);
 	default:
 		error("Unknown sprite message type %d", msg._type);
 	}
@@ -179,6 +181,15 @@ SpriteRunRootOpHandler::SpriteRunRootOpHandler(Sprite *sprite, const SpriteMessa
 
 bool SpriteRunRootOpHandler::update() {
 	_script->runQueueRootOp(_msg._rootOp, UINT32_MAX);
+	return true;
+}
+
+SpriteRunScriptHandler::SpriteRunScriptHandler(Sprite *sprite, const SpriteMessage &message) :
+	ISpriteMessageHandler(sprite, message, SpriteMessageType::kRunScript) {
+}
+
+bool SpriteRunScriptHandler::update() {
+	_script->runMessage(_msg._script._resIndex, 0, _msg._script._argCount, _msg._script._args);
 	return true;
 }
 

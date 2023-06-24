@@ -110,6 +110,13 @@ public:
 	virtual bool update() override;
 };
 
+class SpriteRunScriptHandler : public ISpriteMessageHandler {
+public:
+	SpriteRunScriptHandler(Sprite *sprite, const SpriteMessage &message);
+
+	virtual bool update() override;
+};
+
 }
 
 #endif // TOPGUN_SPRITEMESSAGEHANDLER_H

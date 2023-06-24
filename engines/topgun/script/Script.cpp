@@ -114,10 +114,13 @@ int32 Script::runMessage(uint32 index) {
 }
 
 void Script::runQueueRootOp(Common::Array<byte> &scriptData, uint32 index) {
-	getDebugger()->onCallStart(ScriptCallType::kRoot, index, 0);
+	getDebugger()->onCallStart(ScriptCallType::kRoot, index, 0); // TODO: This could be queue resIndex+offset
 	Common::MemorySeekableReadWriteStream stream(scriptData.begin(), scriptData.size());
-	runRoot(stream, index);
+	runSingleRootInstruction(stream, index);
 	getDebugger()->onCallEnd();
+
+	if (stream.err())
+		error("Stream error during script execution");
 }
 
 void Script::runScript(uint32 index) {

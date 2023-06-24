@@ -29,6 +29,20 @@ void Script::runSingleRootInstruction(Common::MemorySeekableReadWriteStream &str
 	const auto op = (ScriptOp)stream.readUint16LE();
 	debugCN(kSuperVerbose, kDebugScript, "root instruction %d\n", op);
 	switch (op) {
+	case ScriptOp::kRunMessage: {
+		constexpr uint32 kMaxArgCount = 8;
+		const auto resIndex = evalValue(readUint(stream), stream.readByte());
+		const auto indirectArgMask = stream.readByte();
+		const auto localScopeSize = stream.readByte();
+
+		const auto argCount = stream.readByte();
+		assert(argCount <= kMaxArgCount);
+		int32 args[kMaxArgCount];
+		for (int i = 0; i < argCount; i++)
+			args[i] = evalValue(readSint(stream), indirectArgMask & (1 << i));
+
+		runMessage(resIndex, localScopeSize, argCount, args);
+	}break;
 	case ScriptOp::kNop: break;
 	case ScriptOp::kSetCursor:
 		_engine->getSpriteCtx()->setCursor(stream.readSint16LE());

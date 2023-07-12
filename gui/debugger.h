@@ -29,8 +29,18 @@
 #include "common/array.h"
 #include "common/str.h"
 #include "common/str-array.h"
+#include "common/mutex.h"
+#include "gui/message.h"
 
 #include "engines/engine.h"
+
+#undef USE_TEXT_CONSOLE_FOR_DEBUGGER
+#define USE_TCP_SERVER_FOR_DEBUGGER 1
+
+#ifdef USE_TCP_SERVER_FOR_DEBUGGER
+typedef struct _TCPsocket *TCPsocket;
+typedef struct _SDLNet_SocketSet *SDLNet_SocketSet;
+#endif
 
 namespace GUI {
 
@@ -277,6 +287,23 @@ protected:
 	bool cmdDebugFlagDisable(int argc, const char **argv);
 	bool cmdExecFile(int argc, const char **argv);
 
+#ifdef USE_TCP_SERVER_FOR_DEBUGGER
+private:
+	friend class DebuggerServerDialog;
+	static void debuggerTimer(void *debugger);
+	void handleServer();
+	void handleTickle();
+	void dropClient();
+
+	DebuggerServerDialog *_attachedMessage;
+	TCPsocket _serverSocket, _clientSocket;
+	SDLNet_SocketSet _socketSet;
+	uint32 _framesSinceLastData;
+	Common::String _inputBuffer;
+	Common::Mutex _handleMutex;
+	static constexpr uint32 MAX_FRAMES_SINCE_LAST_DATA = 60 * 60 * 15;
+	static constexpr int MAX_CHARS_PER_LINE = 2048;
+#endif
 #ifndef USE_TEXT_CONSOLE_FOR_DEBUGGER
 private:
 	static bool debuggerInputCallback(GUI::ConsoleDialog *console, const char *input, void *refCon);

@@ -84,6 +84,8 @@ Common::Error TopGunEngine::run() {
 
 	Common::Event e;
 	while (!shouldQuit()) {
+		getDebugger()->onFrame();
+
 		while (g_system->getEventManager()->pollEvent(e)) {
 			switch (e.type) {
 			case Common::EVENT_CUSTOM_ENGINE_ACTION_START:

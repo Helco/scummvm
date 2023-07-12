@@ -36,6 +36,8 @@
 
 #include "engines/engine.h"
 
+#define USE_TEXT_CONSOLE_FOR_DEBUGGER 1
+
 #include "gui/debugger.h"
 #ifndef USE_TEXT_CONSOLE_FOR_DEBUGGER
 	#include "gui/console.h"
@@ -45,15 +47,64 @@
 	#include "common/events.h"
 #endif
 
+#ifdef USE_TCP_SERVER_FOR_DEBUGGER
+#include <SDL_net.h>
+#include "common/timer.h"
+#endif
+
 
 namespace GUI {
+
+#ifdef USE_TCP_SERVER_FOR_DEBUGGER
+class DebuggerServerDialog : public MessageDialog {
+public:
+	DebuggerServerDialog(Debugger *debugger) : MessageDialog("Debugger server is running, waiting for client...", "") {
+		_debugger = debugger;
+	}
+
+	void handleTickle() override {
+		_debugger->handleTickle();
+	}
+private:
+	Debugger *_debugger;
+};
+#endif
 
 Debugger::Debugger() {
 	_frameCountdown = 0;
 	_isActive = false;
 	_firstTime = true;
 	_defaultCommandProcessor = nullptr;
-#ifndef USE_TEXT_CONSOLE_FOR_DEBUGGER
+#ifdef USE_TCP_SERVER_FOR_DEBUGGER
+	IPaddress ip;
+	if (SDLNet_ResolveHost(&ip, nullptr, 2346) == -1) {
+		error("Debugger: SDLNet_ResolveHost: %s\n", SDLNet_GetError());
+	}
+
+	_serverSocket = SDLNet_TCP_Open(&ip);
+	if (!_serverSocket) {
+		error("Debugger: SDLNet_TCP_Open: %s\n", SDLNet_GetError());
+	}
+
+	_socketSet = SDLNet_AllocSocketSet(2); // one for the client + one for our server
+	if (!_socketSet) {
+		error("Debugger: SDLNet_AllocSocketSet: %s\n", SDLNet_GetError());
+	}
+
+	if (SDLNet_TCP_AddSocket(_socketSet, _serverSocket) < 0) {
+		error("Debugger: SDLNet_TCP_AddSocket: %s\n", SDLNet_GetError());
+	}
+
+	_framesSinceLastData = 0;
+	_clientSocket = nullptr;
+
+	Common::TimerManager *timerMgr = g_system->getTimerManager();
+	if (!timerMgr->installTimerProc(debuggerTimer, 16000, this, "Debugger's Timer"))
+		error("Failed to install Debugger's Timer");
+
+	_attachedMessage = new DebuggerServerDialog(this);
+
+#elif !defined(USE_TEXT_CONSOLE_FOR_DEBUGGER)
 	_debuggerDialog = new GUI::ConsoleDialog(1.0f, 0.67f);
 	_debuggerDialog->setInputCallback(debuggerInputCallback, this);
 	_debuggerDialog->setCompletionCallback(debuggerCompletionCallback, this);
@@ -82,7 +133,22 @@ Debugger::Debugger() {
 }
 
 Debugger::~Debugger() {
-#ifndef USE_TEXT_CONSOLE_FOR_DEBUGGER
+#if USE_TCP_SERVER_FOR_DEBUGGER
+	_handleMutex.lock();
+	Common::TimerManager *timerMgr = g_system->getTimerManager();
+	timerMgr->removeTimerProc(debuggerTimer);
+	dropClient();
+	if (_serverSocket != nullptr) {
+		SDLNet_TCP_Close(_serverSocket);
+		_serverSocket = nullptr;
+	}
+	if (_socketSet != nullptr) {
+		SDLNet_FreeSocketSet(_socketSet);
+		_socketSet = nullptr;
+	}
+	_handleMutex.unlock();
+	delete _attachedMessage;
+#elif !defined(USE_TEXT_CONSOLE_FOR_DEBUGGER)
 	delete _debuggerDialog;
 #endif
 }
@@ -90,6 +156,124 @@ Debugger::~Debugger() {
 void Debugger::clearVars() {
 	_vars.resize(1); // Keep "debug_countdown"
 }
+
+#ifdef USE_TCP_SERVER_FOR_DEBUGGER
+void Debugger::dropClient() {
+	if (_clientSocket == nullptr)
+		return;
+	SDLNet_TCP_Send(_clientSocket, "\nBYE\n", 5);
+	SDLNet_TCP_Close(_clientSocket);
+	SDLNet_TCP_DelSocket(_socketSet, _clientSocket);
+	_clientSocket = nullptr;
+
+	if (_isActive)
+		_attachedMessage->handleCommand(nullptr, GUI::kCloseCmd, 0);
+}
+
+void Debugger::debuggerTimer(void *debugger) {
+	reinterpret_cast<Debugger *>(debugger)->handleServer();
+}
+
+void Debugger::handleServer() {
+	_handleMutex.lock();
+
+	if (SDLNet_CheckSockets(_socketSet, 0) < 0)
+		error("Debugger: SDLNet_CheckSockets: %s\n", SDLNet_GetError());
+
+	if (_clientSocket == nullptr)
+	{
+		if (!SDLNet_SocketReady(_serverSocket) ||
+			!(_clientSocket = SDLNet_TCP_Accept(_serverSocket))) {
+			_handleMutex.unlock();
+			return;
+		}
+		if (SDLNet_TCP_AddSocket(_socketSet, _clientSocket) < 0) {
+			dropClient();
+			_handleMutex.unlock();
+			return;
+		}
+		_framesSinceLastData = 0;
+	}
+
+	if (!SDLNet_SocketReady(_clientSocket))
+	{
+		_framesSinceLastData++;
+		if (_framesSinceLastData > MAX_FRAMES_SINCE_LAST_DATA)
+			dropClient();
+		_handleMutex.unlock();
+		return;
+	}
+
+	char buffer[MAX_CHARS_PER_LINE];
+	int bytes = SDLNet_TCP_Recv(_clientSocket, buffer, MAX_CHARS_PER_LINE - 1);
+	if (bytes <= 0) {
+		warning("Debugger client recv failed");
+		dropClient();
+		_handleMutex.unlock();
+		return;
+	}
+
+	buffer[bytes] = '\0';
+	_inputBuffer += buffer;
+	_framesSinceLastData = 0;
+
+	// trim the heartbeats (no need to pause)
+	while (_inputBuffer.size() > 0 && _inputBuffer[0] == '\n')
+		_inputBuffer.erase(0, 1);
+
+	// the command handling has to be done on the mainframe so we activate the debugger
+	if (!_isActive && _frameCountdown < 1 && _inputBuffer.contains('\n'))
+		_frameCountdown = 1; // yes neither clean nor particularly thread-safe. Both should not matter too much here.
+
+	_handleMutex.unlock();
+}
+
+void Debugger::handleTickle()
+{
+	Common::String inputToProcess;
+	_handleMutex.lock();
+	size_t i = _inputBuffer.findLastOf('\n');
+	if (i != Common::String::npos)
+	{
+		inputToProcess = _inputBuffer.substr(0, i + 1);
+		_inputBuffer.erase(0, i + 1);
+	}
+	_handleMutex.unlock();
+
+	size_t start = 0;
+	i = inputToProcess.findFirstOf('\n', start);
+	while (i != Common::String::npos)
+	{
+		Common::String line = inputToProcess.substr(start, i - start);
+		if (!line.empty()) {
+			if (line == "BYE" || line == "BYE\r") {
+				_handleMutex.lock();
+				debug("Client waved goodbye");
+				dropClient();
+				_attachedMessage->handleCommand(nullptr, kCloseCmd, 0);
+				_handleMutex.unlock();
+				break;
+			}
+			else if (!parseCommand(line.c_str())) {
+				if (i + 1 != inputToProcess.size()) {
+					// repush the remaining input into the buffer
+					// with the newline to separate potential new network input from the remaining commands
+					_handleMutex.lock();
+					_inputBuffer = inputToProcess.substr(i) + _inputBuffer;
+					_handleMutex.unlock();
+				}
+				_attachedMessage->handleCommand(nullptr, kCloseCmd, 0);
+				break;
+			}
+			debugPrintf("\nEOM\n");
+		}
+
+		start = i + 1;
+		i = inputToProcess.findFirstOf('\n', start);
+	}
+}
+
+#endif
 
 
 void Debugger::setPrompt(Common::String prompt) {
@@ -106,7 +290,9 @@ void Debugger::resetPrompt() {
 
 // Initialisation Functions
 int Debugger::getCharsPerLine() {
-#ifndef USE_TEXT_CONSOLE_FOR_DEBUGGER
+#if USE_TCP_SERVER_FOR_DEBUGGER
+	const int charsPerLine = MAX_CHARS_PER_LINE;
+#elif !defined(USE_TEXT_CONSOLE_FOR_DEBUGGER)
 	const int charsPerLine = _debuggerDialog->getCharsPerLine();
 #elif defined(USE_READLINE)
 	int charsPerLine, rows;
@@ -123,7 +309,18 @@ int Debugger::debugPrintf(const char *format, ...) {
 
 	va_start(argptr, format);
 	int count;
-#ifndef USE_TEXT_CONSOLE_FOR_DEBUGGER
+#ifdef USE_TCP_SERVER_FOR_DEBUGGER
+	Common::String message = Common::String::vformat(format, argptr);
+	debug("%s", message.c_str());
+	_handleMutex.lock();
+	if (_clientSocket != nullptr && SDLNet_TCP_Send(_clientSocket, message.c_str(), message.size()) != message.size()) {
+		SDLNet_TCP_Close(_clientSocket);
+		_clientSocket = nullptr;
+		warning("Dropping debugger TCP client");
+	}
+	_handleMutex.unlock();
+	count = message.size();
+#elif !defined(USE_TEXT_CONSOLE_FOR_DEBUGGER)
 	count = _debuggerDialog->vprintFormat(1, format, argptr);
 #else
 	count = ::vprintf(format, argptr);
@@ -232,8 +429,9 @@ typedef char *RLCompFunc_t(const char *, int);
 void Debugger::enter() {
 	// TODO: Having three I/O methods #ifdef-ed in this file is not the
 	// cleanest approach to this...
-
-#ifndef USE_TEXT_CONSOLE_FOR_DEBUGGER
+#if USE_TCP_SERVER_FOR_DEBUGGER
+	_attachedMessage->runModal();
+#elif !defined(USE_TEXT_CONSOLE_FOR_DEBUGGER)
 	if (_firstTime) {
 		debugPrintf("Debugger started, type 'exit' to return to the game.\n");
 		debugPrintf("Type 'help' to see a little list of commands and variables.\n");

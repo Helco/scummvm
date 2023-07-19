@@ -365,4 +365,10 @@ void TopGunEngine::resetCurrentScene() {
 	clearPlugins();
 }
 
+void TopGunEngine::printSceneStack() {
+	auto debugger = getDebugger();
+	for (auto i = _scenes.size(); i > 0; i--)
+		debugger->debugPrintf("%s%s\n", i - 1 == _curSceneIndex ? "> " : "",  _scenes[i - 1]->getName().c_str());
+}
+
 } // End of namespace Topgun

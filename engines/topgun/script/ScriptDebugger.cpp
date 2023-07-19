@@ -224,7 +224,7 @@ void ScriptDebugger::breakAndOpenConsole() {
 	}
 	_isPaused = true;
 	auto debugger = _engine->getDebugger();
-	printStacktrace(true);
+	debugger->debugPrintf("EOM\n");
 	debugger->attach();
 	debugger->onFrame();
 	_isPaused = false;

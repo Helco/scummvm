@@ -44,6 +44,7 @@ private:
 	bool Cmd_stepOut(int argc, const char **argv);
 	bool Cmd_listPoints(int argc, const char **argv);
 	bool Cmd_stacktrace(int argc, const char **argv);
+	bool Cmd_scenestack(int argc, const char **argv);
 	bool Cmd_localVars(int argc, const char **argv);
 	bool Cmd_globalVars(int argc, const char **argv);
 	bool Cmd_dynStrings(int argc, const char **argv);

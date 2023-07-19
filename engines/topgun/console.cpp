@@ -40,6 +40,7 @@ Console::Console(TopGunEngine *engine) :
 	registerCmd("stepOut", WRAP_METHOD(Console, Cmd_stepOut));
 	registerCmd("list-breaks", WRAP_METHOD(Console, Cmd_listPoints));
 	registerCmd("stacktrace", WRAP_METHOD(Console, Cmd_stacktrace));
+	registerCmd("scenestack", WRAP_METHOD(Console, Cmd_scenestack));
 	registerCmd("localVars", WRAP_METHOD(Console, Cmd_localVars));
 	registerCmd("globalVar", WRAP_METHOD(Console, Cmd_globalVars));
 	registerCmd("globalVars", WRAP_METHOD(Console, Cmd_globalVars));
@@ -135,6 +136,11 @@ bool Console::Cmd_listPoints(int argc, const char **argv) {
 
 bool Console::Cmd_stacktrace(int argc, const char **argv) {
 	_scriptDebugger->printStacktrace();
+	return true;
+}
+
+bool Console::Cmd_scenestack(int argc, const char **argv) {
+	_engine->printSceneStack();
 	return true;
 }
 

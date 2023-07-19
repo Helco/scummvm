@@ -179,6 +179,7 @@ public:
 
 	void postQuitScene();
 	void postChangeScene(const Common::String &name);
+	void printSceneStack();
 
 private:
 	ScopedPtr<ResourceFile> _resFile;

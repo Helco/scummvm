@@ -31,7 +31,9 @@ void Script::runSingleRootInstruction(Common::MemorySeekableReadWriteStream &str
 	switch (op) {
 	case ScriptOp::kRunMessage: {
 		constexpr uint32 kMaxArgCount = 8;
-		const auto resIndex = evalValue(readUint(stream), stream.readByte());
+		const auto resIndexArg = readUint(stream);
+		const auto isResIndexIndirect = stream.readByte();
+		const auto resIndex = evalValue(resIndexArg, isResIndexIndirect);
 		const auto indirectArgMask = stream.readByte();
 		const auto localScopeSize = stream.readByte();
 

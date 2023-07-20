@@ -226,9 +226,8 @@ SpriteMessage::SpriteMessage(const int32 *args, const uint32 argCount) : SpriteM
 		_cellLoop._duration._value = args[3];
 		break;
 	case (SpriteMessageType::kSetSubRects):
-		// one unused argument
-		assert(argCount >= 4 && argCount <= 10);
-		_subRects._subRectCount = argCount - 3;
+		assert(argCount >= 3 && argCount <= 10);
+		_subRects._subRectCount = argCount - 2;
 		for (int i = 0; i < _subRects._subRectCount; i++)
 			_subRects._subRectCells[i]._value = *++args;
 		_subRects._duration._value = *args;
@@ -307,9 +306,9 @@ SpriteMessage::SpriteMessage(const int32 *args, const uint32 argCount) : SpriteM
 		_showCellIndex = argCount > 1 ? *++args : -1;
 		break;
 	case (SpriteMessageType::kRunScript):
-		assert(argCount >= 3 && argCount <= 9); // one unused
+		assert(argCount >= 2 && argCount <= 9);
 		_script._resIndex = *++args;
-		_script._argCount = argCount - 3;
+		_script._argCount = argCount - 2;
 		for (uint32 i = 0; i < _script._argCount; i++)
 			_script._args[i] = *++args;
 		break;

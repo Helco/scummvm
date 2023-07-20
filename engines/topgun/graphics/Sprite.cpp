@@ -22,6 +22,7 @@
 #include "common/memstream.h"
 
 #include "topgun/topgun.h"
+#include "topgun/graphics/Cell.h"
 
 using Common::SharedPtr;
 
@@ -379,6 +380,49 @@ bool Sprite::postClick(int32 arg0) {
 	int32 args[2] = { arg0, _clickScriptArg };
 	_spriteCtx->getEngine()->getScript()->postMessage(_clickScriptIndex, 2, args);
 	return true;
+}
+
+void Sprite::printInfo() {
+	auto debugger = _spriteCtx->getEngine()->getDebugger();
+	debugger->debugPrintf("Sprite %d\n", getResourceIndex());
+	debugger->debugPrintf("%s, %s",
+		_isEnabled ? "enabled" : "disabled",
+		_isVisible ? "visible" : "hidden");
+	if (_paused)
+		debugger->debugPrintf(", paused");
+	if (_isScrollable)
+		debugger->debugPrintf(", scrollable");
+	if (_isClickable)
+		debugger->debugPrintf(", clickable");
+	if (_isDraggable)
+		debugger->debugPrintf(", draggable");
+	if (_isRectPickable)
+		debugger->debugPrintf(", rect-pickable");
+	if (_flipX)
+		debugger->debugPrintf(", x-flipped");
+	if (_flipY)
+		debugger->debugPrintf(", y-flipped");
+	debugger->debugPrintf("\n");
+
+	debugger->debugPrintf("Pos: %d, %d Bounds: %d, %d, %d, %d\n",
+		_pos.x, _pos.y, _bounds.left, _bounds.top, _bounds.right, _bounds.bottom);
+
+	debugger->debugPrintf("Cells");
+	for (size_t i = 0; i < _cells.size(); i++) {
+		debugger->debugPrintf("%c %d", i == 0 ? ':' : ',', _cells[i]->getResourceIndex());
+		if (_cells[i]->getResourceType() == ResourceType::kCell)
+			debugger->debugPrintf("(%d)", _cells[i].dynamicCast<Cell>()->getInnerResourceIndex());
+		if (_subRects.empty() && i == _curCellIndex)
+			debugger->debugPrintf("!");
+	}
+	debugger->debugPrintf("\n");
+
+	if (_subRects.size()) {
+		debugger->debugPrintf("SubRects");
+		for (size_t i = 0; i < _subRects.size(); i++)
+			debugger->debugPrintf("%c %d", i == 0 ? ':' : ',', _subRects[i]._bitmap->getResourceIndex());
+		debugger->debugPrintf("\n");
+	}
 }
 
 }

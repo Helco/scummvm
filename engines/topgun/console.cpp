@@ -46,6 +46,8 @@ Console::Console(TopGunEngine *engine) :
 	registerCmd("globalVars", WRAP_METHOD(Console, Cmd_globalVars));
 	registerCmd("dynString", WRAP_METHOD(Console, Cmd_dynStrings));
 	registerCmd("dynStrings", WRAP_METHOD(Console, Cmd_dynStrings));
+	registerCmd("listSprites", WRAP_METHOD(Console, Cmd_listSprites));
+	registerCmd("spriteInfo", WRAP_METHOD(Console, Cmd_spriteInfo));
 
 	registerVar("drawSpriteIDs", &engine->_spriteCtx->_debugDrawSpriteIDs);
 }
@@ -181,6 +183,31 @@ bool Console::Cmd_dynStrings(int argc, const char **argv) {
 	}
 	else
 		debugPrintf("usage: %s [index] [count]\n", argv[0]);
+	return true;
+}
+
+bool Console::Cmd_listSprites(int argc, const char **argv) {
+	_engine->getSpriteCtx()->printSprites();
+	return true;
+}
+
+bool Console::Cmd_spriteInfo(int argc, const char **argv) {
+	if (argc != 2) {
+		debugPrintf("usage: spriteInfo <index>\n");
+		return true;
+	}
+	uint32 index = Common::String(argv[1]).asUint64Ext();
+	auto type = _engine->getResourceType(index);
+	if (type != ResourceType::kSprite) {
+		debugPrintf("Resource %d is not a sprite but a %d\n", index, type);
+		return true;
+	}
+	if (!_engine->isResourceLoaded(index)) {
+		debugPrintf("Sprite %d is not loaded\n", index);
+		return true;
+	}
+	auto sprite = _engine->loadResource<Sprite>(index);
+	sprite->printInfo();
 	return true;
 }
 

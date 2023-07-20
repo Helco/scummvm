@@ -83,6 +83,8 @@ public:
 	void setBackground(byte r, byte g, byte b);
 	void setBackground(byte color);
 
+	void printSprites();
+
 	inline TopGunEngine *getEngine() {
 		return _engine;
 	}

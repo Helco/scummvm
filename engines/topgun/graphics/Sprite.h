@@ -90,6 +90,8 @@ public:
 	void setClickScriptArg(int32 arg);
 	bool postClick(int32 arg0);
 
+	void printInfo();
+
 	inline SpriteContext *getSpriteContext() {
 		return _spriteCtx;
 	}

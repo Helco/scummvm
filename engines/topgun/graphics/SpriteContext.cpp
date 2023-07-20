@@ -429,4 +429,11 @@ void SpriteContext::setBackground(
 	resetBackgroundBounds();
 }
 
+void SpriteContext::printSprites()
+{
+	auto debugger = _engine->getDebugger();
+	for (size_t i = 0; i < _sprites.size(); i++)
+		debugger->debugPrintf("%d: Id: %d %s\n", (int)i, _sprites[i]->getResourceIndex(), _sprites[i]->_isVisible ? "Visible" : "Hidden");
+}
+
 }

@@ -39,6 +39,10 @@ public:
 
 	virtual bool load(Common::Array<byte> &&data) override;
 
+	inline uint32 getInnerResourceIndex() const {
+		return _bitmap->getResourceIndex();
+	}
+
 	virtual Point getOffset() const {
 		return _offset;
 	}

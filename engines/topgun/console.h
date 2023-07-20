@@ -48,6 +48,8 @@ private:
 	bool Cmd_localVars(int argc, const char **argv);
 	bool Cmd_globalVars(int argc, const char **argv);
 	bool Cmd_dynStrings(int argc, const char **argv);
+	bool Cmd_listSprites(int argc, const char **argv);
+	bool Cmd_spriteInfo(int argc, const char **argv);
 public:
 	Console(TopGunEngine *engine);
 	~Console() override;

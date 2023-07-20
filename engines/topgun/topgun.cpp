@@ -177,6 +177,8 @@ bool TopGunEngine::isResourceLoaded(uint32 index) const {
 }
 
 ResourceType TopGunEngine::getResourceType(uint32 index) const {
+	if (index >= _resFile->_resources.size())
+		return ResourceType::kInvalid;
 	return _resFile->_resources[index]._type;
 }
 

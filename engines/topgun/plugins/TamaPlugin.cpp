@@ -115,6 +115,12 @@ constexpr DialogPromptData kDialogPrompts[] = {
 	{ 8248, 0, 0, false }
 };
 
+static void removeWinAPIHotkey(Common::String &text) {
+	auto index = text.findFirstOf('&');
+	if (index != Common::String::npos)
+		text.deleteChar(index);
+}
+
 int32 TamaPlugin::dialogPrompt(const int32 *args, uint32 argCount) {
 	// TODO: icon flags and the title text are currently ignored
 	if (argCount != 3)
@@ -151,6 +157,9 @@ int32 TamaPlugin::dialogPrompt(const int32 *args, uint32 argCount) {
 	else
 		defaultButton = _("OK");
 
+	removeWinAPIHotkey(defaultButton);
+	removeWinAPIHotkey(altButton);
+	
 	GUI::MessageDialog dialog(text, defaultButton, altButton);
 	auto positive = dialog.runModal() == GUI::kMessageOK;
 	if (altButton.empty())

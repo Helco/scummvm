@@ -92,7 +92,8 @@ public:
 	void printAllPoints();
 	void printStacktrace(bool onlyFirst = false);
 	void printLocalScope(uint32 index = UINT32_MAX);
-	void printGlobalVariables(uint32 offset = UINT32_MAX, uint32 count = 1);
+	void printSceneVariables(uint32 offset = UINT32_MAX, uint32 count = 1);
+	void printSystemVariables(uint32 offset = UINT32_MAX, uint32 count = 1);
 	void printDynamicStrings(uint32 offset = UINT32_MAX, uint32 count = 1);
 
 	static bool pointTypeNeedsIndex(ScriptPointType type);

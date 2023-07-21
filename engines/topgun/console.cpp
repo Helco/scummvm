@@ -42,8 +42,8 @@ Console::Console(TopGunEngine *engine) :
 	registerCmd("stacktrace", WRAP_METHOD(Console, Cmd_stacktrace));
 	registerCmd("scenestack", WRAP_METHOD(Console, Cmd_scenestack));
 	registerCmd("localVars", WRAP_METHOD(Console, Cmd_localVars));
-	registerCmd("globalVar", WRAP_METHOD(Console, Cmd_globalVars));
-	registerCmd("globalVars", WRAP_METHOD(Console, Cmd_globalVars));
+	registerCmd("sceneVars", WRAP_METHOD(Console, Cmd_globalVars));
+	registerCmd("systemVars", WRAP_METHOD(Console, Cmd_globalVars));
 	registerCmd("dynString", WRAP_METHOD(Console, Cmd_dynStrings));
 	registerCmd("dynStrings", WRAP_METHOD(Console, Cmd_dynStrings));
 	registerCmd("listSprites", WRAP_METHOD(Console, Cmd_listSprites));
@@ -167,7 +167,10 @@ bool Console::Cmd_globalVars(int argc, const char **argv) {
 	uint32 count = 1;
 	if (argc == 3)
 		count = Common::String(argv[2]).asUint64Ext();
-	_scriptDebugger->printGlobalVariables(index, count);
+	if (argv[0][1] == 'y') // systemVars
+		_scriptDebugger->printSystemVariables(index, count);
+	else // sceneVars
+		_scriptDebugger->printSceneVariables(index, count);
 	return true;
 }
 

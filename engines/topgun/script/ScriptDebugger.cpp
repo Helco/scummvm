@@ -320,7 +320,7 @@ void ScriptDebugger::printLocalScope(uint32 index) {
 		debugger->debugPrintf("%3d = %d\n", i - call._localScopeStart, script->_localVariables[i]);
 }
 
-void ScriptDebugger::printGlobalVariables(uint32 offset, uint32 count) {
+void ScriptDebugger::printSceneVariables(uint32 offset, uint32 count) {
 	auto debugger = _engine->getDebugger();
 	if (_engine->_curSceneIndex >= _engine->_scenes.size()) {
 		debugger->debugPrintf("No scene loaded or corrupted scene index\n");
@@ -330,16 +330,33 @@ void ScriptDebugger::printGlobalVariables(uint32 offset, uint32 count) {
 	const auto scene = _engine->getScene();
 	if (offset == UINT32_MAX) {
 		offset = 0;
-		count = _engine->getGameDesc()->_globalVarCount;
+		count = _engine->getGameDesc()->_sceneVarCount;
 	}
 	const auto end = offset + count;
-	if (end > _engine->getGameDesc()->_globalVarCount) {
-		debugger->debugPrintf("Invalid variable range, there are only %d global variables\n", (int)_engine->getGameDesc()->_globalVarCount);
+	if (end > _engine->getGameDesc()->_sceneVarCount) {
+		debugger->debugPrintf("Invalid variable range, there are only %d scene variables\n", (int)_engine->getGameDesc()->_sceneVarCount);
 		return;
 	}
 
 	for (auto i = offset; i < end; i++)
 		debugger->debugPrintf("%5d = %d\n", (int)i, scene->getVariable(i));
+}
+
+void ScriptDebugger::printSystemVariables(uint32 offset, uint32 count) {
+	auto debugger = _engine->getDebugger();
+	const auto end = offset + count;
+	if (offset == UINT32_MAX) {
+		offset = 0;
+		count = _engine->getGameDesc()->_systemVarCount;
+	}
+	if (end > _engine->getGameDesc()->_systemVarCount) {
+		debugger->debugPrintf("Innvalid variable range, there are only %d system variables\n", (int)_engine->getGameDesc()->_systemVarCount);
+		return;
+	}
+
+	const auto script = _engine->getScript();
+	for (auto i = offset; i < end; i++)
+		debugger->debugPrintf("%5d = %d\n", (int)i, script->_systemVariables[i]);
 }
 
 void ScriptDebugger::printDynamicStrings(uint32 offset, uint32 count) {

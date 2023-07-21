@@ -224,13 +224,13 @@ int32 Script::evalValue(int32 valueOrIndex, bool isIndex) {
 		return valueOrIndex;
 	_debugger->onVariable(false, valueOrIndex);
 
-	if (valueOrIndex < gameDesc->_globalVarCount)
+	if (valueOrIndex < gameDesc->_sceneVarCount)
 		return _scene->getVariable(valueOrIndex);
-	else if (valueOrIndex < gameDesc->_globalVarCount + gameDesc->_systemVarCount)
-		return _systemVariables[valueOrIndex - gameDesc->_globalVarCount];
+	else if (valueOrIndex < gameDesc->_sceneVarCount + gameDesc->_systemVarCount)
+		return _systemVariables[valueOrIndex - gameDesc->_sceneVarCount];
 	else
 	{
-		const auto localIndex = _localScope + valueOrIndex - gameDesc->_globalVarCount - gameDesc->_systemVarCount;
+		const auto localIndex = _localScope + valueOrIndex - gameDesc->globalVarCount();
 		if (localIndex >= _localVariables.size())
 			_localVariables.resize(localIndex + 1);
 		return _localVariables[localIndex];
@@ -240,13 +240,13 @@ int32 Script::evalValue(int32 valueOrIndex, bool isIndex) {
 void Script::setVariable(int32 index, int32 value) {
 	const auto gameDesc = _engine->getGameDesc();
 	_debugger->onVariable(true, index);
-	if (index < gameDesc->_globalVarCount)
+	if (index < gameDesc->_sceneVarCount)
 		_scene->setVariable(index, value);
-	else if (index < gameDesc->_globalVarCount + gameDesc->_systemVarCount)
-		_systemVariables[index - gameDesc->_globalVarCount] = value;
+	else if (index < gameDesc->_sceneVarCount + gameDesc->_systemVarCount)
+		_systemVariables[index - gameDesc->_sceneVarCount] = value;
 	else
 	{
-		const auto localIndex = _localScope + index - gameDesc->_globalVarCount - gameDesc->_systemVarCount;
+		const auto localIndex = _localScope + index - gameDesc->globalVarCount();
 		if (localIndex >= _localVariables.size())
 			_localVariables.resize(localIndex + 1);
 		_localVariables[localIndex] = value;

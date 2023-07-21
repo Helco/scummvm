@@ -25,7 +25,7 @@ namespace TopGun {
 
 Scene::Scene(TopGunEngine *engine, const Common::String &name) : _name(name) {
 	auto resFile = engine->getResourceFile();
-	_variables.resize(engine->getGameDesc()->_globalVarCount);
+	_variables.resize(engine->getGameDesc()->_sceneVarCount);
 	for (const auto kv : resFile->_variables)
 		_variables[kv._key] = kv._value;
 

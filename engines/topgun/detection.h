@@ -45,8 +45,12 @@ extern const PlainGameDescriptor topgunGames[];
 
 struct TopGunGameDescription {
 	ADGameDescription _baseDescription;
-	size_t _globalVarCount;
+	size_t _sceneVarCount;
 	size_t _systemVarCount;
+
+	inline size_t globalVarCount() const {
+		return _sceneVarCount + _systemVarCount;
+	}
 };
 
 extern const TopGunGameDescription gameDescriptions[];

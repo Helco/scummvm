@@ -63,6 +63,8 @@ ScriptPluginProcedure *TamaPlugin::getScriptProcedure(const Common::String &name
 		return new ScriptPluginProcedureMem<TamaPlugin>(this, &TamaPlugin::dialogSignalAttention);
 	else if (!name.compareToIgnoreCase("Window_Show"))
 		return new ScriptPluginProcedureMem<TamaPlugin>(this, &TamaPlugin::dialogSignalAttention);
+	else if (!name.compareToIgnoreCase("Window_Close"))
+		return new ScriptPluginProcedureMem<TamaPlugin>(this, &TamaPlugin::windowClose);
 	else if (!name.compareToIgnoreCase("TamagoGetNumScrap"))
 		return new ScriptPluginProcedureMem<TamaPlugin>(this, &TamaPlugin::dialogSignalAttention);
 	else if (!name.compareToIgnoreCase("Dialog_SetLanguage"))
@@ -198,6 +200,11 @@ int32 TamaPlugin::windowGenerateMouseMove(const int32 *args, uint32 argCount) {
 	// TODO: We should probably set the current mouse pos in this event
 	event.relMouse = Common::Point(0, 0);
 	_engine->getEventManager()->pushEvent(event);
+	return 1;
+}
+
+int32 TamaPlugin::windowClose(const int32 *args, uint32 argCount) {
+	_engine->quitGame();
 	return 1;
 }
 

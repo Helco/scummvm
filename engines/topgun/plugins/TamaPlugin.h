@@ -43,6 +43,7 @@ private:
 	int32 internetOpenURL(const int *args, uint32 argCount);
 	int32 tamagoGetNumActive(const int *args, uint32 argCount);
 	int32 windowGenerateMouseMove(const int *args, uint32 argCount);
+	int32 windowClose(const int *args, uint32 argCount);
 
 	Common::ScopedPtr<Common::WinResources> _tamaResources;
 };

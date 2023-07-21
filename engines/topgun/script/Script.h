@@ -279,7 +279,7 @@ enum class ScriptOp {
 	kCase = 220, // originally not executed at all, it is part of Switch/CalcSwitch
 	kAudioMute221 = 221,
 	kSpriteSwap222 = 222,
-	kFreeResource223 = 223,
+	kFreeResource_dup = 223,
 	kMath224 = 224,
 	kSpriteIsVisible = 225,
 	kSetReg95DC = 226,

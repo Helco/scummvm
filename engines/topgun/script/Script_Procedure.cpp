@@ -419,6 +419,13 @@ int32 Script::runInternalProcedure(uint32 procId, const int32 *args, uint32 argC
 		checkArgCount(argCount, 1);
 		_engine->loadResource(args[0], ResourceType::kInvalid);
 		return 1;
+	case ScriptOp::kFreeResource:
+	case ScriptOp::kFreeResource_dup: {
+		checkArgCount(argCount, 1);
+		auto wasLoaded = _engine->isResourceLoaded(args[0]);
+		_engine->freeResource(args[0]);
+		return wasLoaded;
+	}
 	case ScriptOp::kSetPauseEventScript:
 		checkArgCount(argCount, 1);
 		_pauseEventHandler = args[0];
@@ -673,6 +680,9 @@ int32 Script::runInternalProcedure(uint32 procId, const int32 *args, uint32 argC
 
 	case ScriptOp::kAudioPlayWave146:
 		warning("stub procedure AudioPlayWave146");
+		break;
+	case ScriptOp::kAudioStopWave:
+		warning("stub procedure AudioStopWave");
 		break;
 	default:
 		if (procId >= sizeof(internalProcedureNames) / sizeof(const char *))

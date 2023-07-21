@@ -166,8 +166,8 @@ void Debugger::dropClient() {
 	SDLNet_TCP_DelSocket(_socketSet, _clientSocket);
 	_clientSocket = nullptr;
 
-	if (_isActive)
-		_attachedMessage->handleCommand(nullptr, GUI::kCloseCmd, 0);
+	//if (_isActive)
+		//_attachedMessage->handleCommand(nullptr, GUI::kCloseCmd, 0);
 }
 
 void Debugger::debuggerTimer(void *debugger) {
@@ -254,7 +254,11 @@ void Debugger::handleTickle()
 				_handleMutex.unlock();
 				break;
 			}
-			else if (!parseCommand(line.c_str())) {
+
+			auto shouldContinue = parseCommand(line.c_str());
+			debugPrintf("\nEOM\n");
+
+			if (!shouldContinue) {
 				if (i + 1 != inputToProcess.size()) {
 					// repush the remaining input into the buffer
 					// with the newline to separate potential new network input from the remaining commands
@@ -265,7 +269,6 @@ void Debugger::handleTickle()
 				_attachedMessage->handleCommand(nullptr, kCloseCmd, 0);
 				break;
 			}
-			debugPrintf("\nEOM\n");
 		}
 
 		start = i + 1;

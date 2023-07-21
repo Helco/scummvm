@@ -100,19 +100,19 @@ constexpr int32 kWinMessageNo = 7;
 constexpr int32 kDialogYesNoFlag = 4;
 constexpr int32 kDialogStripString = 7;
 constexpr DialogPromptData kDialogPrompts[] = {
-	{ 8195, 8196, 8197, false },
+	{ 8195, 8196, 8197, false }, // hatch now or later?
 	{ 0, 0, 0, false }, // undefined prompt id
-	{ 8213, 0, 0, false },
-	{ 8214, 0, 0, true },
-	{ 8215, 0, 0, true },
+	{ 8213, 0, 0, false }, // press egg to hatch later
+	{ 8214, 0, 0, true }, // error unable to open tamagotchi
+	{ 8215, 0, 0, true }, // error unable to create tamagotchi
 	{ 0, 0, 0, false },
-	{ 8235, 0, 0, false },
-	{ 8217, 0, 0, false },
-	{ 8236, 0, 0, true },
+	{ 8235, 0, 0, false }, // sure to send tamagotchi home early?
+	{ 8217, 0, 0, false }, // enter valid nickname
+	{ 8236, 0, 0, true }, // nickname has been changed to
 	{ 0, 0, 0, false },
-	{ 8243, 0, 0, false },
-	{ 8246, 0, 0, false },
-	{ 8248, 0, 0, false }
+	{ 8243, 0, 0, false }, // you have not changed nickname
+	{ 8246, 0, 0, false }, // sure to take tamagotchi out of care center
+	{ 8248, 0, 0, false } // click on egg to begin hatching
 };
 
 static void removeWinAPIHotkey(Common::String &text) {
@@ -164,6 +164,8 @@ int32 TamaPlugin::dialogPrompt(const int32 *args, uint32 argCount) {
 	auto positive = dialog.runModal() == GUI::kMessageOK;
 	if (altButton.empty())
 		return kWinMessageOK;
+	else if (data.altButtonResource != 0) // custom dialogs return a sensible true/false
+		return positive;
 	else
 		return positive ? kWinMessageYes : kWinMessageNo;
 }

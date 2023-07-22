@@ -42,12 +42,23 @@ enum class BackgroundAnimation {
 	kNone
 };
 
+enum class CursorType {
+	kBusy = 0,
+	kDefault,
+	kWhiteDefault,
+	kWhiteBusy,
+	kCrosshair,
+	kMovie,
+	kMouse,
+	kCancel, // or a better for "a cross on a ragged piece of paper"
+	kEmpty,
+	kCursorCount
+};
+
 class TopGunEngine;
 class SpriteContext {
 	friend class Sprite;
 public:
-	static constexpr int32 kSystemBusyCursor = 0;
-	static constexpr int32 kCursorCount = 9;
 	static constexpr uint32 kCursorGroupResourceID = 1001;
 	static constexpr size_t kPaletteSize = 256;
 	static constexpr size_t kLowSystemColors = 10;
@@ -68,11 +79,12 @@ public:
 	void copySpriteTo(uint32 from, uint32 to, uint32 queue, bool destroyFrom);
 	void setAllSpriteClickScripts(uint32 index);
 	void toggleAllSpriteClickable(bool toggle);
+	SharedPtr<Sprite> pickSprite(Point point) const;
 
 	SharedPtr<Graphics::Font> loadFont(const Common::String &name, int32 height);
 	void setPaletteFromResourceFile();
 	void fadePalette(uint32 t, uint32 maxT, byte colorOffset, byte colorCount);
-	void setCursor(int32 id);
+	void setCursor(CursorType type);
 	void setClipBox(Rect clipBox = Rect());
 	void setBackground(
 		uint32 highResBitmap,
@@ -83,7 +95,13 @@ public:
 	void setBackground(byte r, byte g, byte b);
 	void setBackground(byte color);
 
+	Point transformScreenToGame(Point point) const;
+
 	void printSprites();
+
+	inline CursorType getCursor() const {
+		return _cursorType;
+	}
 
 	inline TopGunEngine *getEngine() {
 		return _engine;
@@ -118,6 +136,7 @@ private:
 	ScopedPtr<Graphics::Cursor> _busyCursor;
 	ScopedPtr<Graphics::Cursor> _defaultCursor;
 	Array<Graphics::WinCursorGroup *> _cursorGroups;
+	CursorType _cursorType = CursorType::kBusy;
 
 	Array<SharedPtr<Graphics::Font> > _fonts;
 	Array<Common::Pair<Common::String, int> > _fontTopGunNames;

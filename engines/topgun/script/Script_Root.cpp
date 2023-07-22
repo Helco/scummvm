@@ -47,7 +47,7 @@ void Script::runSingleRootInstruction(Common::MemorySeekableReadWriteStream &str
 	}break;
 	case ScriptOp::kNop: break;
 	case ScriptOp::kSetCursor:
-		_engine->getSpriteCtx()->setCursor(stream.readSint16LE());
+		_engine->getSpriteCtx()->setCursor((CursorType)stream.readSint16LE());
 		break;
 	case ScriptOp::kJumpIf: {
 		const auto startPosition = stream.pos();

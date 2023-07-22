@@ -382,6 +382,40 @@ bool Sprite::postClick(int32 arg0) {
 	return true;
 }
 
+bool Sprite::isPickable() const {
+	return _pickableMode == SpritePickableMode::kAlwaysPickable ||
+		(_pickableMode == SpritePickableMode::kPickableIfVisible && _isVisible);
+}
+
+static bool isOpaque(Common::SharedPtr<ISurfaceResource> surface, Rect rect, Point point)
+{
+	if (!rect.contains(point))
+		return false;
+	auto pixel = surface->getSurface()->getPixel(point.x - rect.left, point.y - rect.top);
+	return pixel != 0;
+}
+
+Common::SharedPtr<ISurfaceResource> Sprite::pickCell(Point point) const {
+	if (!isPickable())
+		return nullptr;
+
+	if (_subRects.empty())
+	{
+		auto curCell = _cells[_curCellIndex];
+		return isOpaque(curCell, _bounds, point) ? curCell : nullptr;
+	}
+	else
+	{
+		for (size_t i = 0; i < _subRects.size(); i++)
+		{
+			const auto &subRect = _subRects[_subRects.size() - 1 - i];
+			if (isOpaque(subRect._bitmap, subRect._bounds, point))
+				return subRect._bitmap;
+		}
+	}
+	return nullptr;
+}
+
 void Sprite::printInfo() {
 	auto debugger = _spriteCtx->getEngine()->getDebugger();
 	debugger->debugPrintf("Sprite %d\n", getResourceIndex());

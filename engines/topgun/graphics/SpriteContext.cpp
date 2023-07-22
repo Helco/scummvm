@@ -180,6 +180,19 @@ void SpriteContext::toggleAllSpriteClickable(bool toggle) {
 		sprite->setClickable(toggle);
 }
 
+SharedPtr<Sprite> SpriteContext::pickSprite(Point point) const {
+	if (!_backgroundBounds.contains(point))
+		return nullptr;
+	for (size_t i = 0; i < _sprites.size(); i++) {
+		auto sprite = _sprites[_sprites.size() - 1 - i];
+		if (!sprite->isPickable() || !sprite->_bounds.contains(point))
+			continue;
+		if (sprite->_isRectPickable || sprite->pickCell(point) != nullptr)
+			return sprite;
+	}
+	return nullptr;
+}
+
 static const byte defaultLowColors[30] = {
 	0, 0, 0,
 	128, 0, 0,
@@ -237,8 +250,9 @@ void SpriteContext::fadePalette(uint32 t, uint32 maxT, byte colorOffset, byte co
 }
 
 void SpriteContext::loadCursors() {
-	_cursorGroups.reserve(kCursorCount - 2);
-	_cursors.reserve(kCursorCount);
+	const auto count = (int)CursorType::kCursorCount;
+	_cursorGroups.reserve(count - 2);
+	_cursors.reserve(count);
 	_busyCursor.reset(Graphics::makeBusyWinCursor());
 	_defaultCursor.reset(Graphics::makeDefaultWinCursor());
 	_cursors.push_back(_busyCursor.get());
@@ -247,7 +261,7 @@ void SpriteContext::loadCursors() {
 	auto winResource = Common::WinResources::createFromEXE("RTLIB32.DLL");
 	if (winResource == nullptr)
 		error("Could not open RTLIB32.DLL to load cursor groups");
-	for (size_t i = 0; i < kCursorCount - 2; i++) {
+	for (size_t i = 0; i < count - 2; i++) {
 		_cursorGroups.push_back(Graphics::WinCursorGroup::createCursorGroup(winResource, kCursorGroupResourceID + i));
 		_cursors.push_back(_cursorGroups[i]->cursors[0].cursor);
 	}
@@ -257,8 +271,9 @@ void SpriteContext::loadCursors() {
 	CursorMan.pushCursor(NULL, 0, 0, 0, 0, 0);
 }
 
-void SpriteContext::setCursor(int32 id) {
-	CursorMan.replaceCursor(_cursors[id]);
+void SpriteContext::setCursor(CursorType type) {
+	CursorMan.replaceCursor(_cursors[(int)type]);
+	_cursorType = type;
 }
 
 uint32 SpriteContext::getSpriteIndex(const Sprite *sprite) const {
@@ -427,6 +442,13 @@ void SpriteContext::setBackground(
 	}
 
 	resetBackgroundBounds();
+}
+
+Point SpriteContext::transformScreenToGame(Point point) const {
+	point.x += _screenBounds.left;
+	point.y += _screenBounds.top;
+	// TODO: Map transform handling is missing here
+	return point;
 }
 
 void SpriteContext::printSprites()

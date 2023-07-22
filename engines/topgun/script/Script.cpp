@@ -253,6 +253,11 @@ void Script::setVariable(int32 index, int32 value) {
 	}
 }
 
+void Script::setSystemVariable(ScriptSystemVariable variable, int32 value) {
+	_debugger->onVariable(true, _engine->getGameDesc()->_sceneVarCount + (int32)variable);
+	_systemVariables[(int32)variable] = value;
+}
+
 void Script::setupLocalArguments(const int32 *args, uint32 argCount) {
 	if (_localScope + argCount > _localVariables.size())
 		_localVariables.resize(_localScope + argCount);
@@ -349,6 +354,12 @@ void Script::toggleKeyListener(int32 key, bool toggle) {
 		for (int32 i = 0; i < kWindowsKeyCount; i++)
 			_keyListeners[i]._isDisabled = !toggle;
 	}
+}
+
+bool Script::runMouseEvent(ScriptMouseEvent event) {
+	if (_mouseEventHandler == 0)
+		return true;
+	return runMessage(_mouseEventHandler, (int32)event);
 }
 
 void Script::postSpritePicked(uint32 sprite, bool entered) {

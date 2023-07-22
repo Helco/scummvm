@@ -370,6 +370,17 @@ enum class ScriptCalcOp {
 	kShiftRight
 };
 
+enum class ScriptSystemVariable : int32 {
+	kMousePosX = 4,
+	kMousePosY = 5
+};
+
+enum class ScriptMouseEvent : int32 {
+	kLeftClick = 1,
+	kRightClick = 2,
+	kMove = 4
+};
+
 struct ScriptKeyListener {
 	uint32 _scriptUnmodified,
 		_scriptShift,
@@ -420,14 +431,20 @@ public:
 	void setKeyListener(int32 key, uint32 script, bool isForShift, bool isForControl);
 	void setKeyUpListener(int32 key, uint32 script);
 	void toggleKeyListener(int32 key, bool toggle);
+	bool runMouseEvent(ScriptMouseEvent event);
 	void postSpritePicked(uint32 sprite, bool entered);
 
 	int32 evalValue(int32 valueOrIndex, bool isIndex);
 	inline int32 evalValue(ValueOrIndirect value) {
 		return evalValue(value._value, value._isIndirect);
 	}
+	void setSystemVariable(ScriptSystemVariable variable, int32 value);
 	Common::String getString(int32 index);
 	void setString(int32 index, const Common::String &value);
+
+	inline bool hasSpritePickedHandler() const {
+		return _spritePickedEventHandler != 0;
+	}
 
 	inline ScriptDebugger *getDebugger() {
 		return _debugger.get();

@@ -167,8 +167,9 @@ public:
 
 	void setTopMostSprite(Sprite *sprite);
 	void postClearTopMostSprite(int32 script);
+	void handleMouseMove(Point point);
 	void updatePickedSprite();
-	void updatePickedSprite(int32 x, int32 y);
+	void updatePickedSprite(Point point);
 	void leavePickedSprite();
 
 	void setClickRectScripts(uint32 scriptIndex);

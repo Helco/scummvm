@@ -349,7 +349,7 @@ int32 Script::runInternalProcedure(uint32 procId, const int32 *args, uint32 argC
 		break;
 	case ScriptOp::kSetCursor:
 		checkArgCount(argCount, 1);
-		_engine->getSpriteCtx()->setCursor(args[0]);
+		_engine->getSpriteCtx()->setCursor((CursorType)args[0]);
 		break;
 	case ScriptOp::kChangeScene:
 		checkArgCount(argCount, 2);

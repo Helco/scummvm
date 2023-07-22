@@ -90,6 +90,9 @@ public:
 	void setClickScriptArg(int32 arg);
 	bool postClick(int32 arg0);
 
+	bool isPickable() const;
+	Common::SharedPtr<ISurfaceResource> pickCell(Point point) const;
+
 	void printInfo();
 
 	inline SpriteContext *getSpriteContext() {

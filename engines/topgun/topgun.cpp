@@ -109,6 +109,9 @@ Common::Error TopGunEngine::run() {
 			case Common::EVENT_KEYUP:
 				_script->onKeyUp(e.kbd);
 				break;
+			case Common::EVENT_MOUSEMOVE:
+				handleMouseMove(e.mouse);
+				break;
 			}
 		}
 
@@ -148,7 +151,7 @@ Common::Error TopGunEngine::syncGame(Common::Serializer &s) {
 bool TopGunEngine::sceneIn(const Common::String &name) {
 	debugC(kInfo, kDebugRuntime, "SceneIn: %s", name.c_str());
 
-	_spriteCtx->setCursor(SpriteContext::kSystemBusyCursor);
+	_spriteCtx->setCursor(CursorType::kBusy);
 
 	_resFile.reset(new ResourceFile());
 	if (!_resFile->load(name))
@@ -270,12 +273,40 @@ void TopGunEngine::postClearTopMostSprite(int32 script) {
 	g_system->getEventManager()->pushEvent(ev);
 }
 
+void TopGunEngine::handleMouseMove(Point point) {
+	// TODO: There are some alternative handlers with higher priority missing here:
+	//  - "altMouseHandler" something with text input?
+	//  - isTrackingRect for selecting a rectangular area
+	//  - moving a sprite around
+	//  - picking a BrowseRect 
+
+	point = _spriteCtx->transformScreenToGame(point);
+	_script->setSystemVariable(ScriptSystemVariable::kMousePosX, point.x);
+	_script->setSystemVariable(ScriptSystemVariable::kMousePosY, point.y);
+
+	if (!_script->runMouseEvent(ScriptMouseEvent::kMove))
+		return;
+	else if (_spriteCtx->getCursor() == CursorType::kCrosshair)
+		leavePickedSprite();
+	else if (_script->hasSpritePickedHandler())
+		updatePickedSprite(point);
+}
+
 void TopGunEngine::updatePickedSprite() {
 	warning("stub: updatePickedSprite");
 }
 
-void TopGunEngine::updatePickedSprite(int32 x, int32 y) {
-	warning("stub: updatePickedSprite");
+void TopGunEngine::updatePickedSprite(Point point) {
+	auto pickedSprite = _spriteCtx->pickSprite(point);
+	if (pickedSprite == nullptr) {
+		leavePickedSprite();
+		return;
+	}
+	if (_pickedSprite == pickedSprite->getResourceIndex())
+		return;
+	leavePickedSprite();
+	_pickedSprite = pickedSprite->getResourceIndex();
+	_script->postSpritePicked(_pickedSprite, true);
 }
 
 void TopGunEngine::leavePickedSprite() {

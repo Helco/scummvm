@@ -30,6 +30,7 @@ Console::Console(TopGunEngine *engine) :
 	GUI::Debugger(),
 	_engine(engine),
 	_scriptDebugger(engine->_script->getDebugger()) {
+	registerCmd("gameInfo", WRAP_METHOD(Console, Cmd_gameInfo));
 	registerCmd("trace", WRAP_METHOD(Console, Cmd_addPoint));
 	registerCmd("break", WRAP_METHOD(Console, Cmd_addPoint));
 	registerCmd("delete", WRAP_METHOD(Console, Cmd_removePoint));
@@ -53,6 +54,17 @@ Console::Console(TopGunEngine *engine) :
 }
 
 Console::~Console() {
+}
+
+bool Console::Cmd_gameInfo(int argc, const char **argv) {
+	auto gameDesc = _engine->getGameDesc();
+	debugPrintf("%s %s %s %s\n",
+		gameDesc->_baseDescription.gameId,
+		gameDesc->_baseDescription.extra == nullptr ? "" : gameDesc->_baseDescription.extra,
+		Common::getLanguageCode(gameDesc->_baseDescription.language),
+		Common::getPlatformCode(gameDesc->_baseDescription.platform));
+	debugPrintf("Scene/system variables: %d/%d\n", (int)gameDesc->_sceneVarCount, (int)gameDesc->_systemVarCount);
+	return true;
 }
 
 bool Console::Cmd_addPoint(int argc, const char **argv) {

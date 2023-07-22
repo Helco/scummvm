@@ -35,6 +35,7 @@ private:
 	TopGunEngine *_engine;
 	ScriptDebugger *_scriptDebugger;
 
+	bool Cmd_gameInfo(int argc, const char **argv);
 	bool Cmd_addPoint(int argc, const char **argv);
 	bool Cmd_removePoint(int argc, const char **argv);
 	bool Cmd_removeAllPoints(int argc, const char **argv);

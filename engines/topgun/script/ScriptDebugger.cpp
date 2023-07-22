@@ -269,6 +269,7 @@ void ScriptDebugger::printAllPoints() {
 }
 
 void ScriptDebugger::printStacktrace(bool onlyFirst) {
+	const auto script = _engine->getScript();
 	auto debugger = _engine->getDebugger();
 	for (uint32 i = 0; i < _callStack.size(); i++) {
 		const auto &call = _callStack[_callStack.size() - 1 - i];
@@ -279,7 +280,9 @@ void ScriptDebugger::printStacktrace(bool onlyFirst) {
 			call._offset);
 		if (call._argCount > 0)
 			debugger->debugPrintf(" %d args", call._argCount);
-		if (call._localScopeSize > 0)
+		if (i == 0 && call._localScopeStart != script->_stack.size())
+			debugger->debugPrintf(" %d local variables", script->_stack.size() - call._localScopeStart);
+		else if (call._localScopeSize > 0)
 			debugger->debugPrintf(" %d local variables", call._localScopeSize);
 		debugger->debugPrintf("\n");
 

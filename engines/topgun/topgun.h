@@ -171,6 +171,8 @@ public:
 	void updatePickedSprite();
 	void updatePickedSprite(Point point);
 	void leavePickedSprite();
+	void handleMouseDown(Point point, bool isLeft);
+	void handleMouseUp(Point point, bool isLeft);
 
 	void setClickRectScripts(uint32 scriptIndex);
 	void toggleClickRects(bool toggle);

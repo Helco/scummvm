@@ -371,13 +371,16 @@ enum class ScriptCalcOp {
 };
 
 enum class ScriptSystemVariable : int32 {
+	kMouseButton = 0,
 	kMousePosX = 4,
-	kMousePosY = 5
+	kMousePosY,
+	kMouseDownPosX,
+	kMouseDownPosY,
 };
 
 enum class ScriptMouseEvent : int32 {
-	kLeftClick = 1,
-	kRightClick = 2,
+	kButtonDown = 1,
+	kButtonUp = 2,
 	kMove = 4
 };
 

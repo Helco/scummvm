@@ -112,6 +112,14 @@ Common::Error TopGunEngine::run() {
 			case Common::EVENT_MOUSEMOVE:
 				handleMouseMove(e.mouse);
 				break;
+			case Common::EVENT_LBUTTONDOWN:
+			case Common::EVENT_RBUTTONDOWN:
+				handleMouseDown(e.mouse, e.type == Common::EVENT_LBUTTONDOWN);
+				break;
+			case Common::EVENT_LBUTTONUP:
+			case Common::EVENT_RBUTTONUP:
+				handleMouseUp(e.mouse, e.type == Common::EVENT_LBUTTONUP);
+				break;
 			}
 		}
 
@@ -314,6 +322,39 @@ void TopGunEngine::leavePickedSprite() {
 		return;
 	_script->postSpritePicked(_pickedSprite, false);
 	_pickedSprite = 0;
+}
+
+void TopGunEngine::handleMouseDown(Point point, bool isLeft)
+{
+	// TODO: Missing handlers
+	//   - native alt handler
+	//   - pause handling
+	//   - tracking rect
+	//   - moving sprite around
+	//   - click rect
+	g_system->lockMouse(true);
+
+	if (_spriteCtx->getCursor() == CursorType::kWhiteBusy ||
+		_spriteCtx->getCursor() == CursorType::kCrosshair)
+		return;
+	point = _spriteCtx->transformScreenToGame(point);
+	_script->setSystemVariable(ScriptSystemVariable::kMouseButton, isLeft ? 1 : 2);
+	_script->setSystemVariable(ScriptSystemVariable::kMouseDownPosX, point.x);
+	_script->setSystemVariable(ScriptSystemVariable::kMouseDownPosY, point.y);
+	if (!_script->runMouseEvent(ScriptMouseEvent::kButtonDown))
+		return;
+}
+
+void TopGunEngine::handleMouseUp(Point point, bool isLeft)
+{
+	// TODO: Missing handlers
+	//   - native alt handler
+	//   - pause handling
+	//   - tracking rect
+	//   - moving sprite around
+	g_system->lockMouse(false);
+	if (!_script->runMouseEvent(ScriptMouseEvent::kButtonUp))
+		return;
 }
 
 size_t TopGunEngine::getClickRectIndex(Rect rect) {

@@ -284,7 +284,7 @@ void Script::setString(int32 index, const Common::String &value) {
 	_scene->setDynamicString(index - 1, value);
 }
 
-void Script::onKeyDown(Common::KeyState keyState) {
+void Script::runKeyDownListener(Common::KeyState keyState) {
 	auto windowsKey = _engine->convertScummKeyToWindows(keyState.keycode);
 	if (windowsKey < 0 || _keyListeners[windowsKey]._isDisabled)
 		return;
@@ -301,7 +301,7 @@ void Script::onKeyDown(Common::KeyState keyState) {
 		runMessage(script, windowsKey);
 }
 
-void Script::onKeyUp(Common::KeyState keyState) {
+void Script::runKeyUpListener(Common::KeyState keyState) {
 	auto windowsKey = _engine->convertScummKeyToWindows(keyState.keycode);
 	if (windowsKey >= 0 && _keyListeners[windowsKey]._scriptUp)
 		runMessage(_keyListeners[windowsKey]._scriptUp, windowsKey);
@@ -354,6 +354,12 @@ void Script::toggleKeyListener(int32 key, bool toggle) {
 		for (int32 i = 0; i < kWindowsKeyCount; i++)
 			_keyListeners[i]._isDisabled = !toggle;
 	}
+}
+
+bool Script::runKeyDownEvent(int32 key) {
+	if (_keyDownEventHandler == 0)
+		return true;
+	return runMessage(_keyDownEventHandler, key);
 }
 
 bool Script::runMouseEvent(ScriptMouseEvent event) {

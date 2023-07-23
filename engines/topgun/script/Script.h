@@ -166,9 +166,9 @@ enum class ScriptOp {
 	kSetToggle95C3 = 102,
 	kSetToggle95C4 = 103,
 	kJump = 104,
-	kSetReg3EE7_105 = 105,
+	kSetOnKeyDown = 105,
 	kGetKeyState = 106,
-	kSetReg3EE7_107 = 107,
+	kSetOnKeyDown_dup = 107,  // for root this is SetKeyListener
 	kDeleteTimer = 109,
 	kDeleteTimer_dup = 110, // duplicated operation
 	kWinExec = 111,
@@ -426,11 +426,12 @@ public:
 	int32 runProcedure(uint32 procId, const int32 *args, uint32 argCount, uint32 localScopeSize = 0);
 	void postMessage(uint32 index, uint32 argCount, const int32 *args);
 
-	void onKeyDown(Common::KeyState keyState);
-	void onKeyUp(Common::KeyState keyState);
+	void runKeyDownListener(Common::KeyState keyState);
+	void runKeyUpListener(Common::KeyState keyState);
 	void setKeyListener(int32 key, uint32 script, bool isForShift, bool isForControl);
 	void setKeyUpListener(int32 key, uint32 script);
 	void toggleKeyListener(int32 key, bool toggle);
+	bool runKeyDownEvent(int32 key);
 	bool runMouseEvent(ScriptMouseEvent event);
 	void postSpritePicked(uint32 sprite, bool entered);
 
@@ -506,9 +507,9 @@ private:
 	Scene *_scene = nullptr;
 
 	int32 _reg3E3F = 0;
-	int32 _reg3EE7 = 0;
+	int32 _keyDownEventHandler = 0;
 	int32 _mouseEventHandler = 0;
-	int32 _pauseEventHandler = -1;
+	int32 _pauseEventHandler = 0;
 	int32 _spritePickedEventHandler = 0;
 	ScriptKeyListener _keyListeners[kWindowsKeyCount];
 

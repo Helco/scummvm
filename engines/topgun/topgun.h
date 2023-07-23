@@ -178,6 +178,8 @@ public:
 	void setClickRect(Rect rect, uint32 scriptIndex, int32 scriptArg);
 	void removeClickRect(Rect rect);
 
+	void handleKeyDown(Common::KeyState key);
+
 	void postQuitScene();
 	void postChangeScene(const Common::String &name);
 	void printSceneStack();

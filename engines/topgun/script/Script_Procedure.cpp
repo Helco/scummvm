@@ -342,10 +342,10 @@ int32 Script::runInternalProcedure(uint32 procId, const int32 *args, uint32 argC
 		}
 		return prevHandler;
 	}break;
-	case ScriptOp::kSetReg3EE7_105:
-	case ScriptOp::kSetReg3EE7_107:
+	case ScriptOp::kSetOnKeyDown:
+	case ScriptOp::kSetOnKeyDown_dup:
 		checkArgCount(argCount, 1);
-		_reg3EE7 = args[0];
+		_keyDownEventHandler = args[0];
 		break;
 	case ScriptOp::kSetCursor:
 		checkArgCount(argCount, 1);

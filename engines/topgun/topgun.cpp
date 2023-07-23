@@ -104,10 +104,10 @@ Common::Error TopGunEngine::run() {
 				}
 				break;
 			case Common::EVENT_KEYDOWN:
-				_script->onKeyDown(e.kbd);
+				handleKeyDown(e.kbd);
 				break;
 			case Common::EVENT_KEYUP:
-				_script->onKeyUp(e.kbd);
+				_script->runKeyUpListener(e.kbd);
 				break;
 			case Common::EVENT_MOUSEMOVE:
 				handleMouseMove(e.mouse);
@@ -360,6 +360,22 @@ void TopGunEngine::setClickRect(Rect rect, uint32 scriptIndex, int32 scriptArg) 
 void TopGunEngine::removeClickRect(Rect rect) {
 	size_t i = getClickRectIndex(rect);
 	_clickRects.remove_at(i);
+}
+
+void TopGunEngine::handleKeyDown(Common::KeyState key) {
+	// TODO: Additional handlers missing here:
+	//   - setting timeLastKeyEvent (for what?)
+	//   - resetting delayed script timer
+	//   - native key callback
+	//   - input timer handling
+	//   - (pause handling)
+	//   - tracking rect handling
+	//   - blocking keys for text input
+	const auto windowsKey = convertScummKeyToWindows(key.keycode);
+	if (!_script->runKeyDownEvent(windowsKey))
+		return;
+	else
+		_script->runKeyDownListener(key);
 }
 
 void TopGunEngine::postQuitScene() {

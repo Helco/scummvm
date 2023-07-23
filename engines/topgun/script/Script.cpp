@@ -442,14 +442,14 @@ void Script::deleteTimer(int32 id) {
 
 void Script::setClickRect(const Script::SetClickRectOp &op) {
 	if (op._modifyAll) {
-		// only for modifyAll disabling has higher priority than enabling
-		if (op._doDisable) {
-			_engine->toggleClickRects(false);
-			_engine->getSpriteCtx()->toggleAllSpriteClickable(false);
-		}
-		else if (op._doEnable) {
+		// only for modifyAll enabling has higher priority than enabling
+		if (op._doEnable) {
 			_engine->toggleClickRects(true);
 			_engine->getSpriteCtx()->toggleAllSpriteClickable(true);
+		}
+		else if (op._doDisable) {
+			_engine->toggleClickRects(false);
+			_engine->getSpriteCtx()->toggleAllSpriteClickable(false);
 		}
 		else {
 			_engine->setClickRectScripts(op._scriptIndex);
@@ -458,18 +458,20 @@ void Script::setClickRect(const Script::SetClickRectOp &op) {
 	}
 	else if (op._spriteIndex) {
 		auto sprite = _engine->loadResource<Sprite>(op._spriteIndex);
-		sprite->setClickable(false);
+		sprite->setClickable(true);
 		sprite->setClickScriptArg(op._scriptArg);
-		if (op._doEnable)
+		if (op._doDisable)
+			sprite->setClickable(false);
+		else if (op._doEnable)
 			sprite->setClickable(true);
-		else if (!op._doDisable)
+		else
 			sprite->setClickScript(op._scriptIndex);
 	}
 	else {
-		if (op._doEnable)
-			_engine->toggleClickRect(op._rect, true);
-		else if (op._doDisable)
+		if (op._doDisable)
 			_engine->toggleClickRect(op._rect, false);
+		else if (op._doEnable)
+			_engine->toggleClickRect(op._rect, true);
 		else if (op._scriptIndex)
 			_engine->setClickRect(op._rect, op._scriptIndex, op._scriptArg);
 		else

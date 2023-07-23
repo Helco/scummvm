@@ -343,6 +343,12 @@ void TopGunEngine::handleMouseDown(Point point, bool isLeft)
 	_script->setSystemVariable(ScriptSystemVariable::kMouseDownPosY, point.y);
 	if (!_script->runMouseEvent(ScriptMouseEvent::kButtonDown))
 		return;
+	auto sprite = _spriteCtx->pickSprite(point);
+	if (sprite != nullptr)
+	{
+		if (sprite->postClick(sprite->getResourceIndex()))
+			return;
+	}
 }
 
 void TopGunEngine::handleMouseUp(Point point, bool isLeft)

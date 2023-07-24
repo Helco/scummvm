@@ -156,6 +156,10 @@ int32 Script::runInternalProcedure(uint32 procId, const int32 *args, uint32 argC
 		else if (_engine->isResourceLoaded(args[0]))
 			_engine->loadResource<Sprite>(args[0])->pause(args[1]);
 		break;
+	case ScriptOp::kSpriteSetPos:
+		checkArgCount(argCount, 3);
+		_engine->loadResource<Sprite>(args[0])->translate(Point(args[1], args[2]), false);
+		break;
 	case ScriptOp::kLoadResource:
 		checkArgCount(argCount, 1);
 		_engine->loadResource(args[0], ResourceType::kInvalid);

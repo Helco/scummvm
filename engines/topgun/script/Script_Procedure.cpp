@@ -415,6 +415,15 @@ int32 Script::runInternalProcedure(uint32 procId, const int32 *args, uint32 argC
 		checkArgCount(argCount, 2, UINT32_MAX);
 		_engine->loadResource<Sprite>(args[0])->sendMessage(args + 1, argCount - 1);
 		break;
+	case ScriptOp::kSpritePause:
+		checkArgCount(argCount, 2);
+		if (args[0] == 0) {
+			_engine->getSpriteCtx()->pause(args[1]);
+			// TODO: Pause movies
+		}
+		else if (_engine->isResourceLoaded(args[0]))
+			_engine->loadResource<Sprite>(args[0])->pause(args[1]);
+		break;
 	case ScriptOp::kLoadResource:
 		checkArgCount(argCount, 1);
 		_engine->loadResource(args[0], ResourceType::kInvalid);
@@ -683,6 +692,10 @@ int32 Script::runInternalProcedure(uint32 procId, const int32 *args, uint32 argC
 		break;
 	case ScriptOp::kAudioStopWave:
 		warning("stub procedure AudioStopWave");
+		break;
+	case ScriptOp::kAudioSetWaveSoundPriority:
+		checkArgCount(argCount, 2);
+		warning("stub procedure AudioSetWaveSoundPriority");
 		break;
 	default:
 		if (procId >= sizeof(internalProcedureNames) / sizeof(const char *))

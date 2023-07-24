@@ -104,20 +104,25 @@ Common::Error TopGunEngine::run() {
 				}
 				break;
 			case Common::EVENT_KEYDOWN:
+				resetNoInputTimer();
 				handleKeyDown(e.kbd);
 				break;
 			case Common::EVENT_KEYUP:
+				resetNoInputTimer();
 				_script->runKeyUpListener(e.kbd);
 				break;
 			case Common::EVENT_MOUSEMOVE:
+				resetNoInputTimer();
 				handleMouseMove(e.mouse);
 				break;
 			case Common::EVENT_LBUTTONDOWN:
 			case Common::EVENT_RBUTTONDOWN:
+				resetNoInputTimer();
 				handleMouseDown(e.mouse, e.type == Common::EVENT_LBUTTONDOWN);
 				break;
 			case Common::EVENT_LBUTTONUP:
 			case Common::EVENT_RBUTTONUP:
+				resetNoInputTimer();
 				handleMouseUp(e.mouse, e.type == Common::EVENT_LBUTTONUP);
 				break;
 			}
@@ -125,7 +130,12 @@ Common::Error TopGunEngine::run() {
 
 		_spriteCtx->animate();
 		// TODO: Call plugins with update function
-		// TODO: Call no-input-script
+		if (_noInputScript != 0 && g_system->getMillis() >= _noInputTime)
+		{
+			const int32 args[] = {0, 0};
+			_script->postMessage(_noInputScript, 2, args);
+			_noInputScript = 0;
+		}
 		_script->updateTimers();
 		// TODO: Update native timers
 		// TODO: Update Hit detect triggers
@@ -425,6 +435,19 @@ void TopGunEngine::handleKeyDown(Common::KeyState key) {
 		_script->runKeyDownListener(key);
 }
 
+void TopGunEngine::resetNoInputTimer()
+{
+	if (_noInputScript != 0)
+		_noInputTime = g_system->getMillis() + _noInputDuration;
+}
+
+void TopGunEngine::setNoInputScript(uint32 resIndex, uint32 duration)
+{
+	_noInputScript = resIndex;
+	_noInputDuration = duration;
+	resetNoInputTimer();
+}
+
 void TopGunEngine::postQuitScene() {
 	if (_curSceneIndex == _lastSceneIndex) {
 		debugCN(kInfo, kDebugRuntime, "Quit scene to quit game\n");
@@ -457,6 +480,8 @@ void TopGunEngine::resetCurrentScene() {
 
 	// TODO: clear movies, timers, hitdetects, probably browseevents
 
+	_noInputScript = 0;
+	_pickedSprite = 0;
 	_spriteCtx->resetScene();
 	clearPlugins();
 }

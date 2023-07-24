@@ -182,6 +182,9 @@ public:
 
 	void handleKeyDown(Common::KeyState key);
 
+	void resetNoInputTimer();
+	void setNoInputScript(uint32 resIndex, uint32 duration);
+
 	void postQuitScene();
 	void postChangeScene(const Common::String &name);
 	void printSceneStack();
@@ -200,6 +203,9 @@ private:
 	uint32 _curSceneIndex = 0, _lastSceneIndex = 0;
 	uint32 _topMostSpriteIndex = 0;
 	int32 _clearTopMostSpriteScript = 0;
+	uint32 _noInputScript = 0,
+		_noInputDuration = 0,
+		_noInputTime = 0;
 	uint32 _pickedSprite = 0;
 	Array<ClickRect> _clickRects;
 

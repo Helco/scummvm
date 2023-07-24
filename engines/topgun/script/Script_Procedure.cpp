@@ -185,7 +185,12 @@ int32 Script::runInternalProcedure(uint32 procId, const int32 *args, uint32 argC
 			deleteTimer(args[0]);
 		break;
 	case ScriptOp::kPauseTimers:
+		checkArgCount(argCount, 1);
 		pauseTimers(args[0]);
+		break;
+	case ScriptOp::kSetNoInputScript:
+		checkArgCount(argCount, 2);
+		_engine->setNoInputScript(args[0], args[1] * 1000);
 		break;
 		
 	case ScriptOp::kSetBackgroundColor:

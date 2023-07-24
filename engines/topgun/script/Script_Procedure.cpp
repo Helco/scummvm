@@ -434,6 +434,10 @@ int32 Script::runInternalProcedure(uint32 procId, const int32 *args, uint32 argC
 		checkArgCount(argCount, 2);
 		warning("stub procedure AudioSetWaveSoundPriority");
 		break;
+	case ScriptOp::kAudioGetWaveSoundTime:
+		checkArgCount(argCount, 1);
+		warning("stub procedure AudioGetWaveSoundTime");
+		return 0;
 	default:
 		if (procId >= sizeof(internalProcedureNames) / sizeof(const char *))
 			error("Unknown internal procedure: %d", procId);

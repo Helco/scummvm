@@ -331,11 +331,19 @@ void Sprite::postMessage(const int32 *args, uint32 argCount) {
 		message._messageLoop._jumpIndex = _lastLoopMarker;
 		break;
 	}
+
+	auto isQueueRunning = _curMessageIndex < _queue.size();
 	_queue.push_back(ISpriteMessageHandler::create(this, message));
+
+	if (!isQueueRunning) {
+		_curMessageIndex = UINT32_MAX;
+		initNextMessage();
+	}
 }
 
 bool Sprite::initNextMessage() {
-	assert(_queue.size() > 0);
+	if (_queue.size() == 0)
+		return false;
 	_curMessageIndex++;
 
 	// ugly special-casing, original, but maybe we find a way to replace this

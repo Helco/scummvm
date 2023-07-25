@@ -55,10 +55,13 @@ void SpriteContext::render() {
 	_screen->clear(_colorBackground);
 
 	if (_bitmapBackground != nullptr) {
-		Rect srcRect(_backgroundBounds.width(), _backgroundBounds.height());
+		Rect srcRect = _backgroundBounds;
 		srcRect.translate(_backgroundOffset.x, _backgroundOffset.y);
 		srcRect.translate(-_scrollPos.x, -_scrollPos.y);
+		srcRect.clip(Rect(_backgroundBounds.width(), _backgroundBounds.height()));
 		Point dstPos(-_screenBounds.left, -_screenBounds.top);
+		dstPos.x -= _backgroundOffset.x;
+		dstPos.y -= _backgroundOffset.y;
 		_screen->blitFrom(*_bitmapBackground->getSurface(), srcRect, dstPos);
 	}
 

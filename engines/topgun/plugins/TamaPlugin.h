@@ -38,14 +38,19 @@ private:
 	int32 tama7thMakePersistent(const int *args, uint32 argCount);
 	int32 volumeGetIncrements(const int *args, uint32 argCount);
 	int32 dialogPrompt(const int *args, uint32 argCount);
-	int32 dialogSignalAttention(const int *args, uint32 argCount);
+	int32 stubReturnZero(const int *args, uint32 argCount);
 	int32 stubReturnOne(const int *args, uint32 argCount);
 	int32 internetOpenURL(const int *args, uint32 argCount);
 	int32 tamagoGetNumActive(const int *args, uint32 argCount);
 	int32 windowGenerateMouseMove(const int *args, uint32 argCount);
 	int32 windowClose(const int *args, uint32 argCount);
 
+	int32 editCtrlCreate(const int *args, uint32 argCount);
+	int32 editCtrlGetText(const int *args, uint32 argCount);
+	int32 editCtrlSetText(const int *args, uint32 argCount);
+
 	Common::ScopedPtr<Common::WinResources> _tamaResources;
+	Common::String _editCtrlText;
 };
 
 }

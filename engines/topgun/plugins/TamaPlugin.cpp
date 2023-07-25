@@ -38,7 +38,7 @@ ScriptPluginProcedure *TamaPlugin::getScriptProcedure(const Common::String &name
 	else if (!name.compareToIgnoreCase("Volume_GetWaveIncrements"))
 		return new ScriptPluginProcedureMem<TamaPlugin>(this, &TamaPlugin::volumeGetIncrements);
 	else if (!name.compareToIgnoreCase("Dialog_SignalAttention"))
-		return new ScriptPluginProcedureMem<TamaPlugin>(this, &TamaPlugin::dialogSignalAttention);
+		return new ScriptPluginProcedureMem<TamaPlugin>(this, &TamaPlugin::stubReturnZero);
 	else if (!name.compareToIgnoreCase("Dialog_Prompt"))
 		return new ScriptPluginProcedureMem<TamaPlugin>(this, &TamaPlugin::dialogPrompt);
 	else if (!name.compareToIgnoreCase("Save_MakeFileName"))
@@ -50,26 +50,50 @@ ScriptPluginProcedure *TamaPlugin::getScriptProcedure(const Common::String &name
 		return new ScriptPluginProcedureMem<TamaPlugin>(this, &TamaPlugin::windowGenerateMouseMove);
 	else if (!name.compareToIgnoreCase("Window_Close"))
 		return new ScriptPluginProcedureMem<TamaPlugin>(this, &TamaPlugin::windowClose);
+
+	else if (!name.compareToIgnoreCase("EditCtrl_Create"))
+		return new ScriptPluginProcedureMem<TamaPlugin>(this, &TamaPlugin::editCtrlCreate);
+	else if (!name.compareToIgnoreCase("EditCtrl_Destroy"))
+		return new ScriptPluginProcedureMem<TamaPlugin>(this, &TamaPlugin::stubReturnOne);
+	else if (!name.compareToIgnoreCase("EditCtrl_GetText"))
+		return new ScriptPluginProcedureMem<TamaPlugin>(this, &TamaPlugin::editCtrlGetText);
+	else if (!name.compareToIgnoreCase("EditCtrl_HasFocus"))
+		return new ScriptPluginProcedureMem<TamaPlugin>(this, &TamaPlugin::stubReturnOne);
+	else if (!name.compareToIgnoreCase("EditCtrl_KillFocus"))
+		return new ScriptPluginProcedureMem<TamaPlugin>(this, &TamaPlugin::stubReturnOne);
+	else if (!name.compareToIgnoreCase("EditCtrl_SetFocus"))
+		return new ScriptPluginProcedureMem<TamaPlugin>(this, &TamaPlugin::stubReturnOne);
+	else if (!name.compareToIgnoreCase("EditCtrl_SetText"))
+		return new ScriptPluginProcedureMem<TamaPlugin>(this, &TamaPlugin::editCtrlSetText);
+	else if (!name.compareToIgnoreCase("EditCtrl_Show"))
+		return new ScriptPluginProcedureMem<TamaPlugin>(this, &TamaPlugin::stubReturnOne);
+	else if (!name.compareToIgnoreCase("EditCtrl_UpdateWindow"))
+		return new ScriptPluginProcedureMem<TamaPlugin>(this, &TamaPlugin::stubReturnOne);
+
 	// TODO: Implement those stubs
 	else if (!name.compareToIgnoreCase("Volume_GetMidiVolume"))
-		return new ScriptPluginProcedureMem<TamaPlugin>(this, &TamaPlugin::dialogSignalAttention);
+		return new ScriptPluginProcedureMem<TamaPlugin>(this, &TamaPlugin::stubReturnZero);
 	else if (!name.compareToIgnoreCase("Volume_GetWaveVolume"))
-		return new ScriptPluginProcedureMem<TamaPlugin>(this, &TamaPlugin::dialogSignalAttention);
+		return new ScriptPluginProcedureMem<TamaPlugin>(this, &TamaPlugin::stubReturnZero);
 	else if (!name.compareToIgnoreCase("Volume_SetMidiVolume"))
-		return new ScriptPluginProcedureMem<TamaPlugin>(this, &TamaPlugin::dialogSignalAttention);
+		return new ScriptPluginProcedureMem<TamaPlugin>(this, &TamaPlugin::stubReturnZero);
 	else if (!name.compareToIgnoreCase("Volume_SetWaveVolume"))
-		return new ScriptPluginProcedureMem<TamaPlugin>(this, &TamaPlugin::dialogSignalAttention);
+		return new ScriptPluginProcedureMem<TamaPlugin>(this, &TamaPlugin::stubReturnZero);
 	else if (!name.compareToIgnoreCase("Window_ShowFullScreen"))
-		return new ScriptPluginProcedureMem<TamaPlugin>(this, &TamaPlugin::dialogSignalAttention);
+		return new ScriptPluginProcedureMem<TamaPlugin>(this, &TamaPlugin::stubReturnZero);
 	else if (!name.compareToIgnoreCase("Window_Restore"))
-		return new ScriptPluginProcedureMem<TamaPlugin>(this, &TamaPlugin::dialogSignalAttention);
+		return new ScriptPluginProcedureMem<TamaPlugin>(this, &TamaPlugin::stubReturnZero);
 	else if (!name.compareToIgnoreCase("Window_Show"))
-		return new ScriptPluginProcedureMem<TamaPlugin>(this, &TamaPlugin::dialogSignalAttention);
+		return new ScriptPluginProcedureMem<TamaPlugin>(this, &TamaPlugin::stubReturnZero);
 	else if (!name.compareToIgnoreCase("TamagoIsScreenSaver"))
-		return new ScriptPluginProcedureMem<TamaPlugin>(this, &TamaPlugin::dialogSignalAttention);
+		return new ScriptPluginProcedureMem<TamaPlugin>(this, &TamaPlugin::stubReturnZero);
+	else if (!name.compareToIgnoreCase("TamagoMakeScreenSaver"))
+		return new ScriptPluginProcedureMem<TamaPlugin>(this, &TamaPlugin::stubReturnOne);
 	else if (!name.compareToIgnoreCase("TamagoGetNumScrap"))
-		return new ScriptPluginProcedureMem<TamaPlugin>(this, &TamaPlugin::dialogSignalAttention);
+		return new ScriptPluginProcedureMem<TamaPlugin>(this, &TamaPlugin::stubReturnZero);
 	else if (!name.compareToIgnoreCase("Dialog_SetLanguage"))
+		return new ScriptPluginProcedureMem<TamaPlugin>(this, &TamaPlugin::stubReturnOne);
+	else if (!name.compareToIgnoreCase("Help_Show"))
 		return new ScriptPluginProcedureMem<TamaPlugin>(this, &TamaPlugin::stubReturnOne);
 	else if (!name.compareToIgnoreCase("Internet_OpenURL"))
 		return new ScriptPluginProcedureMem<TamaPlugin>(this, &TamaPlugin::internetOpenURL);
@@ -85,9 +109,12 @@ int32 TamaPlugin::volumeGetIncrements(const int32 *args, uint32 argCount) {
 	return 32;
 }
 
-int32 TamaPlugin::dialogSignalAttention(const int32 *args, uint32 argCount) {
-	// if we really wanted to we could check if the game is in focus and if not beep
+int32 TamaPlugin::stubReturnZero(const int32 *args, uint32 argCount) {
 	return 0;
+}
+
+int32 TamaPlugin::stubReturnOne(const int32 *args, uint32 argCount) {
+	return 1;
 }
 
 struct DialogPromptData
@@ -174,10 +201,6 @@ int32 TamaPlugin::dialogPrompt(const int32 *args, uint32 argCount) {
 		return positive ? kWinMessageYes : kWinMessageNo;
 }
 
-int32 TamaPlugin::stubReturnOne(const int32 *args, uint32 argCount) {
-	return 1;
-}
-
 int32 TamaPlugin::internetOpenURL(const int32 *args, uint32 argCount) {
 	if (argCount < 1)
 		error("Invalid number of arguments for Internet_OpenURL");
@@ -207,6 +230,28 @@ int32 TamaPlugin::windowGenerateMouseMove(const int32 *args, uint32 argCount) {
 
 int32 TamaPlugin::windowClose(const int32 *args, uint32 argCount) {
 	_engine->quitGame();
+	return 1;
+}
+
+int32 TamaPlugin::editCtrlCreate(const int32 *args, uint32 argCount) {
+	if (argCount != 6)
+		error("Invalid number of arguments for EditCtrl_Create");
+	_editCtrlText = _engine->getScript()->getString(args[5]);
+	return 1337; // canary value, original would be handle to WinAPI edittext widget
+	// maybe we could replace this with a dynamic sprite with text input. But that is not implemented either
+}
+
+int32 TamaPlugin::editCtrlSetText(const int32 *args, uint32 argCount) {
+	if (argCount != 2)
+		error("Invalid number of arguments for EditCtrl_SetText");
+	_editCtrlText = _engine->getScript()->getString(args[1]);
+	return 1;
+}
+
+int32 TamaPlugin::editCtrlGetText(const int32 *args, uint32 argCount) {
+	if (argCount != 2)
+		error("Invalid number of arguments for EditCtrl_GetText");
+	_engine->getScript()->setString(args[1], _editCtrlText);
 	return 1;
 }
 

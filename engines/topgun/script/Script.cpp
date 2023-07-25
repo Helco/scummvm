@@ -42,6 +42,10 @@ void Script::prepareSceneChange() {
 	_timers.clear();
 	memset(_keyListeners, 0, sizeof(_keyListeners));
 	_reg3E3F = 0;
+	_keyDownEventHandler = 0;
+	_mouseEventHandler = 0;
+	_pauseEventHandler = 0;
+	_spritePickedEventHandler = 0;
 }
 
 void Script::runMessageQueue() {

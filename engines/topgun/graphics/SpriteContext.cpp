@@ -235,6 +235,22 @@ void SpriteContext::setPaletteFromResourceFile() {
 	fadePalette(1, 1, kLowSystemColors, _engine->getResourceFile()->_maxFadeColors);
 }
 
+void SpriteContext::setPaletteFromResource(uint32 index) {
+	const auto palette = _engine->loadResource<PaletteResource>(index);
+	const auto &paletteData = palette->getData();
+	const size_t copyBytes = MIN(4 * (kHighSystemColors - kLowSystemColors), (size_t)paletteData.size());
+
+	size_t targetI = kLowSystemColors * 3;
+	for (size_t sourceI = 0; sourceI < copyBytes; sourceI += 4, targetI += 3)
+	{
+		_targetPalette[targetI + 0] = paletteData[sourceI + 0];
+		_targetPalette[targetI + 1] = paletteData[sourceI + 1];
+		_targetPalette[targetI + 2] = paletteData[sourceI + 2];
+	}
+
+	fadePalette(1, 1, kLowSystemColors, copyBytes / 4);
+}
+
 void SpriteContext::fadePalette(uint32 t, uint32 maxT, byte colorOffset, byte colorCount) {
 	assert(colorOffset + colorCount <= kPaletteSize);
 

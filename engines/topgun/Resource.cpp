@@ -62,4 +62,7 @@ bool Group::load(Common::Array<byte> &&data) {
 	return !stream.err();
 }
 
+PaletteResource::PaletteResource(uint32 index) : RawDataResource(ResourceType::kPalette, index) {
+}
+
 }

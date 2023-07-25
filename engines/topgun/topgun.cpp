@@ -229,6 +229,10 @@ SharedPtr<IResource> TopGunEngine::loadResource(uint32 index, ResourceType expec
 		debugCN(kTrace, kDebugResource, "Loading resource group %d\n", index);
 		_resources[index].reset(new Group(index));
 		break;
+	case ResourceType::kPalette:
+		debugCN(kTrace, kDebugResource, "Loading palette %d\n", index);
+		_resources[index].reset(new PaletteResource(index));
+		break;
 	case ResourceType::kQueue:
 		debugCN(kTrace, kDebugResource, "Loading queue %d\n", index);
 		_resources[index].reset(new SpriteMessageQueue(index));

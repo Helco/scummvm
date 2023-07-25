@@ -83,6 +83,7 @@ public:
 
 	SharedPtr<Graphics::Font> loadFont(const Common::String &name, int32 height);
 	void setPaletteFromResourceFile();
+	void setPaletteFromResource(uint32 resIndex);
 	void fadePalette(uint32 t, uint32 maxT, byte colorOffset, byte colorCount);
 	void setCursor(CursorType type);
 	void setClipBox(Rect clipBox = Rect());

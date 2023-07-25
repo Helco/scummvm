@@ -40,6 +40,8 @@ const char *internalProcedureNames[] = {
 #undef TOPGUN_SCRIPT_OP
 };
 
+typedef int64 TopGunFixedPoint;
+constexpr TopGunFixedPoint FPOne = 10000;
 
 int32 Script::runInternalProcedure(uint32 procId, const int32 *args, uint32 argCount) {
 	if (debugChannelSet(kVerbose, kDebugScript)) {
@@ -110,6 +112,10 @@ int32 Script::runInternalProcedure(uint32 procId, const int32 *args, uint32 argC
 	case ScriptOp::kStopFade:
 		// TODO: Implement, was postponed because non-essential
 		warning("stub procedure kStopFade");
+		break;
+	case ScriptOp::kLoadPaletteResource:
+		checkArgCount(argCount, 1);
+		_engine->getSpriteCtx()->setPaletteFromResource(args[0]);
 		break;
 	case ScriptOp::kGetFreeGlobalMemory:
 		// seems to be used for compatibility checks so any number higher is alright
@@ -426,6 +432,31 @@ int32 Script::runInternalProcedure(uint32 procId, const int32 *args, uint32 argC
 				getString(args[1]).c_str(),
 				getString(args[2]).c_str(),
 				getString(args[3]).c_str());
+	}break;
+
+	case ScriptOp::kFixedPointAdd: {
+		checkArgCount(argCount, 4);
+		const auto intVar = args[2];
+		const auto fracVar = args[3];
+		auto result = args[1] + evalValue(fracVar, true) + (args[0] + evalValue(intVar, true)) * FPOne;
+		setVariable(intVar, (int32)(result / FPOne));
+		setVariable(fracVar, (int32)(result % FPOne));
+	}break;
+	case ScriptOp::kFixedPointDiv: {
+		checkArgCount(argCount, 4);
+		const auto intVar = args[2];
+		const auto fracVar = args[3];
+		auto result = (evalValue(fracVar, true) + FPOne * evalValue(intVar, true)) / (args[1] + FPOne * args[0]);
+		setVariable(intVar, (int32)(result / FPOne));
+		setVariable(fracVar, (int32)(result % FPOne));
+	}break;
+	case ScriptOp::kFixedPointMul: {
+		checkArgCount(argCount, 4);
+		const auto intVar = args[2];
+		const auto fracVar = args[3];
+		auto result = (evalValue(fracVar, true) + FPOne * evalValue(intVar, true)) * (args[1] + FPOne * args[0]);
+		setVariable(intVar, (int32)(result / FPOne));
+		setVariable(fracVar, (int32)(result % FPOne));
 	}break;
 
 	case ScriptOp::kAudioPlayWave146:

@@ -99,6 +99,13 @@ private:
 	Common::Array<uint32> _children;
 };
 
+class PaletteResource : public RawDataResource {
+public:
+	static constexpr ResourceType kResourceType = ResourceType::kPalette;
+
+	PaletteResource(uint32 index);
+};
+
 }
 
 #endif // TOPGUN_IRESOURCE_H

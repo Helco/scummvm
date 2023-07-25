@@ -48,6 +48,8 @@ ScriptPluginProcedure *TamaPlugin::getScriptProcedure(const Common::String &name
 		return new ScriptPluginProcedureMem<TamaPlugin>(this, &TamaPlugin::tamagoGetNumActive);
 	else if (!name.compareToIgnoreCase("Window_GenerateMouseMove"))
 		return new ScriptPluginProcedureMem<TamaPlugin>(this, &TamaPlugin::windowGenerateMouseMove);
+	else if (!name.compareToIgnoreCase("Window_Close"))
+		return new ScriptPluginProcedureMem<TamaPlugin>(this, &TamaPlugin::windowClose);
 	// TODO: Implement those stubs
 	else if (!name.compareToIgnoreCase("Volume_GetMidiVolume"))
 		return new ScriptPluginProcedureMem<TamaPlugin>(this, &TamaPlugin::dialogSignalAttention);
@@ -63,8 +65,8 @@ ScriptPluginProcedure *TamaPlugin::getScriptProcedure(const Common::String &name
 		return new ScriptPluginProcedureMem<TamaPlugin>(this, &TamaPlugin::dialogSignalAttention);
 	else if (!name.compareToIgnoreCase("Window_Show"))
 		return new ScriptPluginProcedureMem<TamaPlugin>(this, &TamaPlugin::dialogSignalAttention);
-	else if (!name.compareToIgnoreCase("Window_Close"))
-		return new ScriptPluginProcedureMem<TamaPlugin>(this, &TamaPlugin::windowClose);
+	else if (!name.compareToIgnoreCase("TamagoIsScreenSaver"))
+		return new ScriptPluginProcedureMem<TamaPlugin>(this, &TamaPlugin::dialogSignalAttention);
 	else if (!name.compareToIgnoreCase("TamagoGetNumScrap"))
 		return new ScriptPluginProcedureMem<TamaPlugin>(this, &TamaPlugin::dialogSignalAttention);
 	else if (!name.compareToIgnoreCase("Dialog_SetLanguage"))

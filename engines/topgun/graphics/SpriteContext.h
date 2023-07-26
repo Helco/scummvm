@@ -103,6 +103,18 @@ public:
 	inline CursorType getCursor() const {
 		return _cursorType;
 	}
+	inline Rect getScrollBox() const {
+		return _scrollBox;
+	}
+	inline Point getScrollPos() const {
+		return _scrollPos;
+	}
+	inline Rect getFullBackgroundBounds() const {
+		return _fullBackgroundBounds;
+	}
+	inline bool isUsingBitmapBackground() const {
+		return _bitmapBackground != nullptr;
+	}
 
 	inline TopGunEngine *getEngine() {
 		return _engine;

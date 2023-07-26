@@ -439,17 +439,24 @@ void TopGunEngine::handleKeyDown(Common::KeyState key) {
 		_script->runKeyDownListener(key);
 }
 
-void TopGunEngine::resetNoInputTimer()
-{
-	if (_noInputScript != 0)
-		_noInputTime = g_system->getMillis() + _noInputDuration;
+void TopGunEngine::resetNoInputTimer() {
+	setNoInputLastEventTime(g_system->getMillis());
 }
 
-void TopGunEngine::setNoInputScript(uint32 resIndex, uint32 duration)
-{
+void TopGunEngine::setNoInputScript(uint32 resIndex, uint32 duration) {
 	_noInputScript = resIndex;
 	_noInputDuration = duration;
 	resetNoInputTimer();
+}
+
+void TopGunEngine::setNoInputLastEventTime(uint32 lastEventTime) {
+	_noInputLastEventTime = lastEventTime;
+	if (_noInputScript != 0)
+		_noInputTime = _noInputLastEventTime + _noInputDuration;
+}
+
+uint32 TopGunEngine::getNoInputLastEventTime() const {
+	return _noInputLastEventTime;
 }
 
 void TopGunEngine::postQuitScene() {

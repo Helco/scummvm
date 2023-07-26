@@ -78,11 +78,13 @@ public:
 	void translate(Point target, bool relative);
 	void setLevel(int32 newLevel);
 	void addCell(Common::SharedPtr<ISurfaceResource> resource);
+	size_t getCellCount() const;
 	void clearQueue();
 	void setQueue(const SpriteMessageQueue *queue);
 	bool setQueue(uint32 queueResIndex, bool hide = false);
 	void sendMessage(const int32 *args, uint32 argCount);
 	void postMessage(const int32 *args, uint32 argCount);
+	void setBreakLoops(bool breakLoops);
 	void setVisible(bool visible);
 
 	void setClickable(bool toggle);
@@ -97,6 +99,9 @@ public:
 
 	inline SpriteContext *getSpriteContext() {
 		return _spriteCtx;
+	}
+	inline bool isVisible() const {
+		return _isVisible;
 	}
 	inline Point getPos() const {
 		return _pos;

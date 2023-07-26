@@ -56,6 +56,21 @@ int32 Script::runInternalProcedure(uint32 procId, const int32 *args, uint32 argC
 	}
 
 	switch ((ScriptOp)procId) {
+	case ScriptOp::kGetWindowsVersion:
+		return 95; // this might have to be changed per-game?
+	case ScriptOp::kIsSingleGameOpen:
+		return true;
+	case ScriptOp::kAssert:
+		checkArgCount(argCount, 2);
+		if (!args[1])
+			error("Script assertion failed (%d): %s", args[1], getString(args[0]).c_str());
+		break;
+	case ScriptOp::kMessageBox:
+		checkArgCount(argCount, 1);
+		// there is a fixed title "Studio7", not terribly important
+		g_system->messageBox(LogMessageType::kInfo, getString(args[0]).c_str());
+		break;
+
 	case ScriptOp::kPost:
 	case ScriptOp::kPost_dup:
 		checkArgCount(argCount, 3);
@@ -120,9 +135,6 @@ int32 Script::runInternalProcedure(uint32 procId, const int32 *args, uint32 argC
 	case ScriptOp::kGetFreeGlobalMemory:
 		// seems to be used for compatibility checks so any number higher is alright
 		return INT32_MAX;
-	case ScriptOp::kIsResourceLoaded:
-		checkArgCount(argCount, 1);
-		return _engine->isResourceLoaded(args[0]);
 	case ScriptOp::kSpriteSetLevel:
 		checkArgCount(argCount, 2);
 		if (_engine->isResourceLoaded(args[0]) && _engine->getResourceType(args[0]) == ResourceType::kSprite)
@@ -153,6 +165,10 @@ int32 Script::runInternalProcedure(uint32 procId, const int32 *args, uint32 argC
 		checkArgCount(argCount, 2, UINT32_MAX);
 		_engine->loadResource<Sprite>(args[0])->sendMessage(args + 1, argCount - 1);
 		break;
+	case ScriptOp::kSpriteBreakLoops:
+		checkArgCount(argCount, 2);
+		_engine->loadResource<Sprite>(args[0])->setBreakLoops(args[1]);
+		break;
 	case ScriptOp::kSpritePause:
 		checkArgCount(argCount, 2);
 		if (args[0] == 0) {
@@ -166,6 +182,28 @@ int32 Script::runInternalProcedure(uint32 procId, const int32 *args, uint32 argC
 		checkArgCount(argCount, 3);
 		_engine->loadResource<Sprite>(args[0])->translate(Point(args[1], args[2]), false);
 		break;
+	case ScriptOp::kSpriteGetPos: {
+		checkArgCount(argCount, 3);
+		const auto pos = _engine->loadResource<Sprite>(args[0])->getPos();
+		setVariable(args[1], pos.x);
+		setVariable(args[2], pos.y);
+	}break;
+	case ScriptOp::kSpriteGetBounds:
+	case ScriptOp::kSpriteGetBounds_dup: {
+		checkArgCount(argCount, 5);
+		const auto bounds = _engine->loadResource<Sprite>(args[0])->getBounds();
+		setVariable(args[1], bounds.left);
+		setVariable(args[2], bounds.top);
+		setVariable(args[3], bounds.right);
+		setVariable(args[4], bounds.bottom);
+	}break;
+	case ScriptOp::kSpriteGetNumCells:
+		checkArgCount(argCount, 1);
+		return (int32)_engine->loadResource<Sprite>(args[0])->getCellCount();
+	case ScriptOp::kSpriteIsVisible:
+		checkArgCount(argCount, 1);
+		return _engine->isResourceLoaded(args[0]) && _engine->loadResource<Sprite>(args[0])->isVisible();
+
 	case ScriptOp::kLoadResource:
 		checkArgCount(argCount, 1);
 		_engine->loadResource(args[0], ResourceType::kInvalid);
@@ -177,6 +215,9 @@ int32 Script::runInternalProcedure(uint32 procId, const int32 *args, uint32 argC
 		_engine->freeResource(args[0]);
 		return wasLoaded;
 	}
+	case ScriptOp::kIsResourceLoaded:
+		checkArgCount(argCount, 1);
+		return _engine->isResourceLoaded(args[0]);
 	case ScriptOp::kSetPauseEventScript:
 		checkArgCount(argCount, 1);
 		_pauseEventHandler = args[0];
@@ -202,6 +243,12 @@ int32 Script::runInternalProcedure(uint32 procId, const int32 *args, uint32 argC
 		checkArgCount(argCount, 2);
 		_engine->setNoInputScript(args[0], args[1] * 1000);
 		break;
+	case ScriptOp::kGetSecondsSinceNoInput:
+		return (g_system->getMillis() - _engine->getNoInputLastEventTime()) / 1000;
+	case ScriptOp::kSetSecondsSinceNoInput:
+		checkArgCount(argCount, 1);
+		_engine->setNoInputLastEventTime(g_system->getMillis() - args[0] * 1000);
+		break;
 		
 	case ScriptOp::kSetBackgroundColor:
 	case ScriptOp::kSetBackgroundColorWithAnimation:
@@ -226,6 +273,27 @@ int32 Script::runInternalProcedure(uint32 procId, const int32 *args, uint32 argC
 		checkArgCount(argCount, 4);
 		_engine->getSpriteCtx()->setClipBox(Rect(args[0], args[1], args[2], args[3]));
 		break;
+	case ScriptOp::kSpriteGetScrollBox: {
+		checkArgCount(argCount, 4);
+		const auto rect = _engine->getSpriteCtx()->getScrollBox();
+		setVariable(args[0], rect.left);
+		setVariable(args[1], rect.top);
+		setVariable(args[2], rect.right);
+		setVariable(args[3], rect.bottom);
+	}break;
+	case ScriptOp::kSpriteGetScrollPos: {
+		checkArgCount(argCount, 2);
+		const auto pos = _engine->getSpriteCtx()->getScrollPos();
+		setVariable(args[0], pos.x);
+		setVariable(args[1], pos.y);
+	}break;
+	case ScriptOp::kGetResolution: {
+		checkArgCount(argCount, 2);
+		const auto fullBackgroundBounds = _engine->getSpriteCtx()->getFullBackgroundBounds();
+		setVariable(args[0], fullBackgroundBounds.width());
+		setVariable(args[1], fullBackgroundBounds.height());
+		return _engine->getSpriteCtx()->isUsingBitmapBackground();
+	}break;
 
 	case ScriptOp::kSetKeyListener:
 		checkArgCount(argCount, 2);
@@ -248,6 +316,8 @@ int32 Script::runInternalProcedure(uint32 procId, const int32 *args, uint32 argC
 		checkArgCount(argCount, 2, 4);
 		toggleKeyListener(args[0], args[argCount - 1] != 0);
 		break;
+	case ScriptOp::kGetMouseEventListener:
+		return _mouseEventHandler;
 	case ScriptOp::kSetMouseEventListener: {
 		checkArgCount(argCount, 1);
 		const auto prevHandler = _mouseEventHandler;
@@ -434,6 +504,15 @@ int32 Script::runInternalProcedure(uint32 procId, const int32 *args, uint32 argC
 				getString(args[3]).c_str());
 	}break;
 
+	case ScriptOp::kAbsolute:
+		checkArgCount(argCount, 1);
+		return abs(args[0]);
+	case ScriptOp::kMax:
+		checkArgCount(argCount, 2);
+		return MAX(args[0], args[1]);
+	case ScriptOp::kMin:
+		checkArgCount(argCount, 2);
+		return MIN(args[0], args[1]);
 	case ScriptOp::kFixedPointAdd: {
 		checkArgCount(argCount, 4);
 		const auto intVar = args[2];

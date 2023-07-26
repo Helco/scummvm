@@ -184,6 +184,8 @@ public:
 
 	void resetNoInputTimer();
 	void setNoInputScript(uint32 resIndex, uint32 duration);
+	void setNoInputLastEventTime(uint32 lastEventTime);
+	uint32 getNoInputLastEventTime() const;
 
 	void postQuitScene();
 	void postChangeScene(const Common::String &name);
@@ -205,7 +207,8 @@ private:
 	int32 _clearTopMostSpriteScript = 0;
 	uint32 _noInputScript = 0,
 		_noInputDuration = 0,
-		_noInputTime = 0;
+		_noInputTime = 0,
+		_noInputLastEventTime = 0;
 	uint32 _pickedSprite = 0;
 	Array<ClickRect> _clickRects;
 

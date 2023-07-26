@@ -167,6 +167,10 @@ void Sprite::addCell(SharedPtr<ISurfaceResource> resource) {
 	_animateCell = _cellIndexStart != _cellIndexStop;
 }
 
+size_t Sprite::getCellCount() const {
+	return _cells.size();
+}
+
 void Sprite::translate(Point target, bool relative) {
 	setToNextCellIfNecessary();
 
@@ -276,7 +280,7 @@ void Sprite::clearQueue() {
 	_speed = 0;
 	_nextSpeedTrigger = 0;
 	_priority = 0;
-	_breakLoops = 0;
+	_breakLoops = false;
 }
 
 void Sprite::setQueue(const SpriteMessageQueue *queue) {
@@ -364,6 +368,10 @@ bool Sprite::initNextMessage() {
 
 bool Sprite::updateMessage() {
 	return _queue[_curMessageIndex]->update();
+}
+
+void Sprite::setBreakLoops(bool breakLoops) {
+	_breakLoops = breakLoops;
 }
 
 void Sprite::setVisible(bool visible) {

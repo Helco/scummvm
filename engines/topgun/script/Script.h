@@ -185,6 +185,7 @@ public:
 	void setSystemVariable(ScriptSystemVariable variable, int32 value);
 	Common::String getString(int32 index);
 	void setString(int32 index, const Common::String &value);
+	bool isConstString(int32 index) const;
 
 	inline bool hasSpritePickedHandler() const {
 		return _spritePickedEventHandler != 0;

@@ -281,11 +281,14 @@ Common::String Script::getString(int32 index) {
 }
 
 void Script::setString(int32 index, const Common::String &value) {
-	const bool isConstString = index & kConstStrBit;
 	index = index & (kConstStrBit - 1);
-	if (isConstString)
+	if (isConstString(index))
 		error("Attempted to modify const string %d", index);
 	_scene->setDynamicString(index - 1, value);
+}
+
+bool Script::isConstString(int32 index) const {
+	return index & kConstStrBit;
 }
 
 void Script::runKeyDownListener(Common::KeyState keyState) {

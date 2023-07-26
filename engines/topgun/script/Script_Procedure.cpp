@@ -459,6 +459,57 @@ int32 Script::runInternalProcedure(uint32 procId, const int32 *args, uint32 argC
 		setVariable(fracVar, (int32)(result % FPOne));
 	}break;
 
+	case ScriptOp::kStringToInt:
+		checkArgCount(argCount, 1);
+		return atoi(getString(args[0]).c_str());
+	case ScriptOp::kGetStringChar: {
+		checkArgCount(argCount, 2);
+		const auto string = getString(args[0]);
+		return args[1] < 0 || args[1] >= string.size() ? 0 : string[args[1]];
+	}break;
+	case ScriptOp::kSetStringChar: {
+		checkArgCount(argCount, 3);
+		// in the original engine setting an index between 0 and 254 would always work
+		// as strings there are of fixed size. Let's just check and error-out if this
+		// actually happens
+		if (isConstString(args[0]))
+			break;
+		auto string = getString(args[0]);
+		if (args[1] < 0 || args[1] >= string.size())
+			error("Tried to set string char at %d but string is only %d chars long", args[1], string.size());
+		string.setChar(args[2], args[1]);
+		setString(args[0], string);
+	}break;
+	case ScriptOp::kStringCompare:
+		checkArgCount(argCount, 2);
+		return getString(args[0]).compareTo(getString(args[1]));
+	case ScriptOp::kStringCompareI:
+		checkArgCount(argCount, 2);
+		return getString(args[0]).compareToIgnoreCase(getString(args[1]));
+	case ScriptOp::kStringLength:
+		checkArgCount(argCount, 1);
+		return getString(args[0]).size();
+	case ScriptOp::kStringFind: {
+		checkArgCount(argCount, 3);
+		const auto haystack = getString(args[0]);
+		if (args[2] < 0 || args[2] >= haystack.size())
+			return -1;
+		const auto index = getString(args[0]).find(getString(args[1]));
+		return index == Common::String::npos ? -1 : index;
+	}break;
+	case ScriptOp::kStringConcat:
+		checkArgCount(argCount, 2);
+		setString(args[0], getString(args[0]) + getString(args[1]));
+		break;
+	case ScriptOp::kStringCopy:
+		checkArgCount(argCount, 2);
+		setString(args[0], getString(args[1]));
+		break;
+	case ScriptOp::kStringCopySized:
+		checkArgCount(argCount, 3);
+		setString(args[0], getString(args[1]).substr(0, args[2]));
+		break;
+
 	case ScriptOp::kAudioPlayWave146:
 		warning("stub procedure AudioPlayWave146");
 		break;

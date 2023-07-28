@@ -178,7 +178,7 @@ void Sprite::translate(Point target, bool relative) {
 	if (relative)
 		_pos += target;
 	else {
-		delta = _pos - target;
+		delta = target - _pos;
 		_pos = target;
 	}
 

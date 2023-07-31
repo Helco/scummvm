@@ -151,10 +151,10 @@ private:
 		TimeDateEx();
 		TimeDateEx(TimeDate timeDate);
 
-		void advanceBySeconds(int64 seconds);
+		void advanceBySeconds(int seconds);
 		int compare(const TimeDateEx &other) const;
-		int64 differenceInSeconds(const TimeDateEx &other) const;
-		int64 differenceInMinutes(const TimeDateEx &other) const;
+		int differenceInSeconds(const TimeDateEx &other) const;
+		int differenceInMinutes(const TimeDateEx &other) const;
 
 		virtual void saveLoadWithSerializer(Common::Serializer &ser);
 	};

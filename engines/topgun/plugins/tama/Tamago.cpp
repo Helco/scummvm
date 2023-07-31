@@ -69,20 +69,14 @@ Tamago::TimeDateEx::TimeDateEx(TimeDate timeDate) {
 	tm_sec = timeDate.tm_sec;
 }
 
-static void wrappingAdd(int &remainder, int &quotient, const int64 add, const int dividend) {
-	remainder += (int)add;
+static void wrappingAdd(int &remainder, int &quotient, const int add, const int dividend) {
+	remainder += add;
 	quotient += remainder / dividend;
 	remainder %= dividend;
 }
 
-void Tamago::TimeDateEx::advanceBySeconds(int64 seconds) {
-	auto days = (int)(seconds / kSecondsPerDay);
-	seconds -= days * kSecondsPerDay;
-	auto hours = (int)(seconds / kSecondsPerHour);
-	seconds -= hours * kSecondsPerHour;
-	auto minutes = (int)(seconds / kSecondsPerMinute);
-	seconds -= minutes * kSecondsPerMinute;
-
+void Tamago::TimeDateEx::advanceBySeconds(int seconds) {
+	int minutes = 0, hours = 0, days = 0;
 	wrappingAdd(tm_sec, minutes, seconds, kSecondsPerMinute);
 	wrappingAdd(tm_min, hours, minutes, kMinutesPerHour);
 	wrappingAdd(tm_hour, days, hours, kHoursPerDay);
@@ -109,7 +103,7 @@ int Tamago::TimeDateEx::compare(const TimeDateEx &other) const {
 
 // these difference functions will only work if this >= other
 
-int64 Tamago::TimeDateEx::differenceInMinutes(const TimeDateEx &other) const {
+int Tamago::TimeDateEx::differenceInMinutes(const TimeDateEx &other) const {
 	int comparison = compare(other);
 	if (comparison <= 0)
 		return comparison;
@@ -117,7 +111,7 @@ int64 Tamago::TimeDateEx::differenceInMinutes(const TimeDateEx &other) const {
 	auto diffInDays = tm_mday - other.tm_mday;
 	auto otherMon = other.tm_mon;
 	auto otherYear = other.tm_year;
-	while (tm_year != otherYear && tm_mon != otherMon) {
+	while (tm_year != otherYear || tm_mon != otherMon) {
 		diffInDays += getDaysInMonth(otherYear, otherMon);
 		wrappingAdd(otherMon, otherYear, 1, kMonthsPerYear);
 	}
@@ -126,7 +120,7 @@ int64 Tamago::TimeDateEx::differenceInMinutes(const TimeDateEx &other) const {
 	return diffInHours * kMinutesPerHour + tm_min - other.tm_min;
 }
 
-int64 Tamago::TimeDateEx::differenceInSeconds(const TimeDateEx &other) const {
+int Tamago::TimeDateEx::differenceInSeconds(const TimeDateEx &other) const {
 	auto diffMinutes = differenceInMinutes(other);
 	return diffMinutes * kSecondsPerMinute + tm_sec - other.tm_sec;
 }

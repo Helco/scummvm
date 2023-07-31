@@ -270,7 +270,7 @@ void TopGunEngine::loadPlugins() {
 	clearPlugins();
 	_plugins.reserve(_resFile->_plugins.size());
 	for (auto &pluginName : _resFile->_plugins)
-		_plugins.push_back(loadPlugin(pluginName));
+		_plugins.push_back(IPlugin::loadPlugin(this, pluginName));
 }
 
 void TopGunEngine::clearPlugins() {

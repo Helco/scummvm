@@ -23,7 +23,7 @@
 #define TOPGUN_TAMAPLUGIN_H
 
 #include "common/formats/winexe.h"
-#include "topgun/script/IPlugin.h"
+#include "topgun/plugins/IPlugin.h"
 
 namespace TopGun {
 

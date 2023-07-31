@@ -19,14 +19,17 @@
  *
  */
 
-#include "topgun/topgun.h"
-#include "topgun/plugins/TamaPlugin.h"
+#include "topgun/plugins/IPlugin.h"
+#include "topgun/plugins/tama/TamaPlugin.h"
 
 namespace TopGun {
 
-IPlugin *TopGunEngine::loadPlugin(const Common::String &name) {
+IPlugin::IPlugin(TopGunEngine *engine) : _engine(engine) {
+}
+
+IPlugin *IPlugin::loadPlugin(TopGunEngine *engine, const Common::String &name) {
 	if (!name.compareToIgnoreCase("tama7th"))
-		return new TamaPlugin(this);
+		return new TamaPlugin(engine);
 	else
 		error("Attempted to load unknown plugin %s", name.c_str());
 }

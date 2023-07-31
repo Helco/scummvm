@@ -21,7 +21,7 @@
 
 #include "common/translation.h"
 #include "gui/message.h"
-#include "topgun/plugins/TamaPlugin.h"
+#include "topgun/plugins/tama/TamaPlugin.h"
 #include "topgun/topgun.h"
 
 namespace TopGun {

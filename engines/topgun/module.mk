@@ -16,9 +16,8 @@ MODULE_OBJS = \
 	graphics/SpriteMessageHandler.o \
 	graphics/SpriteMessageQueue.o \
 	graphics/Text.o \
-	plugins/loadPlugin.o \
-	plugins/TamaPlugin.o \
-	script/IPlugin.o \
+	plugins/IPlugin.o \
+	plugins/tama/TamaPlugin.o \
 	script/Script.o \
 	script/Script_Calc.o \
 	script/Script_Procedure.o \

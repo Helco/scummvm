@@ -19,11 +19,32 @@
  *
  */
 
-#include "topgun/script/IPlugin.h"
+#ifndef TOPGUN_IPLUGIN_H
+#define TOPGUN_IPLUGIN_H
+
+#include "common/hashmap.h"
+#include "common/func.h"
+#include "common/ptr.h"
 
 namespace TopGun {
+class TopGunEngine;
 
-IPlugin::IPlugin(TopGunEngine *engine) : _engine(engine) {
+typedef Common::Functor2<const int32 *, uint32, int32> ScriptPluginProcedure;
+template<class T>
+using ScriptPluginProcedureMem = Common::Functor2Mem<const int32 *, uint32, int32, T>;
+
+class IPlugin {
+public:
+	IPlugin(TopGunEngine *engine);
+	virtual ~IPlugin() = default;
+	static IPlugin *loadPlugin(TopGunEngine *engine, const Common::String &name);
+
+	virtual ScriptPluginProcedure *getScriptProcedure(const Common::String &name) = 0;
+
+protected:
+	TopGunEngine *_engine;
+};
+
 }
 
-}
+#endif // TOPGUN_IPLUGIN_H

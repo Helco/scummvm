@@ -42,7 +42,7 @@
 #include "topgun/Scene.h"
 #include "topgun/Savestate.h"
 #include "topgun/script/Script.h"
-#include "topgun/script/IPlugin.h"
+#include "topgun/plugins/IPlugin.h"
 #include "topgun/graphics/SpriteContext.h"
 
 using Common::ScopedPtr;
@@ -146,7 +146,6 @@ public:
 private:
 	void loadPlugins();
 	void clearPlugins();
-	IPlugin *loadPlugin(const Common::String &name); // defined in plugins/loadPlugin.cpp
 
 	void resetCurrentScene();
 	void handleChangeScene();

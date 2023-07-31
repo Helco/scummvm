@@ -23,7 +23,7 @@
 #define TOPGUN_SCRIPT_H
 
 #include "common/memstream.h"
-#include "topgun/script/IPlugin.h"
+#include "topgun/plugins/IPlugin.h"
 #include "topgun/script/ScriptDebugger.h"
 #include "topgun/Scene.h"
 

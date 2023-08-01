@@ -25,6 +25,7 @@
 #include "common/str.h"
 #include "common/serializer.h"
 #include "common/system.h"
+#include "common/random.h"
 
 namespace TopGun {
 class TopGunEngine;
@@ -35,18 +36,22 @@ enum class TamagoQuery : int32 {
 	kHappyness = 102,
 	kDiscipline = 103,
 	kWeight = 104,
+	kCanOpenGamesMenu = 107,
 	kCanScold = 108,
+	kCanCleanPoop = 109,
 	kCanEat = 110,
-	kCanGiveMedicin = 112,
+	kCanOpenLightsMenu = 111,
+	kCanGiveMedicine = 112,
 	kGoneHome = 113,
+	kCanBeSentHome = 114,
+	kCanToggleLights = 115,
 	kCanDaycare = 116,
 	kCanBeWokenUp = 117,
 	kGoneHomeReason = 118,
-	kVType = 120,
+	kCanPlayGames = 119,
+	kVisualType = 120,
 	kAreLightsOff = 121,
 	kFormatAge = 122,
-	kIsValidExtraIntIndex = 123,
-	kGetExtraInt = 124,
 	kStatusFlags = 125,
 	kYears = 126,
 	kPoopCount = 127,
@@ -54,7 +59,10 @@ enum class TamagoQuery : int32 {
 	kMistakesKind1 = 129,
 	kGeneration = 130,
 	kWinsShellGame = 131,
-	kStatusMode = 133
+	kNick = 132,
+	kStatusMode = 133,
+	kHatchedAsString = 134,
+	kNonCriticalIssues = 137
 };
 
 enum class TamagoAction : int32 {
@@ -80,6 +88,7 @@ enum class TamagoAction : int32 {
 };
 
 enum class TamagoEvent : int32 {
+	kCreated = 305,
 	kGoneHome = 309,
 	kChangedSleep = 311,
 	kClearedStatusFlag = 313,
@@ -100,23 +109,60 @@ enum class TamagoGoneHomeReason {
 	kNeglected = 2
 };
 
-enum class TamagoType {
+enum class TamagoStatusFlags {
+	kSad = (1 << 0),
+	kSick = (1 << 1),
+	kHungry = (1 << 2),
+	kTandrum = (1 << 3)
+};
+
+enum class TamagoStatusMode {
+	kUnhatched = 2,
+	kAwake = 3,
+	kAsleep = 4,
+	kInDaycare = 5,
+	kGoneHome = 6
+};
+
+enum class TamagoType : int32 {
 	// names are for first generation
-	kEgg
+	kEgg,
+	kBabytchi,
+	kMarutchi,
+	kTamatchi3,
+	kTamatchi4,
+	kKuchitamatchi5,
+	kKuchitamatchi6,
+	kMametchi,
+	kGinjirotchi,
+	kMaskutchi,
+	kKuchipatchi,
+	kNyorotchi,
+	kTarakotchi,
+	kBill
 };
 
-enum class TamagoVisualType {
-
+enum class TamagoVisualType : int32 {
+	kEgg,
+	kBabytchi,
+	kMarutchi,
+	kTamatchi,
+	kKuchitamatchi,
+	kMametchi,
+	kGinjirotchi,
+	kMaskutchi,
+	kKuchipatchi,
+	kNyorotchi,
+	kTarakotchi,
+	kBill
 };
+
+TamagoVisualType convertTamagoTypeToVisualType(TamagoType type);
 
 class Tamago : public Common::Serializable {
 public:
-	Tamago(TopGunEngine *engine);
-
-	static Tamago *createNew(TopGunEngine *engine,
-		const Common::String &nick,
-		int32 generationCount,
-		int32 eventScriptId);
+	Tamago(int32 id, TopGunEngine *engine);
+	void createNew(const Common::String &nick, int32 generationCount, int32 eventScriptId);
 
 	void update();
 	int32 query(TamagoQuery query, int32 value);
@@ -169,7 +215,7 @@ private:
 	void disable(BasicTimer &timer, bool wasMistake, bool wasMistakeKind1);
 	void simulateSleepCycle();
 	void handleMistake(TamagoSender sender);
-	void handleEvolve(TamagoSender sender);
+	void handleGrowth(TamagoSender sender);
 	void handleGoingHome(TamagoSender sender);
 	void handleUnhappyInTheDark(TamagoSender sender);
 	void handleHappyness(TamagoSender sender);
@@ -190,6 +236,12 @@ private:
 	void actionToggleLights();
 	void actionSendToDaycare();
 	void actionWakeUp();
+	void actionSetType(int32 newType);
+
+	bool hasGoneHome() const;
+	bool canBeWokenUp() const;
+	void formatTimeDateToString(const TimeDateEx &tm, int32 stringId);
+	int32 formatDateToString(const TimeDateEx &tm, int32 stringId);
 
 private:
 	// runtime data
@@ -204,17 +256,18 @@ private:
 		_nextBigUpdateMinutes = 0,
 		_ageStringId = 0;
 	BasicTimer _timerAutosave;
+	Common::RandomSource _random;
 
 	// persistent data
 	Common::String _nick;
 	bool _isAwake = false,
-		_areLighstOn = false,
+		_areLightsOn = false,
 		_isInDaycare = false,
 		_canSleep = false,
 		_hasSleepCycle = false;
 	TamagoGoneHomeReason _goneHomeReason = TamagoGoneHomeReason::kNone;
 	TamagoType _type = TamagoType::kEgg;
-	int32
+	int32 _id,
 		_generation = 0,
 		_poopCount = 0,
 		_invDiscipline = 0,
@@ -227,12 +280,12 @@ private:
 		_necessaryMedicine = 0,
 		_weight = 0,
 		_minWeight = 0,
-		_shellGameChance = 0,
 		_years = 0,
 		_snacks = 0,
 		_totalMistakes = 0,
 		_mistakes1 = 0,
 		_mistakes2 = 0;
+	uint32 _shellGameChance = 0;
 	ClockTime
 		_sleepCycleStart,
 		_sleepCycleEnd;

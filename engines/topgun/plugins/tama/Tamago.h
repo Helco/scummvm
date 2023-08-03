@@ -88,9 +88,17 @@ enum class TamagoAction : int32 {
 };
 
 enum class TamagoEvent : int32 {
+	kStillEgg = 300,
+	kStillSleeping = 301,
+	kStillAwake = 302,
+	kAlreadyGoneHome = 304,
 	kCreated = 305,
+	kFallenAsleep = 306,
+	kWokeUp = 307,
 	kGoneHome = 309,
+	kPooped = 310,
 	kChangedSleep = 311,
+	kSetStatusFlag = 312,
 	kClearedStatusFlag = 313,
 	kChangedType = 314,
 	kChangedStatus = 315,
@@ -106,14 +114,16 @@ enum class TamagoSender {
 enum class TamagoGoneHomeReason {
 	kNone = 0,
 	kSentByUser = 1,
-	kNeglected = 2
+	kNeglecting = 2,
+	kNeglected = 3
 };
 
 enum class TamagoStatusFlags {
 	kSad = (1 << 0),
 	kSick = (1 << 1),
 	kHungry = (1 << 2),
-	kTandrum = (1 << 3)
+	kTandrum = (1 << 3),
+	kUnhappyInTheDark = (1 << 4)
 };
 
 enum class TamagoStatusMode {
@@ -185,6 +195,7 @@ private:
 		int32 _timer = 0;
 		int32 _timerStart = 0;
 
+		void start();
 		virtual void saveLoadWithSerializer(Common::Serializer &ser);
 	};
 	struct ClockTime : public Common::Serializable {
@@ -208,12 +219,21 @@ private:
 
 	void send(TamagoEvent event, int32 value);
 	void sendAllStatusMessages();
+	void sendUnhappyDuringDaycare();
 
 	void simulateSingleMinute();
 	void simulate(BasicTimer &timer, TimerFunction function);
 	void simulate(PropertyTimer &timer, TimerFunction function);
+	void simulateComplexProperty(
+		PropertyTimer &property,
+		BasicTimer &critical,
+		BasicTimer &leeway,
+		TimerFunction propertyFunction,
+		TimerFunction leewayFunction);
 	void disable(BasicTimer &timer, bool wasMistake, bool wasMistakeKind1);
 	void simulateSleepCycle();
+	TamagoSender checkDaycare(TamagoSender sender);
+	void handleKickedOutOfDaycare(TamagoSender sender);
 	void handleMistake(TamagoSender sender);
 	void handleGrowth(TamagoSender sender);
 	void handleGoingHome(TamagoSender sender);
@@ -222,24 +242,26 @@ private:
 	void handlePreNoHappyness(TamagoSender sender);
 	void handleHunger(TamagoSender sender);
 	void handlePreNoHunger(TamagoSender sender);
-	void handleActingUp(TamagoSender sender);
+	void handlePoop(TamagoSender sender);
 	void handleNeglect(TamagoSender sender);
 	void handleTandrum(TamagoSender sender);
 	void handleAutosave(TamagoSender sender);
 
-	void actionGiveMeal();
-	void actionGiveSnack();
-	void actionScold();
-	void actionGiveMedicine();
-	void actionCleanPoop();
-	void actionFinishGame(bool didWin);
-	void actionToggleLights();
-	void actionSendToDaycare();
-	void actionWakeUp();
-	void actionSetType(int32 newType);
+	int32 actionGiveMeal();
+	int32 actionGiveSnack();
+	int32 actionScold();
+	int32 actionGiveMedicine();
+	int32 actionCleanPoop();
+	int32 actionFinishGame(bool didWin);
+	int32 actionToggleLights();
+	int32 actionSendHome(TamagoGoneHomeReason reason);
+	int32 actionSendToDaycare();
+	int32 actionWakeUp();
+	int32 actionSetType(TamagoType newType);
 
 	bool hasGoneHome() const;
 	bool canBeWokenUp() const;
+	bool isSleepTime() const;
 	void formatTimeDateToString(const TimeDateEx &tm, int32 stringId);
 	int32 formatDateToString(const TimeDateEx &tm, int32 stringId);
 
@@ -249,7 +271,7 @@ private:
 	bool
 		_isHatched = false,
 		_messagesEnabled = false;
-	int32
+	int32 _id,
 		_timeFactor = 1,
 		_eventScript = 0,
 		_nextBigUpdateScript = 0,
@@ -267,7 +289,7 @@ private:
 		_hasSleepCycle = false;
 	TamagoGoneHomeReason _goneHomeReason = TamagoGoneHomeReason::kNone;
 	TamagoType _type = TamagoType::kEgg;
-	int32 _id,
+	int32
 		_generation = 0,
 		_poopCount = 0,
 		_invDiscipline = 0,

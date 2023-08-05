@@ -180,6 +180,10 @@ public:
 
 	virtual void saveLoadWithSerializer(Common::Serializer &ser);
 
+	inline int32 id() const {
+		return _id;
+	}
+
 private:
 	struct PropertyTimer : public Common::Serializable {
 		int32
@@ -264,7 +268,6 @@ private:
 	bool isSleepTime() const;
 	void formatTimeDateToString(const TimeDateEx &tm, int32 stringId);
 	int32 formatDateToString(const TimeDateEx &tm, int32 stringId);
-
 private:
 	// runtime data
 	TopGunEngine *_engine;

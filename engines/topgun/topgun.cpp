@@ -129,7 +129,8 @@ Common::Error TopGunEngine::run() {
 		}
 
 		_spriteCtx->animate();
-		// TODO: Call plugins with update function
+		for (auto plugin : _plugins)
+			plugin->update();
 		if (_noInputScript != 0 && g_system->getMillis() >= _noInputTime)
 		{
 			const int32 args[] = {0, 0};

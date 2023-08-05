@@ -34,4 +34,11 @@ IPlugin *IPlugin::loadPlugin(TopGunEngine *engine, const Common::String &name) {
 		error("Attempted to load unknown plugin %s", name.c_str());
 }
 
+ScriptPluginProcedure *IPlugin::getScriptProcedure(const Common::String &name) {
+	return nullptr;
+}
+
+void IPlugin::update() {
+}
+
 }

@@ -21,13 +21,21 @@
 
 #include "common/translation.h"
 #include "gui/message.h"
-#include "topgun/plugins/tama/TamaPlugin.h"
 #include "topgun/topgun.h"
+#include "topgun/plugins/tama/TamaPlugin.h"
+#include "topgun/plugins/tama/Tamago.h"
 
 namespace TopGun {
 
 TamaPlugin::TamaPlugin(TopGunEngine *engine) : IPlugin(engine) {
 	_tamaResources.reset(Common::WinResources::createFromEXE("TAMA7TH.R32"));
+}
+
+TamaPlugin::~TamaPlugin() {
+	for (auto tamago : _tamagos) {
+		if (tamago != nullptr)
+			delete tamago;
+	}
 }
 
 ScriptPluginProcedure *TamaPlugin::getScriptProcedure(const Common::String &name) {
@@ -44,8 +52,6 @@ ScriptPluginProcedure *TamaPlugin::getScriptProcedure(const Common::String &name
 	else if (!name.compareToIgnoreCase("Save_MakeFileName"))
 		// this would create an absolute path from a relative one, no need for ScummVM
 		return new ScriptPluginProcedureMem<TamaPlugin>(this, &TamaPlugin::stubReturnOne);
-	else if (!name.compareToIgnoreCase("TamagoGetNumActive"))
-		return new ScriptPluginProcedureMem<TamaPlugin>(this, &TamaPlugin::tamagoGetNumActive);
 	else if (!name.compareToIgnoreCase("Window_GenerateMouseMove"))
 		return new ScriptPluginProcedureMem<TamaPlugin>(this, &TamaPlugin::windowGenerateMouseMove);
 	else if (!name.compareToIgnoreCase("Window_Close"))
@@ -69,6 +75,21 @@ ScriptPluginProcedure *TamaPlugin::getScriptProcedure(const Common::String &name
 		return new ScriptPluginProcedureMem<TamaPlugin>(this, &TamaPlugin::stubReturnOne);
 	else if (!name.compareToIgnoreCase("EditCtrl_UpdateWindow"))
 		return new ScriptPluginProcedureMem<TamaPlugin>(this, &TamaPlugin::stubReturnOne);
+
+	else if (!name.compareToIgnoreCase("TamagoGetNumActive"))
+		return new ScriptPluginProcedureMem<TamaPlugin>(this, &TamaPlugin::tamagoGetNumActive);
+	else if (!name.compareToIgnoreCase("TamagoNew"))
+		return new ScriptPluginProcedureMem<TamaPlugin>(this, &TamaPlugin::tamagoNew);
+	//else if (!name.compareToIgnoreCase("TamagoOpen"))
+	//	return new ScriptPluginProcedureMem<TamaPlugin>(this, &TamaPlugin::tamagoOpen);
+	else if (!name.compareToIgnoreCase("TamagoClose"))
+		return new ScriptPluginProcedureMem<TamaPlugin>(this, &TamaPlugin::tamagoClose);
+	else if (!name.compareToIgnoreCase("TamagoSave"))
+		return new ScriptPluginProcedureMem<TamaPlugin>(this, &TamaPlugin::tamagoSave);
+	else if (!name.compareToIgnoreCase("TamagoAction"))
+		return new ScriptPluginProcedureMem<TamaPlugin>(this, &TamaPlugin::tamagoAction);
+	else if (!name.compareToIgnoreCase("TamagoQuery"))
+		return new ScriptPluginProcedureMem<TamaPlugin>(this, &TamaPlugin::tamagoQuery);
 
 	// TODO: Implement those stubs
 	else if (!name.compareToIgnoreCase("Volume_GetMidiVolume"))
@@ -211,14 +232,6 @@ int32 TamaPlugin::internetOpenURL(const int32 *args, uint32 argCount) {
 
 constexpr const char *kSectionActive = "active";
 
-int32 TamaPlugin::tamagoGetNumActive(const int32 *args, uint32 argCount) {
-	auto &ini = _engine->getSavestate()->getINIFile();
-	if (!ini.hasSection(kSectionActive))
-		return 0;
-	const auto section = ini.getKeys(kSectionActive);
-	return section.size();
-}
-
 int32 TamaPlugin::windowGenerateMouseMove(const int32 *args, uint32 argCount) {
 	Common::Event event;
 	event.type = Common::EVENT_MOUSEMOVE;
@@ -253,6 +266,55 @@ int32 TamaPlugin::editCtrlGetText(const int32 *args, uint32 argCount) {
 		error("Invalid number of arguments for EditCtrl_GetText");
 	_engine->getScript()->setString(args[1], _editCtrlText);
 	return 1;
+}
+
+int32 TamaPlugin::tamagoGetNumActive(const int32 *args, uint32 argCount) {
+	auto &ini = _engine->getSavestate()->getINIFile();
+	if (!ini.hasSection(kSectionActive))
+		return 0;
+	const auto section = ini.getKeys(kSectionActive);
+	return section.size();
+}
+
+int32 TamaPlugin::tamagoNew(const int *args, uint32 argCount) {
+	if (argCount != 4)
+		error("Invalid number of arguments for TamagoNew");
+	// second argument is unused in the original game
+	const auto nick = _engine->getScript()->getString(args[0]);
+	auto tamago = new Tamago(_tamagos.size(), _engine);
+	tamago->createNew(nick, args[2], args[3]);
+	_tamagos.push_back(tamago);
+	return tamago->id();
+}
+
+int32 TamaPlugin::tamagoClose(const int *args, uint32 argCount) {
+	if (argCount != 1)
+		error("Invalid number of arguments for TamagoClose");
+	auto tamago = _tamagos[args[0]];
+	if (!tamago->query(TamagoQuery::kGoneHome, 0))
+		tamagoSave(args, argCount);
+	delete tamago;
+	_tamagos[args[0]] = nullptr;
+	return 0;
+}
+
+int32 TamaPlugin::tamagoSave(const int *args, uint32 argCount) {
+	if (argCount != 1)
+		error("Invalid number of arguments for TamagoSave");
+	warning("stub: Unimplemented procedure TamagoSave");
+	return 1;
+}
+
+int32 TamaPlugin::tamagoAction(const int *args, uint32 argCount) {
+	if (argCount != 3)
+		error("Invalid number of arguments for TamagoAction");
+	return _tamagos[args[0]]->action((TamagoAction)args[1], args[2]);
+}
+
+int32 TamaPlugin::tamagoQuery(const int *args, uint32 argCount) {
+	if (argCount != 3)
+		error("Invalid number of arguments for TamagoQuery");
+	return _tamagos[args[0]]->query((TamagoQuery)args[1], args[2]);
 }
 
 }

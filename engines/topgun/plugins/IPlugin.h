@@ -39,7 +39,8 @@ public:
 	virtual ~IPlugin() = default;
 	static IPlugin *loadPlugin(TopGunEngine *engine, const Common::String &name);
 
-	virtual ScriptPluginProcedure *getScriptProcedure(const Common::String &name) = 0;
+	virtual ScriptPluginProcedure *getScriptProcedure(const Common::String &name);
+	virtual void update();
 
 protected:
 	TopGunEngine *_engine;

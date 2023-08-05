@@ -26,11 +26,12 @@
 #include "topgun/plugins/IPlugin.h"
 
 namespace TopGun {
+class Tamago;
 
 class TamaPlugin : public IPlugin {
 public:
 	TamaPlugin(TopGunEngine *engine);
-	virtual ~TamaPlugin() = default;
+	virtual ~TamaPlugin();
 
 	virtual ScriptPluginProcedure *getScriptProcedure(const Common::String &name) override;
 
@@ -41,7 +42,6 @@ private:
 	int32 stubReturnZero(const int *args, uint32 argCount);
 	int32 stubReturnOne(const int *args, uint32 argCount);
 	int32 internetOpenURL(const int *args, uint32 argCount);
-	int32 tamagoGetNumActive(const int *args, uint32 argCount);
 	int32 windowGenerateMouseMove(const int *args, uint32 argCount);
 	int32 windowClose(const int *args, uint32 argCount);
 
@@ -49,8 +49,17 @@ private:
 	int32 editCtrlGetText(const int *args, uint32 argCount);
 	int32 editCtrlSetText(const int *args, uint32 argCount);
 
+	int32 tamagoGetNumActive(const int *args, uint32 argCount);
+	int32 tamagoNew(const int *args, uint32 argCount);
+	//int32 tamagoOpen(const int *args, uint32 argCount);
+	int32 tamagoClose(const int *args, uint32 argCount);
+	int32 tamagoSave(const int *args, uint32 argCount);
+	int32 tamagoAction(const int *args, uint32 argCount);
+	int32 tamagoQuery(const int *args, uint32 argCount);
+
 	Common::ScopedPtr<Common::WinResources> _tamaResources;
 	Common::String _editCtrlText;
+	Common::Array<Tamago *> _tamagos;
 };
 
 }

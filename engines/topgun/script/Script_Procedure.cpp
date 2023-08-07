@@ -218,6 +218,12 @@ int32 Script::runInternalProcedure(uint32 procId, const int32 *args, uint32 argC
 	case ScriptOp::kIsResourceLoaded:
 		checkArgCount(argCount, 1);
 		return _engine->isResourceLoaded(args[0]);
+	case ScriptOp::kBackupAdditionalHMMIO:
+		// This probably was used to save disk space by only copying
+		// necessary data files from CD to harddisk?
+		// Anyway not needed for ScummVM
+		break;
+
 	case ScriptOp::kSetPauseEventScript:
 		checkArgCount(argCount, 1);
 		_pauseEventHandler = args[0];

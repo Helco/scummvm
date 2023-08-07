@@ -488,7 +488,7 @@ int32 Script::runInternalProcedure(uint32 procId, const int32 *args, uint32 argC
 	}break;
 	case ScriptOp::kSetOrDeleteRegistryStringWithSubKey: {
 		checkArgCount(argCount, 5, 6);
-		const auto newValue = getString(args[5]);
+		const auto newValue = getString(args[4]);
 		if (newValue.size())
 			_engine->getSavestate()->setRegistryString(
 				args[0],

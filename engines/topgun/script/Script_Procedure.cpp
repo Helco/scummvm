@@ -398,6 +398,12 @@ int32 Script::runInternalProcedure(uint32 procId, const int32 *args, uint32 argC
 		op._doEnable = args[1];
 		setClickRect(op);
 	}break;
+	case ScriptOp::kSpriteSetSync:
+	case ScriptOp::kSpriteSetSyncInverted:
+		// the sync flag seems to disable most of rendering for larger batches
+		// of sprite modifications. We do not render upon changes so we can
+		// ignore the sync flag entirely.
+		break;
 
 	case ScriptOp::kGetRegistryString:
 	case ScriptOp::kGetRegistryString_dup: {

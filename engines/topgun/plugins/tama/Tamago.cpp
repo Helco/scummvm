@@ -510,7 +510,7 @@ Tamago::Tamago(int32 id, TopGunEngine *engine) :
 	_random("Uninitialized Tamago") {
 }
 
-void Tamago::createNew(const Common::String &nick, int32 generationCount, int32 eventScriptId) {
+void Tamago::createNew(const Common::String &nick, int32 eventScriptId, int32 generationCount) {
 	_random = Common::RandomSource("Tamago " + nick);
 	_nick = nick;
 	_generation = _random.getRandomNumberRngSigned(0, generationCount - 1);

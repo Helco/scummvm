@@ -172,7 +172,7 @@ TamagoVisualType convertTamagoTypeToVisualType(TamagoType type);
 class Tamago : public Common::Serializable {
 public:
 	Tamago(int32 id, TopGunEngine *engine);
-	void createNew(const Common::String &nick, int32 generationCount, int32 eventScriptId);
+	void createNew(const Common::String &nick, int32 eventScriptId, int32 generationCount);
 
 	void update();
 	int32 query(TamagoQuery query, int32 value);

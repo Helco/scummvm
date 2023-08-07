@@ -29,6 +29,7 @@ namespace TopGun {
 class Tamago;
 
 class TamaPlugin : public IPlugin {
+	friend class HatchSequenceDialog;
 public:
 	TamaPlugin(TopGunEngine *engine);
 	virtual ~TamaPlugin();
@@ -36,9 +37,25 @@ public:
 	virtual ScriptPluginProcedure *getScriptProcedure(const Common::String &name) override;
 
 private:
+	enum {
+		kWinMessageOK = 1,
+		kWinMessageYes = 6,
+		kWinMessageNo = 7,
+		kDialogYesNoFlag = 4,
+		kDialogStripString = 7,
+
+		// additional prompts used by HatchSequenceDialog
+		KPromptInvalidNick = 7,
+		kPromptConfirmNick = 13,
+		kPromptMissingNick,
+		kPromptTryAgain,
+	};
+
 	int32 tama7thMakePersistent(const int *args, uint32 argCount);
 	int32 volumeGetIncrements(const int *args, uint32 argCount);
 	int32 dialogPrompt(const int *args, uint32 argCount);
+	int32 dialogPrompt(int32 promptId, const char *argString, int32 flags);
+	int32 dialogHatchSequence(const int *args, uint32 argCount);
 	int32 stubReturnZero(const int *args, uint32 argCount);
 	int32 stubReturnOne(const int *args, uint32 argCount);
 	int32 internetOpenURL(const int *args, uint32 argCount);
@@ -56,6 +73,8 @@ private:
 	int32 tamagoSave(const int *args, uint32 argCount);
 	int32 tamagoAction(const int *args, uint32 argCount);
 	int32 tamagoQuery(const int *args, uint32 argCount);
+
+	static void removeWinAPIHotkey(Common::String &text);
 
 	Common::ScopedPtr<Common::WinResources> _tamaResources;
 	Common::String _editCtrlText;

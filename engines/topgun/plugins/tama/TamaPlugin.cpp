@@ -24,6 +24,7 @@
 #include "topgun/topgun.h"
 #include "topgun/plugins/tama/TamaPlugin.h"
 #include "topgun/plugins/tama/Tamago.h"
+#include "topgun/plugins/tama/HatchSequenceDialog.h"
 
 namespace TopGun {
 
@@ -49,6 +50,8 @@ ScriptPluginProcedure *TamaPlugin::getScriptProcedure(const Common::String &name
 		return new ScriptPluginProcedureMem<TamaPlugin>(this, &TamaPlugin::stubReturnZero);
 	else if (!name.compareToIgnoreCase("Dialog_Prompt"))
 		return new ScriptPluginProcedureMem<TamaPlugin>(this, &TamaPlugin::dialogPrompt);
+	else if (!name.compareToIgnoreCase("Dialog_HatchSequence"))
+		return new ScriptPluginProcedureMem<TamaPlugin>(this, &TamaPlugin::dialogHatchSequence);
 	else if (!name.compareToIgnoreCase("Save_MakeFileName"))
 		// this would create an absolute path from a relative one, no need for ScummVM
 		return new ScriptPluginProcedureMem<TamaPlugin>(this, &TamaPlugin::stubReturnOne);
@@ -146,11 +149,6 @@ struct DialogPromptData
 	bool formatText;
 };
 
-constexpr int32 kWinMessageOK = 1;
-constexpr int32 kWinMessageYes = 6;
-constexpr int32 kWinMessageNo = 7;
-constexpr int32 kDialogYesNoFlag = 4;
-constexpr int32 kDialogStripString = 7;
 constexpr DialogPromptData kDialogPrompts[] = {
 	{ 8195, 8196, 8197, false }, // hatch now or later?
 	{ 0, 0, 0, false }, // undefined prompt id
@@ -164,10 +162,14 @@ constexpr DialogPromptData kDialogPrompts[] = {
 	{ 0, 0, 0, false },
 	{ 8243, 0, 0, false }, // you have not changed nickname
 	{ 8246, 0, 0, false }, // sure to take tamagotchi out of care center
-	{ 8248, 0, 0, false } // click on egg to begin hatching
+	{ 8248, 0, 0, false }, // click on egg to begin hatching
+	// non-original prompts
+	{ 8211, 0, 0, true }, // confirm nickname
+	{ 8210, 0, 0, false }, // nickname is missing
+	{ 8216, 0, 0, false }, // try again?
 };
 
-static void removeWinAPIHotkey(Common::String &text) {
+void TamaPlugin::removeWinAPIHotkey(Common::String &text) {
 	auto index = text.findFirstOf('&');
 	if (index != Common::String::npos)
 		text.deleteChar(index);
@@ -177,32 +179,38 @@ int32 TamaPlugin::dialogPrompt(const int32 *args, uint32 argCount) {
 	// TODO: icon flags and the title text are currently ignored
 	if (argCount != 3)
 		error("Expected three arguments for Dialog_Prompt");
-	if (args[0] < 0 || args[0] >= sizeof(kDialogPrompts) / sizeof(DialogPromptData) ||
-		kDialogPrompts[args[0]].textResource == 0)
+
+	Common::String stringArg;
+	if (args[1])
+		stringArg = _engine->getScript()->getString(args[1]);
+	if (args[0] == kDialogStripString) {
+		auto i = stringArg.findFirstNotOf(' ');
+		if (i == Common::String::npos)
+			stringArg.clear();
+		else if (i > 0)
+			stringArg.erase(0, i);
+		_engine->getScript()->setString(args[1], stringArg);
+	}
+
+	return dialogPrompt(args[0], args[1] ? stringArg.c_str() : nullptr, args[2]);
+}
+
+int32 TamaPlugin::dialogPrompt(int32 promptId, const char *stringArg, int32 flags) {
+	if (promptId < 0 || promptId >= sizeof(kDialogPrompts) / sizeof(DialogPromptData) ||
+		kDialogPrompts[promptId].textResource == 0)
 		return 0;
 
-	const auto &data = kDialogPrompts[args[0]];
+	const auto &data = kDialogPrompts[promptId];
 	auto text = _tamaResources->loadString(data.textResource);
-	if (data.formatText && args[1]) {
-		auto arg = _engine->getScript()->getString(args[1]);
-		text = Common::String::format(text.c_str(), arg.c_str());
-	}
-	if (args[0] == kDialogStripString) {
-		auto arg = _engine->getScript()->getString(args[1]);
-		auto i = arg.findFirstNotOf(' ');
-		if (i == Common::String::npos)
-			arg.clear();
-		else if (i > 0)
-			arg.erase(0, i);
-		_engine->getScript()->setString(args[1], arg);
-	}
+	if (data.formatText && stringArg)
+		text = Common::String::format(text.c_str(), stringArg);
 
 	Common::String defaultButton, altButton;
 	if (data.defaultButtonResource) {
 		defaultButton = _tamaResources->loadString(data.defaultButtonResource);
 		altButton = _tamaResources->loadString(data.altButtonResource);
 	}
-	else if (args[2] & kDialogYesNoFlag) {
+	else if (flags & kDialogYesNoFlag) {
 		defaultButton = _("Yes");
 		altButton = _("No");
 	}
@@ -220,6 +228,20 @@ int32 TamaPlugin::dialogPrompt(const int32 *args, uint32 argCount) {
 		return positive;
 	else
 		return positive ? kWinMessageYes : kWinMessageNo;
+}
+
+int32 TamaPlugin::dialogHatchSequence(const int32 *args, uint32 argCount) {
+	if (argCount < 2)
+		error("Invalid number of arguments for Dialog_HatchSequence");
+	auto nick = _engine->getScript()->getString(args[0]);
+	auto name = _engine->getScript()->getString(args[1]);
+	auto dialog = new HatchSequenceDialog(this, nick, name);
+	int32 result = dialog->runModal();
+	if (result) {
+		_engine->getScript()->setString(args[0], dialog->nick());
+		_engine->getScript()->setString(args[1], dialog->name());
+	}
+	return result;
 }
 
 int32 TamaPlugin::internetOpenURL(const int32 *args, uint32 argCount) {

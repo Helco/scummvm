@@ -232,6 +232,12 @@ void Sprite::transferTo(Common::SharedPtr<Sprite> dst) {
 	_subRects.clear();
 	_isVisible = false;
 	_setToNextCellOnRepaint = false;
+
+	// this is not original, the original function would unsafely copy a pointer
+	// to the current cell, here with the cell index the bounds are based on the
+	// src cell not the dst cell with the copied cell index
+	// Instead of replicating that pointer copy we just correct the bounds and see what happens
+	dst->setBoundsByCurrentCell();
 }
 
 uint32 Sprite::setupCellAnimation(uint32 nextCell, uint32 cellStart, uint32 cellStop) {

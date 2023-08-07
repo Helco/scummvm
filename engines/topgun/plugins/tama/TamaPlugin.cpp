@@ -304,8 +304,8 @@ int32 TamaPlugin::tamagoNew(const int *args, uint32 argCount) {
 	// second argument is unused in the original game
 	const auto nick = _engine->getScript()->getString(args[0]);
 	auto tamago = new Tamago(_tamagos.size(), _engine);
-	tamago->createNew(nick, args[2], args[3]);
 	_tamagos.push_back(tamago);
+	tamago->createNew(nick, args[2], args[3]);
 	return tamago->id();
 }
 

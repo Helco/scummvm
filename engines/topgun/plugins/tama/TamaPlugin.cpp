@@ -298,12 +298,17 @@ int32 TamaPlugin::tamagoGetNumActive(const int32 *args, uint32 argCount) {
 	return section.size();
 }
 
+// This is a canary value for the tamago ids, also it prevents returning zero
+// Which would be interpreted as null pointer by the game (== error)
+constexpr int32 TamagoMagic = 0x2a000000;
+
 int32 TamaPlugin::tamagoNew(const int *args, uint32 argCount) {
 	if (argCount != 4)
 		error("Invalid number of arguments for TamagoNew");
 	// second argument is unused in the original game
 	const auto nick = _engine->getScript()->getString(args[0]);
-	auto tamago = new Tamago(_tamagos.size(), _engine);
+	const auto id = _tamagos.size() ^ TamagoMagic;
+	auto tamago = new Tamago(id, _engine);
 	_tamagos.push_back(tamago);
 	tamago->createNew(nick, args[2], args[3]);
 	return tamago->id();
@@ -312,11 +317,11 @@ int32 TamaPlugin::tamagoNew(const int *args, uint32 argCount) {
 int32 TamaPlugin::tamagoClose(const int *args, uint32 argCount) {
 	if (argCount != 1)
 		error("Invalid number of arguments for TamagoClose");
-	auto tamago = _tamagos[args[0]];
+	auto tamago = _tamagos[args[0] ^ TamagoMagic];
 	if (!tamago->query(TamagoQuery::kGoneHome, 0))
 		tamagoSave(args, argCount);
 	delete tamago;
-	_tamagos[args[0]] = nullptr;
+	_tamagos[args[0] ^ TamagoMagic] = nullptr;
 	return 0;
 }
 
@@ -330,13 +335,13 @@ int32 TamaPlugin::tamagoSave(const int *args, uint32 argCount) {
 int32 TamaPlugin::tamagoAction(const int *args, uint32 argCount) {
 	if (argCount != 3)
 		error("Invalid number of arguments for TamagoAction");
-	return _tamagos[args[0]]->action((TamagoAction)args[1], args[2]);
+	return _tamagos[args[0] ^ TamagoMagic]->action((TamagoAction)args[1], args[2]);
 }
 
 int32 TamaPlugin::tamagoQuery(const int *args, uint32 argCount) {
 	if (argCount != 3)
 		error("Invalid number of arguments for TamagoQuery");
-	return _tamagos[args[0]]->query((TamagoQuery)args[1], args[2]);
+	return _tamagos[args[0] ^ TamagoMagic]->query((TamagoQuery)args[1], args[2]);
 }
 
 }

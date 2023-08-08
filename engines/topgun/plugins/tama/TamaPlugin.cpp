@@ -59,6 +59,8 @@ ScriptPluginProcedure *TamaPlugin::getScriptProcedure(const Common::String &name
 		return new ScriptPluginProcedureMem<TamaPlugin>(this, &TamaPlugin::windowGenerateMouseMove);
 	else if (!name.compareToIgnoreCase("Window_Close"))
 		return new ScriptPluginProcedureMem<TamaPlugin>(this, &TamaPlugin::windowClose);
+	else if (!name.compareToIgnoreCase("Window_SetName"))
+		return new ScriptPluginProcedureMem<TamaPlugin>(this, &TamaPlugin::windowSetName);
 
 	else if (!name.compareToIgnoreCase("EditCtrl_Create"))
 		return new ScriptPluginProcedureMem<TamaPlugin>(this, &TamaPlugin::editCtrlCreate);
@@ -265,6 +267,16 @@ int32 TamaPlugin::windowGenerateMouseMove(const int32 *args, uint32 argCount) {
 
 int32 TamaPlugin::windowClose(const int32 *args, uint32 argCount) {
 	_engine->quitGame();
+	return 1;
+}
+
+int32 TamaPlugin::windowSetName(const int32 *args, uint32 argCount) {
+	if (argCount != 1)
+		error("Invalid number of arguments for Window_SetName");
+	auto newTitle = _tamaResources->loadString(8208);
+	newTitle += ": ";
+	newTitle += _engine->getScript()->getString(args[0]);
+	g_system->setWindowCaption(newTitle);
 	return 1;
 }
 

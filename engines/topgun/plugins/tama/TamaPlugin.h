@@ -61,6 +61,7 @@ private:
 	int32 internetOpenURL(const int *args, uint32 argCount);
 	int32 windowGenerateMouseMove(const int *args, uint32 argCount);
 	int32 windowClose(const int *args, uint32 argCount);
+	int32 windowSetName(const int *args, uint32 argCount);
 
 	int32 editCtrlCreate(const int *args, uint32 argCount);
 	int32 editCtrlGetText(const int *args, uint32 argCount);

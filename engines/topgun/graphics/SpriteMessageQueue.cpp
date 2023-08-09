@@ -163,7 +163,7 @@ bool SpriteMessageQueue::load(Common::Array<byte> &&data) {
 			msg._speed._duration._isIndirect = stream.readByte() != 0;
 			break;
 		case SpriteMessageType::kRunRootOp:
-			msg._rootOp.resize(stream.readUint32LE());
+			msg._rootOp.resize(stream.readUint32LE() - 6);
 			stream.read(msg._rootOp.data(), msg._rootOp.size());
 			break;
 		case SpriteMessageType::kRunScript: {
@@ -179,6 +179,7 @@ bool SpriteMessageQueue::load(Common::Array<byte> &&data) {
 			msg._movie._unk1 = stream.readSint32LE();
 			msg._movie._unk2 = stream.readByte();
 			msg._movie._unk3 = stream.readByte();
+			break;
 		case SpriteMessageType::kProc266:
 			msg._proc266._sprite._value = stream.readSint32LE();
 			msg._proc266._flag._value = stream.readSint32LE();

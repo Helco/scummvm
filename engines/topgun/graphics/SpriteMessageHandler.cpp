@@ -37,6 +37,8 @@ ISpriteMessageHandler *ISpriteMessageHandler::create(Sprite *sprite, const Sprit
 		return new SpriteCellLoopHandler(sprite, msg);
 	case (SpriteMessageType::kSetSubRects):
 		return new SpriteSetSubRectsHandler(sprite, msg);
+	case (SpriteMessageType::kMessageLoop):
+		return new SpriteMessageLoopHandler(sprite, msg);
 	case (SpriteMessageType::kOffsetAndFlip):
 		return new SpriteOffsetAndFlipHandler(sprite, msg);
 	case (SpriteMessageType::kHide):
@@ -130,6 +132,22 @@ bool SpriteSetPriorityHandler::update() {
 	if (_sprite->initNextMessage())
 		return _sprite->updateMessage();
 	return true;
+}
+
+SpriteMessageLoopHandler::SpriteMessageLoopHandler(Sprite *sprite, const SpriteMessage &message) :
+	ISpriteMessageHandler(sprite, message, SpriteMessageType::kMessageLoop) {
+	_loopsRemaining = message._messageLoop._loopsRemaining;
+}
+
+bool SpriteMessageLoopHandler::update() {
+	if (_sprite->_breakLoops || _loopsRemaining <= 1) {
+		_loopsRemaining = _msg._messageLoop._loopCount;
+		return false;
+	}
+	else {
+		_loopsRemaining--;
+		return true;
+	}
 }
 
 SpriteOffsetAndFlipHandler::SpriteOffsetAndFlipHandler(Sprite *sprite, const SpriteMessage &message) :

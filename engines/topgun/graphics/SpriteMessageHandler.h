@@ -71,6 +71,16 @@ private:
 	uint32 _frameCount = 0;
 };
 
+class SpriteMessageLoopHandler : public ISpriteMessageHandler {
+public:
+	SpriteMessageLoopHandler(Sprite *sprite, const SpriteMessage &message);
+
+	virtual bool update() override;
+
+private:
+	int32 _loopsRemaining;
+};
+
 class SpriteOffsetAndFlipHandler : public ISpriteMessageHandler {
 public:
 	SpriteOffsetAndFlipHandler(Sprite *sprite, const SpriteMessage &message);

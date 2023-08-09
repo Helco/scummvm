@@ -61,6 +61,8 @@ ScriptPluginProcedure *TamaPlugin::getScriptProcedure(const Common::String &name
 		return new ScriptPluginProcedureMem<TamaPlugin>(this, &TamaPlugin::windowClose);
 	else if (!name.compareToIgnoreCase("Window_SetName"))
 		return new ScriptPluginProcedureMem<TamaPlugin>(this, &TamaPlugin::windowSetName);
+	else if (!name.compareToIgnoreCase("Window_FlashTitleBar"))
+		return new ScriptPluginProcedureMem<TamaPlugin>(this, &TamaPlugin::stubReturnOne);
 
 	else if (!name.compareToIgnoreCase("EditCtrl_Create"))
 		return new ScriptPluginProcedureMem<TamaPlugin>(this, &TamaPlugin::editCtrlCreate);
@@ -345,7 +347,8 @@ int32 TamaPlugin::tamagoSave(const int *args, uint32 argCount) {
 }
 
 int32 TamaPlugin::tamagoAction(const int *args, uint32 argCount) {
-	if (argCount != 3)
+	if (argCount != 3 && argCount != 4)
+		// fourth argument only referenced by unused action
 		error("Invalid number of arguments for TamagoAction");
 	return _tamagos[args[0] ^ TamagoMagic]->action((TamagoAction)args[1], args[2]);
 }

@@ -124,8 +124,8 @@ void SpriteContext::resetScene() {
 	_fontTopGunNames.clear();
 }
 
-Common::SharedPtr<Sprite> SpriteContext::createSprite(uint32 index) {
-	auto sprite = Common::SharedPtr<Sprite>(new Sprite(this, index));
+Common::SharedPtr<Sprite> SpriteContext::createSprite(uint32 index, uint32 parentIndex) {
+	auto sprite = Common::SharedPtr<Sprite>(new Sprite(this, index, parentIndex));
 	_sprites.push_back(sprite); // shortly invalidating order, to be fixed shortly during load
 	return sprite;
 }

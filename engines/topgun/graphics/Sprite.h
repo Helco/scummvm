@@ -64,7 +64,7 @@ class Sprite : public IResource {
 	friend class SpriteRunScriptHandler;
 	friend class SpriteWaitForMovieHandler;
 
-	Sprite(SpriteContext *spriteContext, uint32 index);
+	Sprite(SpriteContext *spriteContext, uint32 index, uint32 parentIndex);
 public:
 	static constexpr ResourceType kResourceType = ResourceType::kSprite;
 	virtual ~Sprite();
@@ -145,6 +145,7 @@ private:
 	bool _flipX = false, _flipY = false;
 	bool _paused = false, _wasPausedByGameplay = false;
 	SpritePickableMode _pickableMode = SpritePickableMode::kAlwaysPickable;
+	uint32 _parentIndex = UINT32_MAX; // MAX meaning static sprite resource
 	uint32 _cellIndexStart = 0, _cellIndexStop = 0;
 	uint32 _curCellIndex = 0, _nextCellIndex = 0;
 	uint32 _curMessageIndex = UINT32_MAX;

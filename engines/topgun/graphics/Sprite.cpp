@@ -28,9 +28,10 @@ using Common::SharedPtr;
 
 namespace TopGun {
 
-Sprite::Sprite(SpriteContext *spriteCtx, uint32 index) :
+Sprite::Sprite(SpriteContext *spriteCtx, uint32 index, uint32 parentIndex) :
 	IResource(kResourceType, index),
-	_spriteCtx(spriteCtx) {
+	_spriteCtx(spriteCtx),
+	_parentIndex(index == parentIndex ? UINT32_MAX : parentIndex) {
 }
 
 Sprite::~Sprite() {
@@ -79,6 +80,16 @@ bool Sprite::load(Common::Array<byte> &&data) {
 			break;
 		}
 		// TODO: Add special behaviour for text
+	}
+
+	if (_parentIndex != UINT32_MAX)
+	{
+		// dynamic sprites have their stored handlers cleared
+		_isClickable = true;
+		_isDraggable = false;
+		_dragScriptIndex = 0;
+		_clickScriptIndex = 0;
+		_clickScriptArg = 0;
 	}
 
 	return !stream.err();
@@ -440,7 +451,10 @@ Common::SharedPtr<ISurfaceResource> Sprite::pickCell(Point point) const {
 
 void Sprite::printInfo() {
 	auto debugger = _spriteCtx->getEngine()->getDebugger();
-	debugger->debugPrintf("Sprite %d\n", getResourceIndex());
+	if (_parentIndex == UINT32_MAX)
+		debugger->debugPrintf("Sprite %d\n", getResourceIndex());
+	else
+		debugger->debugPrintf("Sprite %d (copy of %d)\n", getResourceIndex(), _parentIndex);
 	debugger->debugPrintf("%s, %s",
 		_isEnabled ? "enabled" : "disabled",
 		_isVisible ? "visible" : "hidden");

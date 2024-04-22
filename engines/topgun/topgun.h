@@ -159,9 +159,14 @@ public:
 	ResourceType getResourceType(uint32 index) const;
 	void freeResource(uint32 index);
 	SharedPtr<IResource> loadResource(uint32 index, ResourceType expectedType);
+	SharedPtr<IResource> copyResource(uint32 index, ResourceType expectedType);
 	template<class TResource>
 	inline SharedPtr<TResource> loadResource(uint32 index) {
 		return loadResource(index, TResource::kResourceType).template dynamicCast<TResource>();
+	}
+	template<class TResource>
+	inline SharedPtr<TResource> copyResource(uint32 index) {
+		return copyResource(index, TResource::kResourceType).template dynamicCast<TResource>();
 	}
 
 	void setTopMostSprite(Sprite *sprite);

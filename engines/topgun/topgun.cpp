@@ -264,7 +264,49 @@ SharedPtr<IResource> TopGunEngine::loadResource(uint32 index, ResourceType expec
 void TopGunEngine::freeResource(uint32 index) {
 	if (isResourceLoaded(index) && getResourceType(index) == ResourceType::kSprite)
 		_spriteCtx->removeSprite(index);
+	if (index >= _resFile->_staticResources)
+		_resFile->_resources[index] = {};
 	_resources[index] = nullptr;
+}
+
+SharedPtr<IResource> TopGunEngine::copyResource(uint32 parentIndex, ResourceType expectedType) {
+	const auto actualType = getResourceType(parentIndex);
+	if (actualType == expectedType && expectedType != ResourceType::kInvalid)
+		error("Attempted to load resource %i, expecting a type of %d, but it was %d", parentIndex, expectedType, actualType);
+
+	auto itNewResource = Common::find(_resources.begin() + _resFile->_staticResources, _resources.end(), nullptr);
+	if (itNewResource == _resources.end())
+		error("No dynamic resource slot left");
+	uint32 newIndex = Common::distance(_resources.begin(), itNewResource);
+	_resFile->_resources[newIndex] = _resFile->_resources[parentIndex];
+
+	switch (actualType)
+	{
+	case ResourceType::kSprite:
+	{
+		// for some reason the original engine ensures *sprites* to be loaded on copy,
+		// the loaded sprite is not used afaik
+		loadResource<Sprite>(parentIndex);
+		auto newSprite = _spriteCtx->createSprite(newIndex, parentIndex);
+		auto data = _resFile->loadResource(parentIndex);
+		if (!newSprite->load(Common::move(data)))
+			error("Could not copy sprite %d", parentIndex);
+		*itNewResource = newSprite;
+		_script->getDebugger()->onResource(true, newIndex);
+		return *itNewResource;
+	}break;
+
+	case ResourceType::kObj3D:
+	case ResourceType::kModel:
+	case ResourceType::kOProto:
+	case ResourceType::kMProto:
+	case ResourceType::kTable:
+		error("Unimplemented resource type for copy: %d", actualType);
+		break;
+	default:
+		error("Unsupported resource type for copy: %d", actualType);
+		break;
+	}
 }
 
 void TopGunEngine::loadPlugins() {

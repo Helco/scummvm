@@ -74,7 +74,10 @@ public:
 	void handleEnginePause(bool pause);
 
 	void resetScene();
-	SharedPtr<Sprite> createSprite(uint32 index);
+	SharedPtr<Sprite> createSprite(uint32 index, uint32 parentIndex);
+	inline SharedPtr<Sprite> createSprite(uint32 index) {
+		return createSprite(index, index);
+	}
 	void removeSprite(uint32 index);
 	void copySpriteTo(uint32 from, uint32 to, uint32 queue, bool destroyFrom);
 	void setAllSpriteClickScripts(uint32 index);

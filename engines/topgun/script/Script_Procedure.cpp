@@ -218,6 +218,9 @@ int32 Script::runInternalProcedure(uint32 procId, const int32 *args, uint32 argC
 	case ScriptOp::kIsResourceLoaded:
 		checkArgCount(argCount, 1);
 		return _engine->isResourceLoaded(args[0]);
+	case ScriptOp::kCopyResource:
+		checkArgCount(argCount, 1);
+		return _engine->copyResource(args[0], ResourceType::kInvalid)->getResourceIndex();
 	case ScriptOp::kBackupAdditionalHMMIO:
 		// This probably was used to save disk space by only copying
 		// necessary data files from CD to harddisk?

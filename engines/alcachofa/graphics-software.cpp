@@ -269,9 +269,10 @@ public:
 				"If you see this message, please open a bug report describing where this warning happened.");
 			_didWarnAboutRotation = true;
 		}
+		checkFirstDrawCommand();
 
-		topLeft *= _outputScale;
-		size *= _outputScale;
+		topLeft = topLeft * _outputScale;
+		size = size * _outputScale;
 		Rect bounds(
 			roundVectorToPoint(topLeft),
 			roundVectorToPoint(topLeft + size));

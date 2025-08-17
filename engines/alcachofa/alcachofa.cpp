@@ -161,13 +161,20 @@ void AlcachofaEngine::playVideo(int32 videoId) {
 
 	_sounds.stopAll();
 	auto texture = _renderer->createTexture(decoder->getWidth(), decoder->getHeight(), false);
+	auto &textureSurface = texture->surface();
 	Common::Event e;
 	decoder->start();
 	while (!decoder->endOfVideo() && !shouldQuit()) {
 		if (decoder->needsUpdate()) {
-			auto surface = decoder->decodeNextFrame();
-			if (surface)
-				texture->update(*surface);
+			auto decodedSurface = decoder->decodeNextFrame();
+			if (decodedSurface) {
+				Graphics::crossBlit(
+					(byte*)textureSurface.getPixels(), (byte*)decodedSurface->getPixels(),
+					textureSurface.pitch, decodedSurface->pitch,
+					decodedSurface->w, decodedSurface->h,
+					textureSurface.format, decodedSurface->format);
+				texture->update();
+			}
 			_renderer->begin();
 			_renderer->setBlendMode(BlendMode::Alpha);
 			_renderer->setLodBias(0.0f);

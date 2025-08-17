@@ -62,13 +62,13 @@ public:
 	ITexture(Common::Point size);
 	virtual ~ITexture() = default;
 
-	virtual void update(const Graphics::Surface &surface) = 0;
-	inline void update(const Graphics::ManagedSurface &surface) { update(surface.rawSurface()); }
+	virtual void update() = 0;
 
-	inline Common::Point size() const { return _size; }
+	inline Graphics::Surface &surface() { return *_surface.surfacePtr(); }
+	inline Common::Point size() const { return { _surface.w, _surface.h }; }
 
-private:
-	Common::Point _size;
+protected:
+	Graphics::ManagedSurface _surface;
 };
 
 class IRenderer {
@@ -155,7 +155,7 @@ protected:
 
 	static void fullBlend(
 		const Graphics::ManagedSurface &source,
-		Graphics::ManagedSurface &destination,
+		Graphics::Surface &destination,
 		int offsetX,
 		int offsetY);
 
@@ -200,7 +200,7 @@ public:
 	void outputRect2D(int32 frameI, float scale, Math::Vector2d &topLeft, Math::Vector2d &size) const;
 	void outputRect3D(int32 frameI, float scale, Math::Vector3d &topLeft, Math::Vector2d &size) const;
 
-	void overrideTexture(const Graphics::ManagedSurface &surface);
+	void overrideTexture(const Graphics::Surface &surface);
 
 	void draw2D(
 		int32 frameI,
@@ -224,13 +224,13 @@ public:
 private:
 	Common::Rect spriteBounds(int32 frameI, int32 spriteI) const;
 	Common::Rect maxFrameBounds() const;
+	Math::Vector2d getMaxTexCoordinate(const Common::Rect &bounds) const;
 	void prerenderFrame(int32 frameI);
 
 	int32_t _renderedFrameI = -1;
 	uint8 _premultiplyAlpha = 100, ///< in percent [0-100] not [0-255]
 		_renderedPremultiplyAlpha = 255;
 
-	Graphics::ManagedSurface _renderedSurface;
 	Common::ScopedPtr<ITexture> _renderedTexture;
 };
 

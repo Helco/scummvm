@@ -37,7 +37,9 @@ using namespace Graphics;
 
 namespace Alcachofa {
 
-ITexture::ITexture(Point size) : _size(size) {}
+ITexture::ITexture(Point size) {
+	_surface.create(size.x, size.y, BlendBlit::getSupportedPixelFormat());
+}
 
 void IDebugRenderer::debugShape(const Shape &shape, Color color) {
 	constexpr uint kMaxPoints = 16;
@@ -213,7 +215,7 @@ void AnimationBase::loadMissingAnimation() {
 
 // unfortunately ScummVMs BLEND_NORMAL does not blend alpha
 // but this also bad, let's find/discuss a better solution later
-void AnimationBase::fullBlend(const ManagedSurface &source, ManagedSurface &destination, int offsetX, int offsetY) {
+void AnimationBase::fullBlend(const ManagedSurface &source, Surface &destination, int offsetX, int offsetY) {
 	assert(source.format == BlendBlit::getSupportedPixelFormat());
 	assert(destination.format == BlendBlit::getSupportedPixelFormat());
 	assert(offsetX >= 0 && offsetX + source.w <= destination.w);
@@ -250,7 +252,6 @@ void Animation::load() {
 		return;
 	AnimationBase::load();
 	Rect maxBounds = maxFrameBounds();
-	_renderedSurface.create(maxBounds.width(), maxBounds.height(), BlendBlit::getSupportedPixelFormat());
 	_renderedTexture = g_engine->renderer().createTexture(maxBounds.width(), maxBounds.height(), true);
 
 	// We always create mipmaps, even for the backgrounds that usually do not scale much,
@@ -262,7 +263,6 @@ void Animation::freeImages() {
 	if (!_isLoaded)
 		return;
 	AnimationBase::freeImages();
-	_renderedSurface.free();
 	_renderedTexture.reset(nullptr);
 	_renderedFrameI = -1;
 	_premultiplyAlpha = 100;
@@ -320,14 +320,19 @@ int32 Animation::frameAtTime(uint32 time) const {
 	return -1;
 }
 
-void Animation::overrideTexture(const ManagedSurface &surface) {
+Vector2d Animation::getMaxTexCoordinate(const Rect &bounds) const {
+	Point size = _renderedTexture->size();
+	return {
+		(float)bounds.width() / size.x,
+		(float)bounds.height() / size.y,
+	};
+}
+
+void Animation::overrideTexture(const Surface &surface) {
 	// In order to really use the overridden surface we have to override all
 	// values used for calculating the output size
 	_renderedFrameI = 0;
 	_renderedPremultiplyAlpha = _premultiplyAlpha;
-	_renderedSurface.free();
-	_renderedSurface.w = surface.w;
-	_renderedSurface.h = surface.h;
 	_images[0]->free();
 	_images[0]->w = surface.w;
 	_images[0]->h = surface.h;
@@ -336,7 +341,8 @@ void Animation::overrideTexture(const ManagedSurface &surface) {
 		_renderedTexture = Common::move(
 			g_engine->renderer().createTexture(surface.w, surface.h, false));
 	}
-	_renderedTexture->update(surface);
+	Surface &textureSurface = _renderedTexture->surface();
+	textureSurface.copyRectToSurface(surface, 0, 0, Rect({}, surface.w, surface.h));
 }
 
 void Animation::prerenderFrame(int32 frameI) {
@@ -344,7 +350,8 @@ void Animation::prerenderFrame(int32 frameI) {
 	if (frameI == _renderedFrameI && _renderedPremultiplyAlpha == _premultiplyAlpha)
 		return;
 	auto bounds = frameBounds(frameI);
-	_renderedSurface.clear();
+	auto &textureSurface = _renderedTexture->surface();
+	textureSurface.fillRect(Rect({}, textureSurface.w, textureSurface.h), 0);
 	for (uint spriteI = 0; spriteI < spriteCount(); spriteI++) {
 		int32 imageI = imageIndex(frameI, spriteI);
 		auto image = imageI < 0 ? nullptr : _images[imageI];
@@ -352,12 +359,12 @@ void Animation::prerenderFrame(int32 frameI) {
 			continue;
 		int offsetX = _imageOffsets[imageI].x - bounds.left;
 		int offsetY = _imageOffsets[imageI].y - bounds.top;
-		fullBlend(*image, _renderedSurface, offsetX, offsetY);
+		fullBlend(*image, textureSurface, offsetX, offsetY);
 	}
 
 	// Here was some alpha premultiplication, but it only produces bugs so is ignored
 
-	_renderedTexture->update(_renderedSurface);
+	_renderedTexture->update();
 	_renderedFrameI = frameI;
 	_renderedPremultiplyAlpha = _premultiplyAlpha;
 }
@@ -372,7 +379,7 @@ void Animation::draw2D(int32 frameI, Vector2d topLeft, float scale, BlendMode bl
 	prerenderFrame(frameI);
 	auto bounds = frameBounds(frameI);
 	Vector2d texMin(0, 0);
-	Vector2d texMax((float)bounds.width() / _renderedSurface.w, (float)bounds.height() / _renderedSurface.h);
+	Vector2d texMax = getMaxTexCoordinate(bounds);
 
 	Vector2d size;
 	outputRect2D(frameI, scale, topLeft, size);
@@ -394,7 +401,7 @@ void Animation::draw3D(int32 frameI, Vector3d topLeft, float scale, BlendMode bl
 	prerenderFrame(frameI);
 	auto bounds = frameBounds(frameI);
 	Vector2d texMin(0, 0);
-	Vector2d texMax((float)bounds.width() / _renderedSurface.w, (float)bounds.height() / _renderedSurface.h);
+	Vector2d texMax = getMaxTexCoordinate(bounds);
 
 	Vector2d size;
 	outputRect3D(frameI, scale, topLeft, size);
@@ -408,15 +415,16 @@ void Animation::draw3D(int32 frameI, Vector3d topLeft, float scale, BlendMode bl
 
 void Animation::drawEffect(int32 frameI, Vector3d topLeft, Vector2d size, Vector2d texOffset, BlendMode blendMode) {
 	prerenderFrame(frameI);
+	auto renderedSize = _renderedTexture->size();
 	auto bounds = frameBounds(frameI);
 	Vector2d texMin(0, 0);
-	Vector2d texMax((float)bounds.width() / _renderedSurface.w, (float)bounds.height() / _renderedSurface.h);
+	Vector2d texMax = getMaxTexCoordinate(bounds);
 
 	topLeft += as3D(totalFrameOffset(frameI));
 	topLeft = g_engine->camera().transform3Dto2D(topLeft);
 	const auto rotation = -g_engine->camera().rotation();
-	size(0, 0) *= bounds.width() * topLeft.z() / _renderedSurface.w;
-	size(1, 0) *= bounds.height() * topLeft.z() / _renderedSurface.h;
+	size(0, 0) *= bounds.width() * topLeft.z() / renderedSize.x;
+	size(1, 0) *= bounds.height() * topLeft.z() / renderedSize.y;
 
 	auto &renderer = g_engine->renderer();
 	renderer.setTexture(_renderedTexture.get());
@@ -454,11 +462,15 @@ void Font::load() {
 		cellSize.y = MAX(cellSize.y, image->h);
 	}
 
+	constexpr int kAtlasGridSize = 16;
 	_texMins.resize(_images.size());
 	_texMaxs.resize(_images.size());
-	ManagedSurface atlasSurface(nextPowerOfTwo(cellSize.x * 16), nextPowerOfTwo(cellSize.y * 16), BlendBlit::getSupportedPixelFormat());
-	cellSize.x = atlasSurface.w / 16;
-	cellSize.y = atlasSurface.h / 16;
+	_texture = g_engine->renderer().createTexture(
+		nextPowerOfTwo(cellSize.x * kAtlasGridSize),
+		nextPowerOfTwo(cellSize.y * kAtlasGridSize),
+		false);
+	cellSize = _texture->size() / kAtlasGridSize;
+	auto &atlasSurface = _texture->surface();
 	const float invWidth = 1.0f / atlasSurface.w;
 	const float invHeight = 1.0f / atlasSurface.h;
 	for (uint i = 0; i < _images.size(); i++) {
@@ -473,8 +485,8 @@ void Font::load() {
 		_texMaxs[i].setX((offsetX + _images[i]->w) * invWidth);
 		_texMaxs[i].setY((offsetY + _images[i]->h) * invHeight);
 	}
-	_texture = g_engine->renderer().createTexture(atlasSurface.w, atlasSurface.h, false);
-	_texture->update(atlasSurface);
+	
+	_texture->update();
 	debugCN(1, kDebugGraphics, "Rendered font atlas %s at %dx%d", _fileName.c_str(), atlasSurface.w, atlasSurface.h);
 }
 

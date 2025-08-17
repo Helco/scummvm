@@ -67,6 +67,9 @@ public:
 	OpenGLTexture(int32 w, int32 h, bool withMipmaps)
 		: ITexture({ (int16)w, (int16)h })
 		, _withMipmaps(withMipmaps) {
+		OpenGLFormat format = getOpenGLFormatOf(_surface.format);
+		assert(format.isValid());
+
 		GL_CALL(glEnable(GL_TEXTURE_2D));
 		GL_CALL(glGenTextures(1, &_handle));
 		GL_CALL(glBindTexture(GL_TEXTURE_2D, _handle));
@@ -80,14 +83,12 @@ public:
 			GL_CALL(glDeleteTextures(1, &_handle));
 	}
 
-	void update(const Surface &surface) override {
-		OpenGLFormat format = getOpenGLFormatOf(surface.format);
-		assert(surface.w == size().x && surface.h == size().y);
-		assert(format.isValid());
+	void update() override {
+		OpenGLFormat format = getOpenGLFormatOf(_surface.format);
 
 		GL_CALL(glEnable(GL_TEXTURE_2D));
 		GL_CALL(glBindTexture(GL_TEXTURE_2D, _handle));
-		GL_CALL(glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, surface.w, surface.h, 0, format._format, format._type, surface.getPixels()));
+		GL_CALL(glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, _surface.w, _surface.h, 0, format._format, format._type, _surface.getPixels()));
 		if (_withMipmaps)
 			GL_CALL(glGenerateMipmap(GL_TEXTURE_2D));
 		else

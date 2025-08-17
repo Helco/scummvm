@@ -342,7 +342,13 @@ void Animation::overrideTexture(const Surface &surface) {
 			g_engine->renderer().createTexture(surface.w, surface.h, false));
 	}
 	Surface &textureSurface = _renderedTexture->surface();
-	textureSurface.copyRectToSurface(surface, 0, 0, Rect({}, surface.w, surface.h));
+	crossBlit(
+		(byte *)textureSurface.getPixels(), (byte *)surface.getPixels(),
+		textureSurface.pitch, surface.pitch,
+		surface.w, surface.h,
+		textureSurface.format, surface.format
+	);
+	_renderedTexture->update();
 }
 
 void Animation::prerenderFrame(int32 frameI) {

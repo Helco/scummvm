@@ -36,16 +36,20 @@
 namespace Alcachofa {
 
 /**
- * Because this gets confusing fast, here in tabular form
+ * Because this gets confusing fast, an attempt on summarising the blend modes.
+ * The original D3D8 engine would write alpha, but DestA is never used, so we can focus on RGB
+ * "TintRGB"/"TintA" refers to color passed to IRenderer::quad
  *
- * | BlendMode     | SrcColor                         | SrcAlpha  | SrcBlend | DstBlend     |
- * |:-------------:|:---------------------------------|:----------|:---------|:-------------|
- * | AdditiveAlpha | (1 - TintAlpha) * TexColor       | TexAlpha  | One      | 1 - SrcAlpha |
- * | Additive      | (1 - TintAlpha) * TexColor       | TexAlpha  | One      | One          |
- * | Multiply      | (1 - TintAlpha) * TexColor       | TexAlpha  | DstColor | One          |
- * | Alpha         | TexColor                         | TintAlpha | SrcAlpha | 1 - SrcAlpha |
- * | Tinted        | TintColor * TintAlpha * TexColor | TexAlpha  | One      | 1 - SrcAlpha |
+ * | BlendMode     | RGB Formula                                      |
+ * |:-------------:|:-------------------------------------------------|
+ * | AdditiveAlpha | TexRGB * TintA             + DstRGB * (1 - TexA) |
+ * | Additive      | TexRGB * TintA             + DstRGB              |
+ * | Multiply      | TexRGB * TintA * DstRGB    + DstRGB              |
+ * | Alpha         | TexRGB * TexA              + DstRGB * (1 - TexA) |
+ * | Tinted        | TexRGB * (TintRGB * TintA) + DstRGB * (1 - TexA) |
  *
+ * TintA would originally be opacity 0-100 (with 100 meaning full transparent)
+ * When we get to IGraphics, this is already alpha 0-255 (with 0 meaning full transparent)
  */
 enum class BlendMode {
 	AdditiveAlpha, // Normal objects
@@ -93,6 +97,7 @@ public:
 	virtual void end() = 0;
 
 	static IRenderer *createOpenGLRenderer(Common::Point resolution);
+	static IRenderer *createSoftwareRenderer(Common::Point resolution);
 };
 
 class IDebugRenderer : public IRenderer {

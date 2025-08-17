@@ -12,6 +12,7 @@ MODULE_OBJS = \
 	global-ui.o \
 	graphics.o \
 	graphics-opengl.o \
+	graphics-software.o \
 	input.o \
 	menu.o \
 	metaengine.o \

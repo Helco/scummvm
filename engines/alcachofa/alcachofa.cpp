@@ -169,7 +169,7 @@ void AlcachofaEngine::playVideo(int32 videoId) {
 			auto decodedSurface = decoder->decodeNextFrame();
 			if (decodedSurface) {
 				Graphics::crossBlit(
-					(byte*)textureSurface.getPixels(), (byte*)decodedSurface->getPixels(),
+					(byte*)textureSurface.getPixels(), (const byte*)decodedSurface->getPixels(),
 					textureSurface.pitch, decodedSurface->pitch,
 					decodedSurface->w, decodedSurface->h,
 					textureSurface.format, decodedSurface->format);

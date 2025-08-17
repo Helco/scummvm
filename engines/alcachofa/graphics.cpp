@@ -28,7 +28,9 @@
 #include "common/file.h"
 #include "common/substream.h"
 #include "common/bufferedstream.h"
+#include "common/config-manager.h"
 #include "image/tga.h"
+#include "graphics/renderer.h"
 
 using namespace Common;
 using namespace Math;
@@ -39,6 +41,32 @@ namespace Alcachofa {
 
 ITexture::ITexture(Point size) {
 	_surface.create(size.x, size.y, BlendBlit::getSupportedPixelFormat());
+}
+
+IRenderer *IRenderer::createDefaultRenderer(Point resolution) {
+#if USE_OPENGL_GAME
+	if (Renderer::getAvailableTypes() & kRendererTypeOpenGL)
+		return createOpenGLRenderer(resolution);
+#endif
+	return createSoftwareRenderer(resolution);
+}
+
+IRenderer *IRenderer::createConfiguredRenderer(Point resolution) {
+	// unfortunately Graphics::Renderer only really handles non-software renderers
+	// so we have to do a bit more work ourselves.
+	// also the user selects "Software" but the typecode here is called "TinyGL"
+	// it is not TinyGL...
+	const auto &rendererCode = ConfMan.get("renderer");
+	RendererType rendererType = Renderer::parseTypeCode(rendererCode);
+	rendererType = (RendererType)(rendererType & (Renderer::getAvailableTypes() | kRendererTypeTinyGL));
+	switch (rendererType) {
+	case kRendererTypeTinyGL:
+		return createSoftwareRenderer(resolution);
+	case kRendererTypeOpenGL:
+		return createOpenGLRenderer(resolution);
+	default:
+		return createDefaultRenderer(resolution);
+	}
 }
 
 void IDebugRenderer::debugShape(const Shape &shape, Color color) {

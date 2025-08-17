@@ -98,6 +98,8 @@ public:
 
 	static IRenderer *createOpenGLRenderer(Common::Point resolution);
 	static IRenderer *createSoftwareRenderer(Common::Point resolution);
+	static IRenderer *createDefaultRenderer(Common::Point resolution);
+	static IRenderer *createConfiguredRenderer(Common::Point resolution);
 };
 
 class IDebugRenderer : public IRenderer {

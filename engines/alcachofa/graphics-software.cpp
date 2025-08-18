@@ -76,13 +76,14 @@ public:
 			? _surface.w / (float)targetSize.x
 			: _surface.h / (float)targetSize.y;
 		int lod = log2f(scaleFactor) + lodBias; // truncate to always downscale
-		lod = CLIP(lod, 0, _maxMipmapCount) - 1; // -1 to convert to mipmap index
+		lod = CLIP(lod, 0, _maxMipmapCount);
 		return lod;
 	}
 
 	const ManagedSurface &getMipmap(int lod) {
-		if (lod < 0)
+		if (lod <= 0)
 			return _surface;
+		lod--;
 		for (; _mipmapCount <= lod; _mipmapCount++) {
 			const ManagedSurface &previous = _mipmapCount == 0
 				? _surface
@@ -157,7 +158,7 @@ struct QuadCellIterator {
 		_srcFullStart = (int16)(_srcCellSize * fullTexMinFract);
 
 		// setup at the first cell
-		_tex = _fullTexMin;
+		_tex = _fullTexMax;
 		next();
 	}
 
@@ -171,19 +172,15 @@ struct QuadCellIterator {
 			_flipped = _firstFlip;
 		} else {
 			hasNext = true;
-			_tex += 1.0f;
 			_srcStart = _srcEnd;
 			_dstStart = _dstEnd;
 			_flipped = !_flipped;
 		}
 
-		// crop if we have gone too far
-		_srcEnd = _srcStart + _srcCellSize;
-		_dstEnd = _dstStart + _dstCellSize;
-		if (_tex > _fullTexMax) {
-			_srcEnd -= (_fullTexMax - _tex) * _srcCellSize;
-			_dstEnd -= (_fullTexMax - _tex) * _dstCellSize;
-		}
+		float texStart = _tex;
+		_tex = MIN(floorf(_tex + 1.0f), _fullTexMax);
+		_srcEnd = _srcStart + (int16)(_srcCellSize * (_tex - texStart));
+		_dstEnd = _dstStart + (int16)(_dstCellSize * (_tex - texStart));
 		return hasNext;
 	}
 
@@ -300,11 +297,42 @@ public:
 		}
 	}
 
+	static void proportionalClip(
+		int16 &target,
+		int16 &subRect,
+		int16 targetSize,
+		int16 subRectSize,
+		int16 maxTarget) {
+		if (target >= 0 && target <= maxTarget)
+			return;
+		int16 prevTarget = target;
+		target = CLIP(target, (int16)0, maxTarget);
+		subRect += (target - prevTarget) * subRectSize / targetSize;
+	}
+
 	void texturedQuad(Rect target, Rect subRect, Color color, int lod, bool horizontalFlip, bool verticalFlip) {
 		// at this point we have a single subrect of the texture to be (scale-)blit onto the output
-		assert(Rect({}, _texture->size()).contains(subRect));
+		// we still need to clip it against output for BlendBlit though
 		auto *output = activeOutput();
+		proportionalClip(target.left, subRect.left, target.width(), subRect.width(), output->w);
+		proportionalClip(target.right, subRect.right, target.width(), subRect.width(), output->w);
+		proportionalClip(target.bottom, subRect.bottom, target.height(), subRect.height(), output->h);
+		proportionalClip(target.top, subRect.top, target.height(), subRect.height(), output->h);
+		assert(Rect({}, output->w, output->h).contains(target));
+		if (target.isEmpty())
+			return;
+
+		// and adjust for the chosen LOD
 		const auto &input = _texture->getMipmap(lod);
+		subRect.left >>= lod;
+		subRect.top >>= lod;
+		subRect.right >>= lod;
+		subRect.bottom >>= lod;
+		assert(Rect({}, input.w, input.h).contains(subRect));
+		if (subRect.isEmpty())
+			return;
+		
+		// and calculate the scaling
 		int scaleX = BlendBlit::getScaleFactor(subRect.width(), target.width());
 		int scaleY = BlendBlit::getScaleFactor(subRect.height(), target.height());
 		int scaleXOffset = (subRect.left * scaleX) % BlendBlit::SCALE_THRESHOLD;
@@ -313,13 +341,15 @@ public:
 			(horizontalFlip ? FLIP_H : FLIP_NONE) |
 			(verticalFlip ? FLIP_V : FLIP_NONE);
 
+		// and actually draw it
 		BlendBlit::blit(
 			(byte *)output->getPixels(),
 			(byte *)input.getBasePtr(subRect.left, subRect.top),
 			output->pitch,
 			input.pitch,
 			target.left, target.top,
-			subRect.width(), subRect.height(),
+			target.width(), target.height(),
+			//subRect.width(), subRect.height(),
 			scaleX, scaleY,
 			scaleXOffset, scaleYOffset,
 			0xFFFFFFFF,

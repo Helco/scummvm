@@ -211,7 +211,7 @@ public:
 	}
 
 	void end() override {
-		if (_otherOutput == nullptr) {
+		if (_otherOutput == nullptr && !_isFirstDrawCommand) {
 			assert(_screen != nullptr);
 			g_system->unlockScreen();
 		}
@@ -313,6 +313,8 @@ public:
 	void texturedQuad(Rect target, Rect subRect, Color color, int lod, bool horizontalFlip, bool verticalFlip) {
 		// at this point we have a single subrect of the texture to be (scale-)blit onto the output
 		// we still need to clip it against output for BlendBlit though
+		if (target.isEmpty())
+			return; // we have to check at the start as well to prevent division-by-zero
 		auto *output = activeOutput();
 		proportionalClip(target.left, subRect.left, target.width(), subRect.width(), output->w);
 		proportionalClip(target.right, subRect.right, target.width(), subRect.width(), output->w);

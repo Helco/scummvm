@@ -160,6 +160,7 @@ void AlcachofaEngine::playVideo(int32 videoId) {
 	}
 
 	_sounds.stopAll();
+	_renderer->end(); // we were in a renderer frame presumably
 	auto texture = _renderer->createTexture(decoder->getWidth(), decoder->getHeight(), false);
 	auto &textureSurface = texture->surface();
 	Common::Event e;
@@ -195,6 +196,7 @@ void AlcachofaEngine::playVideo(int32 videoId) {
 		g_system->delayMillis(decoder->getTimeToNextFrame());
 	}
 	decoder->stop();
+	_renderer->begin();
 }
 
 void AlcachofaEngine::fadeExit() {
@@ -225,6 +227,7 @@ void AlcachofaEngine::fadeExit() {
 		g_system->updateScreen();
 		limiter.startFrame();
 	}
+	_renderer->begin();
 
 	quitGame();
 	player().changeRoom("SALIR", false); // this skips some update steps along the way

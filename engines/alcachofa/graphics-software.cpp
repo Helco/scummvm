@@ -335,8 +335,6 @@ public:
 		// and calculate the scaling
 		int scaleX = BlendBlit::getScaleFactor(subRect.width(), target.width());
 		int scaleY = BlendBlit::getScaleFactor(subRect.height(), target.height());
-		int scaleXOffset = (subRect.left * scaleX) % BlendBlit::SCALE_THRESHOLD;
-		int scaleYOffset = (subRect.top * scaleY) % BlendBlit::SCALE_THRESHOLD;
 		uint flipping =
 			(horizontalFlip ? FLIP_H : FLIP_NONE) |
 			(verticalFlip ? FLIP_V : FLIP_NONE);
@@ -351,7 +349,7 @@ public:
 			target.width(), target.height(),
 			//subRect.width(), subRect.height(),
 			scaleX, scaleY,
-			scaleXOffset, scaleYOffset,
+			0, 0,
 			0xFFFFFFFF,
 			flipping,
 			BLEND_NORMAL,

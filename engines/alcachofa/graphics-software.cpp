@@ -289,6 +289,9 @@ public:
 			int lod = _texture->getMipmapIndex({ x._dstCellSize, y._dstCellSize }, _lodBias);
 			do {
 				do {
+					if (x._dstStart >= x._dstEnd || y._dstStart >= y._dstEnd ||
+						x._srcStart >= x._srcEnd || y._srcStart >= y._srcEnd)
+						continue; // otherwise asserts in the Rect ctor are triggered
 					Rect target(x._dstStart, y._dstStart, x._dstEnd - 1, y._dstEnd - 1);
 					Rect subRect(x._srcStart, y._srcStart, x._srcEnd - 1, y._srcEnd - 1);
 					texturedQuad(target, subRect, color, lod, x._flipped, y._flipped);
@@ -360,9 +363,18 @@ public:
 
 	void coloredQuad(Rect bounds, Color color) {
 		switch (_blendMode) {
-		case BlendMode::AdditiveAlpha:
-			solidQuadFill(bounds, color.a, color.a, color.a);
+		case BlendMode::AdditiveAlpha: {
+			Surface *output = activeOutput();
+			uint32 rawColor = output->format.ARGBToColor(color.a, color.r, color.g, color.b);
+			BlendBlit::fill(
+				(byte *)output->getBasePtr(bounds.left, bounds.top),
+				output->pitch,
+				bounds.width(),
+				bounds.height(),
+				rawColor,
+				BLEND_NORMAL);
 			break;
+		}
 		case BlendMode::Alpha:
 			solidQuadFill(bounds, 255, 255, 255);
 			break;
@@ -375,7 +387,7 @@ public:
 			break;
 		case BlendMode::Additive: {
 			Surface *output = activeOutput();
-			uint32 rawColor = output->format.ARGBToColor(255, color.a, color.a, color.a);
+			uint32 rawColor = output->format.ARGBToColor(color.a, color.r, color.g, color.b);
 			BlendBlit::fill(
 				(byte *)output->getBasePtr(bounds.left, bounds.top),
 				output->pitch,

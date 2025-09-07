@@ -166,7 +166,11 @@ void OpenGLTexture::setMirrorWrap(bool wrap) {
 	if (wrap)
 		wrapMode = OpenGLContext.textureMirrorRepeatSupported ? GL_MIRRORED_REPEAT : GL_REPEAT;
 	else
+#if USE_FORCED_GLES2 // GLES2 does not define GL_CLAMP
+		wrapMode = GL_CLAMP_TO_EDGE;
+#else
 		wrapMode = OpenGLContext.textureEdgeClampSupported ? GL_CLAMP_TO_EDGE : GL_CLAMP;
+#endif
 
 	GL_CALL(glBindTexture(GL_TEXTURE_2D, _handle));
 	GL_CALL(glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, wrapMode));

@@ -250,7 +250,8 @@ private:
 
 			if (posterize == 0) {
 				// shave off 3 bits for that 16-bit look
-				gl_FragColor = floor(gl_FragColor * (256 / 8)) / (256 / 8);
+				float quatFactor = (float)(256 / 8);
+				gl_FragColor = floor(gl_FragColor * quatFactor) / quatFactor;
 			}
 		})";
 };

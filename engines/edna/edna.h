@@ -29,7 +29,7 @@
 #include "common/hash-str.h"
 #include "common/random.h"
 #include "common/serializer.h"
-#include "common/util.h"
+#include "common/ptr.h"
 #include "engines/engine.h"
 #include "engines/savestate.h"
 #include "graphics/screen.h"
@@ -39,6 +39,7 @@
 namespace Edna {
 
 struct EdnaGameDescription;
+class DB;
 
 class EdnaEngine : public Engine {
 private:
@@ -53,16 +54,12 @@ public:
 	EdnaEngine(OSystem *syst, const ADGameDescription *gameDesc);
 	~EdnaEngine() override;
 
+	inline DB &db() { assert(_db != nullptr); return *_db; }
+
 	uint32 getFeatures() const;
 
-	/**
-	 * Returns the game Id
-	 */
 	Common::String getGameId() const;
 
-	/**
-	 * Gets a random number
-	 */
 	uint32 getRandomNumber(uint maxNum) {
 		return _randomSource.getRandomNumber(maxNum);
 	}
@@ -95,6 +92,9 @@ public:
 		Common::Serializer s(stream, nullptr);
 		return syncGame(s);
 	}
+
+private:
+	Common::ScopedPtr<DB> _db;
 };
 
 extern EdnaEngine *g_engine;

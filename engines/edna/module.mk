@@ -1,8 +1,9 @@
 MODULE := engines/edna
 
 MODULE_OBJS = \
-	edna.o \
+	db.o
 	console.o \
+	edna.o \
 	metaengine.o
 
 # This module can be built as a plugin

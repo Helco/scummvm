@@ -33,19 +33,20 @@ namespace Edna {
  * column is finished by a newline. 
  */
 
-static void loadFile(FileData &data, const Path &basePath, const char *fileName) {
+static char *loadFile(FileData &data, const Path &basePath, const char *fileName) {
 	Path path = basePath.appendComponent(fileName);
 	File file;
 	if (!file.open(path)) {
 		error("Could not open data file: %s", path.toString().c_str());
-		return;
+		return nullptr;
 	}
 	data->allocate((uint32)(file.size() + 1));
 	if (file.read(data->data(), data->size() - 1) != data->size() - 1) {
 		error("Could not read data file: %s", path.toString().c_str());
-		return;
+		return nullptr;
 	}
 	data[data->size() - 1] = '\0';
+	return data->data();
 }
 
 static void skipWhitespace(char *&full) {
@@ -66,6 +67,7 @@ static Span<char> nextCell(char *&full, bool isLastColumn = false) {
 					full[-1] = '\0';
 				}
 				*full++ = '\0';
+				skipWhitespace(full); // prepare for next line
 				break;
 			}
 		} else {
@@ -103,7 +105,7 @@ static uint32 nextInteger(char *&full, bool isLastColumn = false) {
 	auto cell = nextCell(full, isLastColumn);
 	char *end = nullptr;
 	auto value = strtoul(cell.data(), &end, 10);
-	if (end == nullptr || *end != '\0')
+	if (end == nullptr || end == cell.data()) // we cannot check for '\0' as some lines have extra, unused cells...
 		error("Could not extract integer from data file");
 	return (uint32)value;
 }
@@ -114,44 +116,157 @@ static float nextFloat(char *&full, bool isLastColumn = false) {
 	float value = strtof(cell.data(), &end);
 	if (end == nullptr || *end != '\0')
 		error("Could not extract float from data file");
-	return (uint32)value;
+	return value;
 }
 
-DB::DB(const Path &path) {
-	loadScripts(path);
+static bool nextBool(char *&full, bool isLastColumn = false) {
+	auto cell = nextCell(full, isLastColumn);
+	if (strcmp(cell.data(), "true"))
+		return true;
+	if (strcmp(cell.data(), "false"))
+		return false;
+	error("Could not extract bool from data file");
+}
+
+DB::DB(const Path &path) : path(path) {
+	loadScripts();
+	loadCharAnimSets();
+	loadChoices();
+	loadRooms();
 }
 
 DB::~DB() {}
 
-void DB::loadScripts(const Path &path) {
-	loadFile(_scriptData, path, "skript.csv");
+template<class TValue>
+TValue DB::SimpleDataSet<TValue>::get(uint32 key, const char *name) const {
+	TValue value;
+	if (!_map.tryGetVal(key, value))
+		error("Missing %s: %u", name, key);
+	return value;
+}
 
-	char *full = _scriptData->data();
+template<class TValue>
+TValue DB::TwoKeyDataSet<TValue>::get(uint32 key1, uint32 key2, const char *name) const {
+	TValue value;
+	if (!_map.tryGetVal({ key1, key2 }, value ))
+		error("Missing %s: %u %u", name, key1, key2);
+	return value;
+}
+
+template<class TValue>
+Span<const TValue> DB::SequenceSet<TValue>::get(uint32 key, const char *name) const {
+	Range range;
+	if (!_map.tryGetVal(key, range))
+		error("Missing %s: %u", name, key);
+	assert(range._begin < _items.size() && range._begin + range._count <= _items.size());
+	return { &_items[range._begin], range._count };
+}
+
+template<class TValue>
+template<class StrictWeakOrdering>
+void DB::SequenceSet<TValue>::setupSequences(StrictWeakOrdering comp) {
+	sort(_items.begin(), _items.end(), comp);
+
+	uint32 begin = 0;
+	for (uint32 i = 1; i < _items.size(); i++) {
+		if (_items[begin]._id != _items[i]._id) {
+			_map[_items[begin]._id] = { begin, i - begin };
+			begin = i;
+		}
+	}
+	_map[_items[begin]._id] = { begin, _items.size() - begin };
+}
+
+Span<const DB::ScriptLine> DB::script(ScriptId scriptId) const {
+	return _scripts.get(scriptId, "script");
+}
+
+void DB::loadScripts() {
+	char *full = loadFile(_scripts._data, path, "skript.csv");
 	skipWhitespace(full);
 	while (*full) {
 		ScriptLine scriptLine;
-		scriptLine._script = nextInteger(full);
+		scriptLine._id = nextInteger(full);
 		scriptLine._line = nextInteger(full);
 		scriptLine._command = nextString(full);
 		scriptLine._comment = nextString(full, true);
-		_scriptLines.push_back(scriptLine);
-		skipWhitespace(full);
+		_scripts._items.push_back(scriptLine);
 	}
 
-	sort(_scriptLines.begin(), _scriptLines.end(), [&](const ScriptLine &a, const ScriptLine &b) {
-		return a._script != b._script
-			? a._script < b._script
+	_scripts.setupSequences([&](const ScriptLine &a, const ScriptLine &b) {
+		return a._id != b._id
+			? a._id < b._id
 			: a._line < b._line;
 	});
+}
 
-	uint32 scriptBegin = 0;
-	for (uint32 i = 1; i < _scriptLines.size(); i++) {
-		if (_scriptLines[scriptBegin]._script != _scriptLines[i]._script) {
-			_scripts[_scriptLines[scriptBegin]._script] = { scriptBegin, i - scriptBegin };
-			scriptBegin = i;
-		}
+DB::CharacterAnimationSet DB::characterAnimationSet(CharAnimSetId setId, ActionModeId actionModeId) const {
+	return _charAnimSets.get(setId, actionModeId, "character animation set");
+}
+
+void DB::loadCharAnimSets() {
+	char *full = loadFile(_charAnimSets._data, path, "characteranimationset.csv");
+	skipWhitespace(full);
+	while (*full) {
+		CharacterAnimationSet set;
+		set._id = nextInteger(full);
+		set._actionMode = nextInteger(full);
+		set._name = nextString(full);
+		set._left = nextInteger(full);
+		set._right = nextInteger(full);
+		set._forward = nextInteger(full);
+		set._back = nextInteger(full, true);
+		_charAnimSets._map.setVal({ set._id, set._actionMode }, set);
 	}
-	_scripts[_scriptLines[scriptBegin]._script] = { scriptBegin, _scriptLines.size() - scriptBegin };
+}
+
+Span<const DB::Choice> DB::choices(ChoiceSetId choiceId) const {
+	return _choices.get(choiceId, "choice set");
+}
+
+void DB::loadChoices() {
+	char *full = loadFile(_choices._data, path, "choiceliste.csv");
+	skipWhitespace(full);
+	while (*full) {
+		Choice choice;
+		choice._id = nextInteger(full);
+		choice._line = nextInteger(full);
+		choice._active = nextBool(full);
+		choice._text = nextString(full);
+		choice._script = nextInteger(full, true);
+		_choices._items.push_back(choice);
+	}
+
+	_scripts.setupSequences([&](const ScriptLine &a, const ScriptLine &b) {
+		return a._id != b._id
+			? a._id < b._id
+			: a._line < b._line;
+	});
+}
+
+DB::Room DB::room(RoomId id) const {
+	return _rooms.get(id, "room");
+}
+
+void DB::loadRooms() {
+	char *full = loadFile(_rooms._data, path, "raum.csv");
+	skipWhitespace(full);
+	while (*full) {
+		Room room;
+		room._id = nextInteger(full);
+		room._name = nextString(full);
+		room._background = nextString(full);
+		room._music = nextString(full);
+		room._walkAreaId = nextInteger(full);
+		room._vspeed = nextFloat(full);
+		room._hspeed = nextFloat(full);
+		room._baseYAtZeroScale = nextFloat(full);
+		room._baseYAtFullScale = nextFloat(full);
+		room._guiId = nextInteger(full);
+		room._charAnimSet = nextInteger(full);
+		room._timer = nextInteger(full, true);
+		_rooms._map.setVal(room._id, room);
+	}
 }
 
 }

@@ -20,6 +20,7 @@
  */
 
 #include "edna/edna.h"
+#include "edna/db.h"
 #include "graphics/framelimiter.h"
 #include "edna/detection.h"
 #include "edna/console.h"
@@ -53,6 +54,8 @@ Common::String EdnaEngine::getGameId() const {
 }
 
 Common::Error EdnaEngine::run() {
+	_db.reset(new DB("script/de"));
+
 	// Initialize 320x200 paletted graphics mode
 	initGraphics(320, 200);
 	_screen = new Graphics::Screen();

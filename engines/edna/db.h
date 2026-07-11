@@ -31,11 +31,19 @@ using FileData = Common::SpanOwner<Common::Span<char>>;
 using ScriptId = uint32;
 using CharAnimSetId = uint32;
 using ActionModeId = uint32;
-using ImageSequenceId = uint32;
+using AnimationId = uint32;
+using AnimationFrameId = uint32;
 using ChoiceSetId = uint32;
 using RoomId = uint32;
+using RoomObjectId = uint32;
+using RoomObjectDisplayId = uint32;
+using RoomInteractionId = uint32;
+using RoomExitId = uint32;
 using WalkableAreaId = uint32;
 using TimerId = uint32;
+using ItemId = uint32;
+using TopicId = uint32;
+using NPCId = uint32;
 using GuiId = uint32; // not a DB data
 
 class DB final {
@@ -55,37 +63,166 @@ public:
 		CharAnimSetId _id = 0;
 		ActionModeId _actionMode = 0;
 		const char *_name = "";
-		ImageSequenceId _left = 0;
-		ImageSequenceId _right = 0;
-		ImageSequenceId _forward = 0;
-		ImageSequenceId _back = 0;
+		AnimationId _left = 0;
+		AnimationId _right = 0;
+		AnimationId _forward = 0;
+		AnimationId _back = 0;
 	};
 	CharacterAnimationSet characterAnimationSet(CharAnimSetId set, ActionModeId actionMode) const;
 
 	struct Choice {
-		ChoiceSetId _id;
-		uint32 _line;
-		bool _active;
-		const char *_text;
-		ScriptId _script;
+		ChoiceSetId _id = 0;
+		uint32 _line = 0;
+		bool _active = false;
+		const char *_text = "";
+		ScriptId _script = 0;
 	};
 	Common::Span<const Choice> choices(ChoiceSetId choiceId) const;
 
 	struct Room {
-		RoomId _id;
-		const char *_name;
-		const char *_background;
-		const char *_music;
-		WalkableAreaId _walkAreaId;
-		float _vspeed;
-		float _hspeed;
-		float _baseYAtZeroScale;
-		float _baseYAtFullScale;
-		GuiId _guiId;
-		CharAnimSetId _charAnimSet;
-		TimerId _timer;
+		RoomId _id = 0;
+		const char *_name = "";
+		const char *_background = "";
+		const char *_music = "";
+		WalkableAreaId _walkAreaId = 0;
+		float _vspeed = 0;
+		float _hspeed = 0;
+		float _baseYAtZeroScale = 0;
+		float _baseYAtFullScale = 0;
+		GuiId _guiId = 0;
+		CharAnimSetId _charAnimSet = 0;
+		TimerId _timer = 0;
 	};
 	Room room(RoomId id) const;
+
+	struct RoomObject {
+		RoomObjectId _id = 0;
+		const char *_name = "";
+		RoomId _room = 0;
+		int32 _posX = 0;
+		int32 _posY = 0;
+		int32 _posZ = 0;
+		const char *_image = "";
+		bool _active = false;
+
+		// children
+		RoomInteractionId _toInteraction = 0;
+		RoomObjectDisplayId _toDisplay = 0;
+		TopicId _toTopicId = 0;
+		TopicId _toTopicObject = 0;
+		NPCId _toNPC = 0;
+	};
+	RoomObject roomObject(RoomObjectId id) const;
+
+	struct RoomObjectDisplay {
+		RoomObjectDisplayId _id = 0;
+		RoomObjectId _object = 0;
+		AnimationId _animation = 0;
+		int32 _startX = 0;
+		int32 _startY = 0;
+		int32 _endX = 0;
+		int32 _endY = 0;
+	};
+	RoomObjectDisplay roomObjectDisplay(RoomObjectDisplayId id) const;
+
+	struct RoomInteraction {
+		RoomInteractionId _id = 0;
+		RoomObjectId _roomObject = 0;
+		const char *_name = "";
+		int32 _walkToX = 0;
+		int32 _walkToY = 0;
+		const char *_lookDirection = "";
+		const char *_defaultAction = "";
+		ScriptId _lookScript = 0;
+		ScriptId _useScript = 0;
+		ScriptId _takeScript = 0;
+		ScriptId _talkScript = 0;
+
+		// children
+		RoomExitId _toExit = 0;
+	};
+	RoomInteraction roomInteraction(RoomInteractionId id) const;
+
+	struct Item {
+		ItemId _id = 0;
+		GuiId _gui = 0;
+		const char *_name = "";
+		const char *_icon = "";
+		uint32 _inventoryPos = 0;
+		const char *_defaultAction = "";
+		ScriptId _lookScript = 0;
+		ScriptId _useScript = 0;
+		ScriptId _talkScript = 0;
+	};
+	Item item(ItemId id) const;
+
+	struct Topic {
+		TopicId _id = 0; ///< this is somehow also a room object id?
+		RoomObjectId _roomObject = 0;
+		const char *_name = "";
+		const char *_icon = "";
+		uint32 _inventoryPos = 0;
+		uint32 _topicRowPos = 0;
+		ScriptId _script = 0;
+	};
+	Topic topic(TopicId id) const;
+
+	ScriptId itemInteraction(ItemId item1, ItemId item2) const; ///< can return 0
+	ScriptId roomItemInteraction(ItemId item, RoomObjectId object) const; ///< can return 0
+
+	struct RoomExit {
+		RoomExitId _id = 0;
+		RoomInteractionId _interaction = 0;
+		RoomId _target = 0;
+		int32 _walkToX = 0;
+		int32 _walkToY = 0;
+		const char *_lookDirection = "";
+	};
+	RoomExit roomExit(RoomExitId id) const;
+
+	struct Animation {
+		AnimationId _id = 0;
+		const char *_name = "";
+		uint32 _duration = 0;
+		bool _loop = false;
+	};
+	Animation animation(AnimationId id) const;
+
+	struct AnimationFrame {
+		AnimationFrameId _frame = 0;
+		AnimationId _id = 0;
+		const char *_image = "";
+		uint32 _altDuration = 0;
+	};
+	Common::Span<const AnimationFrame> animationFrames(AnimationId id) const;
+
+	struct NPC {
+		NPCId _id = 0;
+		RoomObjectId _object = 0;
+		CharAnimSetId _charAnimSet = 0;
+		const char *_name = "";
+		const char *_font = "";
+		float _vspeed = 0;
+		float _hspeed = 0;
+		float _baseYAtZeroScale = 0;
+		float _baseYAtFullScale = 0;
+	};
+	NPC npc(NPCId id) const;
+
+	struct WalkableArea {
+		WalkableAreaId _id = 0;
+		RoomId _room = 0; // no foreign key necessary, room has an explicit attribute
+		const char *_file = "";
+	};
+	WalkableArea walkableArea(WalkableAreaId id) const;
+
+	struct Timer {
+		TimerId _id = 0;
+		ScriptId _script = 0;
+		uint32 _duration = 0;
+		bool _active = false;
+	};
+	Timer timer(TimerId id) const;
 
 private:
 	// For singular data referenced by one integer key
@@ -94,6 +231,7 @@ private:
 		FileData _data;
 		Common::HashMap<uint32, TValue> _map;
 
+		void set(uint32 key, const TValue &value, const char *name);
 		TValue get(uint32 key, const char *name) const;
 	};
 
@@ -114,6 +252,7 @@ private:
 		FileData _data;
 		Common::HashMap<TwoKey, TValue, TwoKeyHash, TwoKeyEqualTo> _map;
 
+		void set(uint32 key1, uint32 key2, const TValue &value, const char *name);
 		TValue get(uint32 key1, uint32 key2, const char *name) const;
 	};
 
@@ -137,12 +276,38 @@ private:
 	void loadCharAnimSets();
 	void loadChoices();
 	void loadRooms();
+	void loadRoomObjects();
+	void loadRoomObjectDisplays();
+	void loadRoomInteractions();
+	void loadRoomItemInteractions();
+	void loadRoomExits();
+	void loadItems();
+	void loadItemInteractions();
+	void loadTopics();
+	void loadAnimations();
+	void loadAnimationFrames();
+	void loadNPCs();
+	void loadWalkableAreas();
+	void loadTimers();
 
 	const Common::Path path;
 	SequenceSet<ScriptLine> _scripts;
 	TwoKeyDataSet<CharacterAnimationSet> _charAnimSets;
 	SequenceSet<Choice> _choices;
 	SimpleDataSet<Room> _rooms;
+	SimpleDataSet<RoomObject> _roomObjects;
+	SimpleDataSet<RoomObjectDisplay> _roomObjectDisplays;
+	SimpleDataSet<RoomInteraction> _roomInteractions;
+	TwoKeyDataSet<ScriptId> _roomItemInteractions;
+	SimpleDataSet<RoomExit> _roomExits;
+	SimpleDataSet<Item> _items;
+	TwoKeyDataSet<ScriptId> _itemInteractions;
+	SimpleDataSet<Topic> _topics;
+	SimpleDataSet<Animation> _animations;
+	SequenceSet<AnimationFrame> _animationFrames;
+	SimpleDataSet<NPC> _npcs;
+	SimpleDataSet<WalkableArea> _walkableAreas;
+	SimpleDataSet<Timer> _timers;
 };
 
 }

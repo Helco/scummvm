@@ -46,10 +46,12 @@ using TopicId = uint32;
 using NPCId = uint32;
 using GuiId = uint32; // not a DB data
 
-class DB final {
+class DB {
 public:
 	DB(const Common::Path &path);
 	~DB();
+
+	uint32 validate(); ///< implemented in db_validation.cpp
 
 	struct ScriptLine {
 		ScriptId _id = 0;
@@ -105,7 +107,7 @@ public:
 		const char *_image = "";
 		bool _active = false;
 
-		// children
+		// associations
 		RoomInteractionId _toInteraction = 0;
 		RoomObjectDisplayId _toDisplay = 0;
 		TopicId _toTopicId = 0;
@@ -127,7 +129,7 @@ public:
 
 	struct RoomInteraction {
 		RoomInteractionId _id = 0;
-		RoomObjectId _roomObject = 0;
+		RoomObjectId _object = 0;
 		const char *_name = "";
 		int32 _walkToX = 0;
 		int32 _walkToY = 0;
@@ -138,7 +140,7 @@ public:
 		ScriptId _takeScript = 0;
 		ScriptId _talkScript = 0;
 
-		// children
+		// associations
 		RoomExitId _toExit = 0;
 	};
 	RoomInteraction roomInteraction(RoomInteractionId id) const;
@@ -156,6 +158,7 @@ public:
 	};
 	Item item(ItemId id) const;
 
+	// a topic is a kind of item only used for when controlling Harvey
 	struct Topic {
 		TopicId _id = 0; ///< this is somehow also a room object id?
 		RoomObjectId _roomObject = 0;
@@ -228,11 +231,14 @@ private:
 	// For singular data referenced by one integer key
 	template<class TValue>
 	struct SimpleDataSet {
+		const char *const _typeName;
 		FileData _data;
 		Common::HashMap<uint32, TValue> _map;
 
-		void set(uint32 key, const TValue &value, const char *name);
-		TValue get(uint32 key, const char *name) const;
+		SimpleDataSet(const char *typeName);
+		void set(uint32 key, const TValue &value);
+		TValue get(uint32 key) const;
+		uint32 validateRef(uint32 key, const char *sourceType, uint32 sourceKey) const;
 	};
 
 	// For singular data referenced by two integer keys
@@ -248,12 +254,17 @@ private:
 		}
 	};
 	template<class TValue>
+	using TwoKeyMap = Common::HashMap<TwoKey, TValue, TwoKeyHash, TwoKeyEqualTo>;
+	template<class TValue>
 	struct TwoKeyDataSet {
+		const char *const _typeName;
 		FileData _data;
-		Common::HashMap<TwoKey, TValue, TwoKeyHash, TwoKeyEqualTo> _map;
+		TwoKeyMap<TValue> _map;
 
-		void set(uint32 key1, uint32 key2, const TValue &value, const char *name);
-		TValue get(uint32 key1, uint32 key2, const char *name) const;
+		TwoKeyDataSet(const char *typeName);
+		void set(uint32 key1, uint32 key2, const TValue &value);
+		TValue get(uint32 key1, uint32 key2) const;
+		uint32 validateRef(uint32 key, const char *sourceType, uint32 sourceKey) const; ///< Checks that some pair starting with key exists
 	};
 
 	// For a sequence referenced by one key
@@ -263,13 +274,17 @@ private:
 	};
 	template<class TValue>
 	struct SequenceSet {
+		const char *const _typeName;
 		FileData _data;
 		Common::Array<TValue> _items;
 		Common::HashMap<uint32, Range> _map;
 
+		SequenceSet(const char *typeName);
 		template<class StrictWeakOrdering>
 		void setupSequences(StrictWeakOrdering comp);
-		Common::Span<const TValue> get(uint32 key, const char *name) const;
+		Common::Span<const TValue> get(uint32 key) const;
+		uint32 validateRef(uint32 key, const char *sourceType, uint32 sourceKey) const;
+		uint32 validateRef(uint32 key, const char *sourceType, uint32 sourceKey1, uint32 sourceKey2) const;
 	};
 
 	void loadScripts();
@@ -289,6 +304,27 @@ private:
 	void loadNPCs();
 	void loadWalkableAreas();
 	void loadTimers();
+
+	uint32 validateScripts() const;
+	uint32 validateCharAnimSets() const;
+	uint32 validateChoices() const;
+	uint32 validateRooms() const;
+	uint32 validateRoomObjects() const;
+	uint32 validateRoomObjectDisplays() const;
+	uint32 validateRoomInteractions() const;
+	uint32 validateRoomItemInteractions() const;
+	uint32 validateRoomExits() const;
+	uint32 validateItems() const;
+	uint32 validateItemInteractions() const;
+	uint32 validateTopics() const;
+	uint32 validateAnimations() const;
+	uint32 validateAnimationFrames() const;
+	uint32 validateNPCs() const;
+	uint32 validateWalkableAreas() const;
+	uint32 validateTimers() const;
+
+	static uint32 validateOptPath(const char *path, const char *sourceType, uint32 sourceKey);
+	static uint32 validatePath(const char *path, const char *sourceType, uint32 sourceKey, const char *ext = "");
 
 	const Common::Path path;
 	SequenceSet<ScriptLine> _scripts;

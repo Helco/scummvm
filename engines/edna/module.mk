@@ -1,7 +1,7 @@
 MODULE := engines/edna
 
 MODULE_OBJS = \
-	db.o
+	db.o \
 	console.o \
 	edna.o \
 	metaengine.o

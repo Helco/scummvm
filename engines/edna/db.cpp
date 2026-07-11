@@ -101,13 +101,28 @@ static char *nextString(char *&full, bool isLastColumn = false) {
 	return cell.data();
 }
 
-static uint32 nextInteger(char *&full, bool isLastColumn = false) {
+static uint32 nextUint(char *&full, bool isLastColumn = false, bool isOptional = false) {
 	auto cell = nextCell(full, isLastColumn);
+	if (cell.size() == 0 && isOptional)
+		return 0;
+
 	char *end = nullptr;
 	auto value = strtoul(cell.data(), &end, 10);
 	if (end == nullptr || end == cell.data()) // we cannot check for '\0' as some lines have extra, unused cells...
 		error("Could not extract integer from data file");
 	return (uint32)value;
+}
+
+static int32 nextSint(char *&full, bool isLastColumn = false, bool isOptional = false) {
+	auto cell = nextCell(full, isLastColumn);
+	if (cell.size() == 0 && isOptional)
+		return 0;
+
+	char *end = nullptr;
+	auto value = strtol(cell.data(), &end, 10);
+	if (end == nullptr || end == cell.data()) // we cannot check for '\0' as some lines have extra, unused cells...
+		error("Could not extract integer from data file");
+	return (int32)value;
 }
 
 static float nextFloat(char *&full, bool isLastColumn = false) {
@@ -130,12 +145,33 @@ static bool nextBool(char *&full, bool isLastColumn = false) {
 
 DB::DB(const Path &path) : path(path) {
 	loadScripts();
+	loadAnimations();
+	loadAnimationFrames();
 	loadCharAnimSets();
 	loadChoices();
+	loadItems();
+	loadItemInteractions();
 	loadRooms();
+	loadRoomObjects();
+	loadRoomObjectDisplays();
+	loadRoomInteractions();
+	loadRoomItemInteractions();
+	loadRoomExits();
+	loadTopics();
+	loadNPCs();
+	loadWalkableAreas();
+	loadTimers();
 }
 
 DB::~DB() {}
+
+template<class TValue>
+void DB::SimpleDataSet<TValue>::set(uint32 key, const TValue &value, const char *name) {
+	if (_map.contains(key))
+		warning("Duplicate %s: %u", name, key);
+	else
+		_map.setVal(key, value);
+}
 
 template<class TValue>
 TValue DB::SimpleDataSet<TValue>::get(uint32 key, const char *name) const {
@@ -143,6 +179,14 @@ TValue DB::SimpleDataSet<TValue>::get(uint32 key, const char *name) const {
 	if (!_map.tryGetVal(key, value))
 		error("Missing %s: %u", name, key);
 	return value;
+}
+
+template<class TValue>
+void DB::TwoKeyDataSet<TValue>::set(uint32 key1, uint32 key2, const TValue &value, const char *name) {
+	if (_map.contains({ key1, key2 }))
+		warning("Duplicate %s: %u %u", name, key1, key2);
+	else
+		_map.setVal({ key1, key2 }, value);
 }
 
 template<class TValue>
@@ -186,8 +230,8 @@ void DB::loadScripts() {
 	skipWhitespace(full);
 	while (*full) {
 		ScriptLine scriptLine;
-		scriptLine._id = nextInteger(full);
-		scriptLine._line = nextInteger(full);
+		scriptLine._id = nextUint(full);
+		scriptLine._line = nextUint(full);
 		scriptLine._command = nextString(full);
 		scriptLine._comment = nextString(full, true);
 		_scripts._items.push_back(scriptLine);
@@ -209,14 +253,14 @@ void DB::loadCharAnimSets() {
 	skipWhitespace(full);
 	while (*full) {
 		CharacterAnimationSet set;
-		set._id = nextInteger(full);
-		set._actionMode = nextInteger(full);
+		set._id = nextUint(full);
+		set._actionMode = nextUint(full);
 		set._name = nextString(full);
-		set._left = nextInteger(full);
-		set._right = nextInteger(full);
-		set._forward = nextInteger(full);
-		set._back = nextInteger(full, true);
-		_charAnimSets._map.setVal({ set._id, set._actionMode }, set);
+		set._left = nextUint(full);
+		set._right = nextUint(full);
+		set._forward = nextUint(full);
+		set._back = nextUint(full, true);
+		_charAnimSets.set(set._id, set._actionMode, set, "character animation set");
 	}
 }
 
@@ -229,11 +273,11 @@ void DB::loadChoices() {
 	skipWhitespace(full);
 	while (*full) {
 		Choice choice;
-		choice._id = nextInteger(full);
-		choice._line = nextInteger(full);
+		choice._id = nextUint(full);
+		choice._line = nextUint(full);
 		choice._active = nextBool(full);
 		choice._text = nextString(full);
-		choice._script = nextInteger(full, true);
+		choice._script = nextUint(full, true);
 		_choices._items.push_back(choice);
 	}
 
@@ -253,19 +297,292 @@ void DB::loadRooms() {
 	skipWhitespace(full);
 	while (*full) {
 		Room room;
-		room._id = nextInteger(full);
+		room._id = nextUint(full);
 		room._name = nextString(full);
 		room._background = nextString(full);
 		room._music = nextString(full);
-		room._walkAreaId = nextInteger(full);
+		room._walkAreaId = nextUint(full);
 		room._vspeed = nextFloat(full);
 		room._hspeed = nextFloat(full);
 		room._baseYAtZeroScale = nextFloat(full);
 		room._baseYAtFullScale = nextFloat(full);
-		room._guiId = nextInteger(full);
-		room._charAnimSet = nextInteger(full);
-		room._timer = nextInteger(full, true);
-		_rooms._map.setVal(room._id, room);
+		room._guiId = nextUint(full);
+		room._charAnimSet = nextUint(full);
+		room._timer = nextUint(full, true);
+		_rooms.set(room._id, room, "room");
+	}
+}
+
+DB::RoomObject DB::roomObject(RoomObjectId id) const {
+	return _roomObjects.get(id, "room object");
+}
+
+void DB::loadRoomObjects() {
+	char *full = loadFile(_roomObjects._data, path, "raumobjekt.csv");
+	skipWhitespace(full);
+	while (*full) {
+		RoomObject obj;
+		obj._id = nextUint(full);
+		obj._name = nextString(full);
+		obj._room = nextUint(full);
+		obj._posX = nextSint(full);
+		obj._posY = nextSint(full);
+		obj._posZ = nextSint(full);
+		obj._image = nextString(full);
+		obj._active = nextBool(full, true);
+		_roomObjects.set(obj._id, obj, "room object");
+	}
+}
+
+DB::RoomInteraction DB::roomInteraction(RoomInteractionId id) const {
+	return _roomInteractions.get(id, "room interaction");
+}
+
+void DB::loadRoomInteractions() {
+	char *full = loadFile(_roomInteractions._data, path, "raumobjektinteraktion.csv");
+	skipWhitespace(full);
+	while (*full) {
+		RoomInteraction interaction;
+		interaction._id = nextUint(full);
+		interaction._roomObject = nextUint(full);
+		interaction._name = nextString(full);
+		interaction._walkToX = nextSint(full);
+		interaction._walkToY = nextSint(full);
+		interaction._lookDirection = nextString(full);
+		interaction._defaultAction = nextString(full);
+		interaction._lookScript = nextUint(full);
+		interaction._useScript = nextUint(full);
+		interaction._takeScript = nextUint(full);
+		interaction._talkScript = nextUint(full, true);
+		_roomInteractions.set(interaction._id, interaction, "room interaction");
+
+		if (_roomObjects._map.contains(interaction._roomObject))
+			_roomObjects._map[interaction._roomObject]._toInteraction = interaction._id;
+	}
+}
+
+DB::Item DB::item(ItemId id) const {
+	return _items.get(id, "item");
+}
+
+void DB::loadItems() {
+	char *full = loadFile(_items._data, path, "inventarobjekt.csv");
+	skipWhitespace(full);
+	while (*full) {
+		Item item;
+		item._id = nextUint(full);
+		item._gui = nextUint(full);
+		item._name = nextString(full);
+		item._icon = nextString(full);
+		item._inventoryPos = nextUint(full);
+		item._defaultAction = nextString(full);
+		item._lookScript = nextUint(full);
+		item._useScript = nextUint(full);
+		item._talkScript = nextUint(full, true);
+		_items.set(item._id, item, "item");
+	}
+}
+
+DB::Topic DB::topic(TopicId id) const {
+	return _topics.get(id, "topic");
+}
+
+void DB::loadTopics() {
+	char *full = loadFile(_topics._data, path, "topic.csv");
+	skipWhitespace(full);
+	while (*full) {
+		Topic topic;
+		topic._id = nextUint(full);
+		topic._roomObject = nextUint(full);
+		topic._name = nextString(full);
+		topic._icon = nextString(full);
+		topic._inventoryPos = nextUint(full);
+		topic._topicRowPos = nextUint(full);
+		topic._script = nextUint(full, true);
+		_topics.set(topic._id, topic, "topic");
+
+		if (_roomObjects._map.contains(topic._id))
+			_roomObjects._map[topic._id]._toTopicId = topic._id;
+		if (_roomObjects._map.contains(topic._roomObject))
+			_roomObjects._map[topic._roomObject]._toTopicObject = topic._roomObject;
+	}
+}
+
+ScriptId DB::itemInteraction(ItemId item1, ItemId item2) const {
+	ScriptId script = 0;
+	_itemInteractions._map.tryGetVal({ item1, item2 }, script);
+	return script;
+}
+
+ScriptId DB::roomItemInteraction(ItemId item, RoomObjectId object) const {
+	ScriptId script = 0;
+	_roomItemInteractions._map.tryGetVal({ item, object }, script);
+	return script;
+}
+
+void DB::loadItemInteractions() {
+	char *full = loadFile(_itemInteractions._data, path, "inventarbenutzemit.csv");
+	skipWhitespace(full);
+	while (*full) {
+		ItemId item1 = nextUint(full);
+		ItemId item2 = nextUint(full);
+		ScriptId script = nextUint(full);
+		nextUint(full, true); // this is the actual primary key, but we don't need it
+		_itemInteractions.set(item1, item2, script, "item interaction");
+	}
+}
+
+DB::RoomExit DB::roomExit(RoomExitId id) const {
+	return _roomExits.get(id, "room exit");
+}
+
+void DB::loadRoomExits() {
+	char *full = loadFile(_roomExits._data, path, "ausgang.csv");
+	skipWhitespace(full);
+	while (*full) {
+		RoomExit exit;
+		exit._id = nextUint(full);
+		exit._interaction = nextUint(full);
+		exit._target = nextUint(full);
+		exit._walkToX = nextSint(full);
+		exit._walkToY = nextSint(full);
+		exit._lookDirection = nextString(full, true);
+		_roomExits.set(exit._id, exit, "room exit");
+
+		if (_roomInteractions._map.contains(exit._interaction))
+			_roomInteractions._map[exit._interaction]._toExit = exit._id;
+	}
+}
+
+void DB::loadRoomItemInteractions() {
+	char *full = loadFile(_roomItemInteractions._data, path, "benutzemit.csv");
+	skipWhitespace(full);
+	while (*full) {
+		ItemId item = nextUint(full);
+		RoomObjectId object = nextUint(full);
+		ScriptId script = nextUint(full, true);
+		_roomItemInteractions.set(item, object, script, "room item interaction");
+	}
+}
+
+DB::Animation DB::animation(AnimationId id) const {
+	return _animations.get(id, "animation");
+}
+
+void DB::loadAnimations() {
+	char *full = loadFile(_animations._data, path, "bildfolge.csv");
+	skipWhitespace(full);
+	while (*full) {
+		Animation anim;
+		anim._id = nextUint(full);
+		anim._name = nextString(full);
+		anim._duration = nextUint(full);
+		anim._loop = nextBool(full, true);
+		_animations.set(anim._id, anim, "animation");
+	}
+}
+
+Span<const DB::AnimationFrame> DB::animationFrames(AnimationId id) const {
+	return _animationFrames.get(id, "animation frame set");
+}
+
+void DB::loadAnimationFrames() {
+	char *full = loadFile(_animationFrames._data, path, "animationsbild.csv");
+	skipWhitespace(full);
+	while (*full) {
+		AnimationFrame frame;
+		frame._frame = nextUint(full); // this is originally the sole primary key, but it is much easier to consume as sequence
+		frame._id = nextUint(full);
+		frame._image = nextString(full);
+		frame._altDuration = nextUint(full, true);
+		_animationFrames._items.push_back(frame);
+	}
+
+	_animationFrames.setupSequences([&](const AnimationFrame &a, const AnimationFrame &b) {
+		return a._id != b._id
+			? a._id < b._id
+			: a._frame < b._frame;
+	});
+}
+
+DB::RoomObjectDisplay DB::roomObjectDisplay(RoomObjectDisplayId id) const {
+	return _roomObjectDisplays.get(id, "room object display");
+}
+
+void DB::loadRoomObjectDisplays() {
+	char *full = loadFile(_roomObjectDisplays._data, path, "raumobjektdarstellung.csv");
+	skipWhitespace(full);
+	while (*full) {
+		RoomObjectDisplay display;
+		display._id = nextUint(full);
+		display._object = nextUint(full);
+		display._animation = nextUint(full, false, true);
+		display._startX = nextSint(full, false, true); // probably a mistake that this can be optional
+		display._startY = nextSint(full);
+		display._endX = nextSint(full);
+		display._endY = nextSint(full, true);
+		_roomObjectDisplays.set(display._id, display, "room object display");
+
+		if (_roomObjects._map.contains(display._object))
+			_roomObjects._map[display._object]._toDisplay = display._id;
+	}
+}
+
+DB::NPC DB::npc(NPCId id) const {
+	return _npcs.get(id, "npc");
+}
+
+void DB::loadNPCs() {
+	char *full = loadFile(_npcs._data, path, "nsc.csv");
+	skipWhitespace(full);
+	while (*full) {
+		NPC npc;
+		npc._id = nextUint(full);
+		npc._object = nextUint(full);
+		npc._charAnimSet = nextUint(full);
+		npc._name = nextString(full);
+		npc._font = nextString(full);
+		npc._vspeed = nextFloat(full);
+		npc._hspeed = nextFloat(full);
+		npc._baseYAtZeroScale = nextFloat(full);
+		npc._baseYAtFullScale = nextFloat(full, true);
+		_npcs.set(npc._id, npc, "npc");
+
+		if (_roomObjects._map.contains(npc._id))
+			_roomObjects._map[npc._id]._toNPC = npc._id;
+	}
+}
+
+DB::WalkableArea DB::walkableArea(WalkableAreaId id) const {
+	return _walkableAreas.get(id, "walkable area");
+}
+
+void DB::loadWalkableAreas() {
+	char *full = loadFile(_walkableAreas._data, path, "walkableareamap.csv");
+	skipWhitespace(full);
+	while (*full) {
+		WalkableArea area;
+		area._id = nextUint(full);
+		area._room = nextUint(full);
+		area._file = nextString(full, true);
+		_walkableAreas.set(area._id, area, "walkable area");
+	}
+}
+
+DB::Timer DB::timer(TimerId id) const {
+	return _timers.get(id, "timer");
+}
+
+void DB::loadTimers() {
+	char *full = loadFile(_timers._data, path, "timer.csv");
+	skipWhitespace(full);
+	while (*full) {
+		Timer timer;
+		timer._id = nextUint(full);
+		timer._script = nextUint(full);
+		timer._duration = nextUint(full);
+		timer._active = nextBool(full, true);
+		_timers.set(timer._id, timer, "timer");
 	}
 }
 

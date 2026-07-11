@@ -20,18 +20,24 @@
  */
 
 #include "edna/console.h"
+#include "edna/db.h"
+#include "edna/edna.h"
 
 namespace Edna {
 
 Console::Console() : GUI::Debugger() {
-	registerCmd("test",   WRAP_METHOD(Console, Cmd_test));
+	registerCmd("validate", WRAP_METHOD(Console, cmdValidate));
 }
 
 Console::~Console() {
 }
 
-bool Console::Cmd_test(int argc, const char **argv) {
-	debugPrintf("Test\n");
+bool Console::cmdValidate(int argc, const char **argv) {
+	uint32 errors = g_engine->db().validate();
+	if (errors == 0)
+		debugPrintf("Validation successful!\n");
+	else
+		debugPrintf("Validation failed (%u errors)!\n\n", errors);
 	return true;
 }
 

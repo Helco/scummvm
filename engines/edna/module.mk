@@ -2,6 +2,7 @@ MODULE := engines/edna
 
 MODULE_OBJS = \
 	db.o \
+	db_validation.o \
 	console.o \
 	edna.o \
 	metaengine.o

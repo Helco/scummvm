@@ -20,8 +20,7 @@
  */
 
 #include "common/file.h"
-
-#include "db.h"
+#include "edna/db.h"
 
 using namespace Common;
 
@@ -143,7 +142,25 @@ static bool nextBool(char *&full, bool isLastColumn = false) {
 	error("Could not extract bool from data file");
 }
 
-DB::DB(const Path &path) : path(path) {
+DB::DB(const Path &path)
+	: path(path)
+	, _scripts("script")
+	, _charAnimSets("character animation set")
+	, _choices("choice set")
+	, _rooms("room")
+	, _roomObjects("room object")
+	, _roomObjectDisplays("room object display")
+	, _roomInteractions("room interaction")
+	, _roomItemInteractions("room item interaction")
+	, _roomExits("room exit")
+	, _items("item")
+	, _itemInteractions("item interaction")
+	, _topics("topic")
+	, _animations("animation")
+	, _animationFrames("animation frame")
+	, _npcs("npc")
+	, _walkableAreas("walkable area")
+	, _timers("timer") {
 	loadScripts();
 	loadAnimations();
 	loadAnimationFrames();
@@ -166,42 +183,51 @@ DB::DB(const Path &path) : path(path) {
 DB::~DB() {}
 
 template<class TValue>
-void DB::SimpleDataSet<TValue>::set(uint32 key, const TValue &value, const char *name) {
+DB::SimpleDataSet<TValue>::SimpleDataSet(const char *typeName) : _typeName(typeName) { }
+
+template<class TValue>
+void DB::SimpleDataSet<TValue>::set(uint32 key, const TValue &value) {
 	if (_map.contains(key))
-		warning("Duplicate %s: %u", name, key);
+		warning("Duplicate %s: %u", _typeName, key);
 	else
 		_map.setVal(key, value);
 }
 
 template<class TValue>
-TValue DB::SimpleDataSet<TValue>::get(uint32 key, const char *name) const {
+TValue DB::SimpleDataSet<TValue>::get(uint32 key) const {
 	TValue value;
 	if (!_map.tryGetVal(key, value))
-		error("Missing %s: %u", name, key);
+		error("Missing %s: %u", _typeName, key);
 	return value;
 }
 
 template<class TValue>
-void DB::TwoKeyDataSet<TValue>::set(uint32 key1, uint32 key2, const TValue &value, const char *name) {
+DB::TwoKeyDataSet<TValue>::TwoKeyDataSet(const char *typeName) : _typeName(typeName) { }
+
+template<class TValue>
+void DB::TwoKeyDataSet<TValue>::set(uint32 key1, uint32 key2, const TValue &value) {
 	if (_map.contains({ key1, key2 }))
-		warning("Duplicate %s: %u %u", name, key1, key2);
+		warning("Duplicate %s: %u %u", _typeName, key1, key2);
 	else
 		_map.setVal({ key1, key2 }, value);
 }
 
 template<class TValue>
-TValue DB::TwoKeyDataSet<TValue>::get(uint32 key1, uint32 key2, const char *name) const {
+TValue DB::TwoKeyDataSet<TValue>::get(uint32 key1, uint32 key2) const {
 	TValue value;
 	if (!_map.tryGetVal({ key1, key2 }, value ))
-		error("Missing %s: %u %u", name, key1, key2);
+		error("Missing %s: %u %u", _typeName, key1, key2);
 	return value;
 }
 
 template<class TValue>
-Span<const TValue> DB::SequenceSet<TValue>::get(uint32 key, const char *name) const {
+DB::SequenceSet<TValue>::SequenceSet(const char *typeName) : _typeName(typeName) { }
+
+template<class TValue>
+Span<const TValue> DB::SequenceSet<TValue>::get(uint32 key) const {
 	Range range;
 	if (!_map.tryGetVal(key, range))
-		error("Missing %s: %u", name, key);
+		error("Missing %s: %u", _typeName, key);
 	assert(range._begin < _items.size() && range._begin + range._count <= _items.size());
 	return { &_items[range._begin], range._count };
 }
@@ -222,7 +248,7 @@ void DB::SequenceSet<TValue>::setupSequences(StrictWeakOrdering comp) {
 }
 
 Span<const DB::ScriptLine> DB::script(ScriptId scriptId) const {
-	return _scripts.get(scriptId, "script");
+	return _scripts.get(scriptId);
 }
 
 void DB::loadScripts() {
@@ -245,7 +271,7 @@ void DB::loadScripts() {
 }
 
 DB::CharacterAnimationSet DB::characterAnimationSet(CharAnimSetId setId, ActionModeId actionModeId) const {
-	return _charAnimSets.get(setId, actionModeId, "character animation set");
+	return _charAnimSets.get(setId, actionModeId);
 }
 
 void DB::loadCharAnimSets() {
@@ -260,12 +286,12 @@ void DB::loadCharAnimSets() {
 		set._right = nextUint(full);
 		set._forward = nextUint(full);
 		set._back = nextUint(full, true);
-		_charAnimSets.set(set._id, set._actionMode, set, "character animation set");
+		_charAnimSets.set(set._id, set._actionMode, set);
 	}
 }
 
 Span<const DB::Choice> DB::choices(ChoiceSetId choiceId) const {
-	return _choices.get(choiceId, "choice set");
+	return _choices.get(choiceId);
 }
 
 void DB::loadChoices() {
@@ -289,7 +315,7 @@ void DB::loadChoices() {
 }
 
 DB::Room DB::room(RoomId id) const {
-	return _rooms.get(id, "room");
+	return _rooms.get(id);
 }
 
 void DB::loadRooms() {
@@ -309,12 +335,12 @@ void DB::loadRooms() {
 		room._guiId = nextUint(full);
 		room._charAnimSet = nextUint(full);
 		room._timer = nextUint(full, true);
-		_rooms.set(room._id, room, "room");
+		_rooms.set(room._id, room);
 	}
 }
 
 DB::RoomObject DB::roomObject(RoomObjectId id) const {
-	return _roomObjects.get(id, "room object");
+	return _roomObjects.get(id);
 }
 
 void DB::loadRoomObjects() {
@@ -330,12 +356,12 @@ void DB::loadRoomObjects() {
 		obj._posZ = nextSint(full);
 		obj._image = nextString(full);
 		obj._active = nextBool(full, true);
-		_roomObjects.set(obj._id, obj, "room object");
+		_roomObjects.set(obj._id, obj);
 	}
 }
 
 DB::RoomInteraction DB::roomInteraction(RoomInteractionId id) const {
-	return _roomInteractions.get(id, "room interaction");
+	return _roomInteractions.get(id);
 }
 
 void DB::loadRoomInteractions() {
@@ -344,7 +370,7 @@ void DB::loadRoomInteractions() {
 	while (*full) {
 		RoomInteraction interaction;
 		interaction._id = nextUint(full);
-		interaction._roomObject = nextUint(full);
+		interaction._object = nextUint(full);
 		interaction._name = nextString(full);
 		interaction._walkToX = nextSint(full);
 		interaction._walkToY = nextSint(full);
@@ -354,15 +380,15 @@ void DB::loadRoomInteractions() {
 		interaction._useScript = nextUint(full);
 		interaction._takeScript = nextUint(full);
 		interaction._talkScript = nextUint(full, true);
-		_roomInteractions.set(interaction._id, interaction, "room interaction");
+		_roomInteractions.set(interaction._id, interaction);
 
-		if (_roomObjects._map.contains(interaction._roomObject))
-			_roomObjects._map[interaction._roomObject]._toInteraction = interaction._id;
+		if (_roomObjects._map.contains(interaction._object))
+			_roomObjects._map[interaction._object]._toInteraction = interaction._id;
 	}
 }
 
 DB::Item DB::item(ItemId id) const {
-	return _items.get(id, "item");
+	return _items.get(id);
 }
 
 void DB::loadItems() {
@@ -379,12 +405,12 @@ void DB::loadItems() {
 		item._lookScript = nextUint(full);
 		item._useScript = nextUint(full);
 		item._talkScript = nextUint(full, true);
-		_items.set(item._id, item, "item");
+		_items.set(item._id, item);
 	}
 }
 
 DB::Topic DB::topic(TopicId id) const {
-	return _topics.get(id, "topic");
+	return _topics.get(id);
 }
 
 void DB::loadTopics() {
@@ -399,7 +425,7 @@ void DB::loadTopics() {
 		topic._inventoryPos = nextUint(full);
 		topic._topicRowPos = nextUint(full);
 		topic._script = nextUint(full, true);
-		_topics.set(topic._id, topic, "topic");
+		_topics.set(topic._id, topic);
 
 		if (_roomObjects._map.contains(topic._id))
 			_roomObjects._map[topic._id]._toTopicId = topic._id;
@@ -428,12 +454,12 @@ void DB::loadItemInteractions() {
 		ItemId item2 = nextUint(full);
 		ScriptId script = nextUint(full);
 		nextUint(full, true); // this is the actual primary key, but we don't need it
-		_itemInteractions.set(item1, item2, script, "item interaction");
+		_itemInteractions.set(item1, item2, script);
 	}
 }
 
 DB::RoomExit DB::roomExit(RoomExitId id) const {
-	return _roomExits.get(id, "room exit");
+	return _roomExits.get(id);
 }
 
 void DB::loadRoomExits() {
@@ -447,7 +473,7 @@ void DB::loadRoomExits() {
 		exit._walkToX = nextSint(full);
 		exit._walkToY = nextSint(full);
 		exit._lookDirection = nextString(full, true);
-		_roomExits.set(exit._id, exit, "room exit");
+		_roomExits.set(exit._id, exit);
 
 		if (_roomInteractions._map.contains(exit._interaction))
 			_roomInteractions._map[exit._interaction]._toExit = exit._id;
@@ -461,12 +487,12 @@ void DB::loadRoomItemInteractions() {
 		ItemId item = nextUint(full);
 		RoomObjectId object = nextUint(full);
 		ScriptId script = nextUint(full, true);
-		_roomItemInteractions.set(item, object, script, "room item interaction");
+		_roomItemInteractions.set(item, object, script);
 	}
 }
 
 DB::Animation DB::animation(AnimationId id) const {
-	return _animations.get(id, "animation");
+	return _animations.get(id);
 }
 
 void DB::loadAnimations() {
@@ -478,12 +504,12 @@ void DB::loadAnimations() {
 		anim._name = nextString(full);
 		anim._duration = nextUint(full);
 		anim._loop = nextBool(full, true);
-		_animations.set(anim._id, anim, "animation");
+		_animations.set(anim._id, anim);
 	}
 }
 
 Span<const DB::AnimationFrame> DB::animationFrames(AnimationId id) const {
-	return _animationFrames.get(id, "animation frame set");
+	return _animationFrames.get(id);
 }
 
 void DB::loadAnimationFrames() {
@@ -506,7 +532,7 @@ void DB::loadAnimationFrames() {
 }
 
 DB::RoomObjectDisplay DB::roomObjectDisplay(RoomObjectDisplayId id) const {
-	return _roomObjectDisplays.get(id, "room object display");
+	return _roomObjectDisplays.get(id);
 }
 
 void DB::loadRoomObjectDisplays() {
@@ -521,7 +547,7 @@ void DB::loadRoomObjectDisplays() {
 		display._startY = nextSint(full);
 		display._endX = nextSint(full);
 		display._endY = nextSint(full, true);
-		_roomObjectDisplays.set(display._id, display, "room object display");
+		_roomObjectDisplays.set(display._id, display);
 
 		if (_roomObjects._map.contains(display._object))
 			_roomObjects._map[display._object]._toDisplay = display._id;
@@ -529,7 +555,7 @@ void DB::loadRoomObjectDisplays() {
 }
 
 DB::NPC DB::npc(NPCId id) const {
-	return _npcs.get(id, "npc");
+	return _npcs.get(id);
 }
 
 void DB::loadNPCs() {
@@ -546,7 +572,7 @@ void DB::loadNPCs() {
 		npc._hspeed = nextFloat(full);
 		npc._baseYAtZeroScale = nextFloat(full);
 		npc._baseYAtFullScale = nextFloat(full, true);
-		_npcs.set(npc._id, npc, "npc");
+		_npcs.set(npc._id, npc);
 
 		if (_roomObjects._map.contains(npc._id))
 			_roomObjects._map[npc._id]._toNPC = npc._id;
@@ -554,7 +580,7 @@ void DB::loadNPCs() {
 }
 
 DB::WalkableArea DB::walkableArea(WalkableAreaId id) const {
-	return _walkableAreas.get(id, "walkable area");
+	return _walkableAreas.get(id);
 }
 
 void DB::loadWalkableAreas() {
@@ -565,12 +591,12 @@ void DB::loadWalkableAreas() {
 		area._id = nextUint(full);
 		area._room = nextUint(full);
 		area._file = nextString(full, true);
-		_walkableAreas.set(area._id, area, "walkable area");
+		_walkableAreas.set(area._id, area);
 	}
 }
 
 DB::Timer DB::timer(TimerId id) const {
-	return _timers.get(id, "timer");
+	return _timers.get(id);
 }
 
 void DB::loadTimers() {
@@ -582,7 +608,7 @@ void DB::loadTimers() {
 		timer._script = nextUint(full);
 		timer._duration = nextUint(full);
 		timer._active = nextBool(full, true);
-		_timers.set(timer._id, timer, "timer");
+		_timers.set(timer._id, timer);
 	}
 }
 

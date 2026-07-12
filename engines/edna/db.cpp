@@ -327,6 +327,8 @@ void DB::loadRooms() {
 		room._name = nextString(full);
 		room._background = nextString(full);
 		room._music = nextString(full);
+		if (*room._music == '/') // this messes up file lookup
+			room._music++;
 		room._walkAreaId = nextUint(full);
 		room._vspeed = nextFloat(full);
 		room._hspeed = nextFloat(full);

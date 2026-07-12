@@ -26,6 +26,9 @@
 
 namespace Edna {
 
+static constexpr const int kScreenWidth = 800;
+static constexpr const int kScreenHeight = 600;
+
 using FileData = Common::SpanOwner<Common::Span<char>>;
 
 using ScriptId = uint32;

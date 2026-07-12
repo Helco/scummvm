@@ -21,6 +21,8 @@
 
 #include "edna/edna.h"
 #include "edna/db.h"
+
+#include "engines/util.h"
 #include "graphics/framelimiter.h"
 #include "edna/detection.h"
 #include "edna/console.h"
@@ -45,15 +47,6 @@ EdnaEngine::EdnaEngine(OSystem *syst, const ADGameDescription *gameDesc) : Engin
 }
 
 EdnaEngine::~EdnaEngine() {
-	delete _screen;
-}
-
-uint32 EdnaEngine::getFeatures() const {
-	return _gameDescription->flags;
-}
-
-String EdnaEngine::getGameId() const {
-	return _gameDescription->gameId;
 }
 
 static void addArchive(const char *name) {
@@ -66,54 +59,57 @@ static void addArchive(const char *name) {
 }
 
 Error EdnaEngine::run() {
+	setDebugger(new Console());
+
 	const char *language = getLanguageCode(_gameDescription->language);
 	addArchive("audio.jar");
 	addArchive("comments.jar");
 	addArchive("visual.jar");
 	addArchive((String("speech_") + language + ".jar").c_str());
 
-	_db.reset(new DB(Path("script/").appendInPlace(language)));
-
-	// Initialize 320x200 paletted graphics mode
-	initGraphics(320, 200);
-	_screen = new Graphics::Screen();
-
-	// Set the engine's debugger console
-	setDebugger(new Console());
+	_db.reset(new DB(Path("script/").appendInPlace(language))); 
+	initGraphics();
 
 	// If a savegame was selected from the launcher, load it
 	int saveSlot = ConfMan.getInt("save_slot");
 	if (saveSlot != -1)
 		(void)loadGameState(saveSlot);
 
-	// Draw a series of boxes on screen as a sample
-	for (int i = 0; i < 100; ++i)
-		_screen->frameRect(Common::Rect(i, i, 320 - i, 200 - i), i);
-	_screen->update();
-
-	// Simple event handling loop
-	byte pal[256 * 3] = { 0 };
 	Common::Event e;
-	int offset = 0;
-
-	Graphics::FrameLimiter limiter(g_system, 60);
+	Graphics::FrameLimiter limiter(g_system, 40); // this is the original framerate in 1.3.1 
 	while (!shouldQuit()) {
 		while (g_system->getEventManager()->pollEvent(e)) {
 		}
 
-		// Cycle through a simple palette
-		++offset;
-		for (int i = 0; i < 256; ++i)
-			pal[i * 3 + 1] = (i + offset) % 256;
-		g_system->getPaletteManager()->setPalette(pal, 0, 256);
-		// Delay for a bit. All events loops should have a delay
-		// to prevent the system being unduly loaded
 		limiter.delayBeforeSwap();
 		_screen->update();
 		limiter.startFrame();
 	}
 
 	return Common::kNoError;
+}
+
+void EdnaEngine::initGraphics() {
+	auto formats = g_system->getSupportedFormats();
+	for (auto it = formats.end(); it != formats.end(); ) {
+		if (it->bpp() == 32)
+			it++;
+		else
+			it = formats.erase(it);
+	}
+	if (formats.empty()) {
+		formats = g_system->getSupportedFormats();
+		for (auto it = formats.end(); it != formats.end(); ) {
+			if (it->bpp() == 24 && it->aBits() == 0)
+				it++;
+			else
+				it = formats.erase(it);
+		}
+	}
+	if (formats.empty())
+		error("Could not find any supported 32bit or 24bit screen format");
+	::initGraphics(kScreenWidth, kScreenHeight, &formats.front());
+	_screen.reset(new Graphics::Screen());
 }
 
 Error EdnaEngine::syncGame(Serializer &s) {

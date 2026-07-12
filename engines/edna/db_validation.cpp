@@ -50,12 +50,19 @@ uint32 DB::validate() {
 		validateTimers();
 }
 
+static uint32 validateScreenBounds(int32 x, int32 y, const char *sourceType, uint32 sourceKey) {
+	if (x >= 0 && y >= 0 && x < kScreenWidth && y < kScreenHeight)
+		return 0;
+	debug("In %s %u: invalid screen bounds: %d %d", sourceType, sourceKey, x, y);
+	return 1;
+}
+
 template<typename TValue>
 uint32 DB::SimpleDataSet<TValue>::validateRef(uint32 key, const char *sourceType, uint32 sourceKey) const {
 	if (key == 0 || _map.contains(key))
-		return true;
+		return 0;
 	debug("In %s %u: invalid %s ref: %u", sourceType, sourceKey, _typeName, key);
-	return false;
+	return 1;
 }
 
 template<typename TValue>
@@ -64,30 +71,30 @@ uint32 DB::TwoKeyDataSet<TValue>::validateRef(uint32 key, const char *sourceType
 		return pair._key.first == key;
 	});
 	if (it != _map.end())
-		return true;
+		return 0;
 	debug("In %s %u: invalid %s ref: %u", sourceType, sourceKey, _typeName, key);
-	return false;
+	return 1;
 }
 
 template<typename TValue>
 uint32 DB::SequenceSet<TValue>::validateRef(uint32 key, const char *sourceType, uint32 sourceKey) const {
 	if (key == 0 || _map.contains(key))
-		return true;
+		return 0;
 	debug("In %s %u: invalid %s ref: %u", sourceType, sourceKey, _typeName, key);
-	return false;
+	return 1;
 }
 
 template<typename TValue>
 uint32 DB::SequenceSet<TValue>::validateRef(uint32 key, const char *sourceType, uint32 sourceKey1, uint32 sourceKey2) const {
 	if (key == 0 || _map.contains(key))
-		return true;
+		return 0;
 	debug("In %s %u %u: invalid %s ref: %u", sourceType, sourceKey1, sourceKey2, _typeName, key);
-	return false;
+	return 1;
 }
 
 uint32 DB::validateScripts() const {
 	// a complete script validation would take much much more effort than this...
-	uint32 errors = true;
+	uint32 errors = 0;
 	for (const auto &line : _scripts._items) {
 		if (strlen(line._command) < 3 ||
 			!isAlpha(line._command[0]) ||
@@ -101,7 +108,7 @@ uint32 DB::validateScripts() const {
 }
 
 uint32 DB::validateCharAnimSets() const {
-	uint32 errors = true;
+	uint32 errors = 0;
 	for (const auto &pair : _charAnimSets._map) {
 		errors += _animations.validateRef(pair._value._left, "character animation set (left)", pair._key.first);
 		errors += _animations.validateRef(pair._value._right, "character animation set (right)", pair._key.first);
@@ -112,7 +119,7 @@ uint32 DB::validateCharAnimSets() const {
 }
 
 uint32 DB::validateChoices() const {
-	uint32 errors = true;
+	uint32 errors = 0;
 	for (const auto &line : _choices._items) {
 		if (strlen(line._text) == 0)
 			debug("In choice %u %u: empty text", line._id, line._line);
@@ -122,7 +129,7 @@ uint32 DB::validateChoices() const {
 }
 
 uint32 DB::validateRooms() const {
-	uint32 errors = true;
+	uint32 errors = 0;
 	for (const auto &pair : _rooms._map) {
 		errors += validatePath(pair._value._background, "room", pair._key);
 		errors += validateOptPath(pair._value._music, "room", pair._key, "", ".ogg");
@@ -131,7 +138,6 @@ uint32 DB::validateRooms() const {
 			errors++;
 			debug("In room %u: invalid speeds", pair._key);
 		}
-		// TODO: validate _guiId
 		errors += _charAnimSets.validateRef(pair._value._charAnimSet, "room", pair._key);
 		errors += _timers.validateRef(pair._value._timer, "room", pair._key);
 	}
@@ -139,7 +145,7 @@ uint32 DB::validateRooms() const {
 }
 
 uint32 DB::validateRoomObjects() const {
-	uint32 errors = true;
+	uint32 errors = 0;
 	for (const auto &pair : _roomObjects._map) {
 		errors += _rooms.validateRef(pair._value._room, "room object", pair._key);
 		if (pair._value._posX < 0 || pair._value._posY < 0 || pair._value._posZ < 0) {
@@ -155,7 +161,7 @@ uint32 DB::validateRoomObjects() const {
 }
 
 uint32 DB::validateRoomObjectDisplays() const {
-	uint32 errors = true;
+	uint32 errors = 0;
 	for (const auto &pair : _roomObjectDisplays._map) {
 		errors += _roomObjects.validateRef(pair._value._object, "room object display", pair._key);
 		errors += _animations.validateRef(pair._value._animation, "room object display", pair._key);
@@ -164,14 +170,14 @@ uint32 DB::validateRoomObjectDisplays() const {
 }
 
 uint32 DB::validateRoomInteractions() const {
-	uint32 errors = true;
+	uint32 errors = 0;
 	for (const auto &pair : _roomInteractions._map) {
 		errors += _roomObjects.validateRef(pair._value._object, "room interaction", pair._key);
 		if (strlen(pair._value._name) == 0) {
 			errors++;
 			debug("In room interaction %u: empty name", pair._key);
 		}
-		// TODO: Validate walkTo (probably 0,0->800/600) and defaultAction
+		errors += validateScreenBounds(pair._value._walkToX, pair._value._walkToY, "room interaction", pair._key);
 		errors += _scripts.validateRef(pair._value._lookScript, "room interaction (look)", pair._key);
 		errors += _scripts.validateRef(pair._value._useScript, "room interaction (use)", pair._key);
 		errors += _scripts.validateRef(pair._value._takeScript, "room interaction (take)", pair._key);
@@ -181,7 +187,7 @@ uint32 DB::validateRoomInteractions() const {
 }
 
 uint32 DB::validateRoomItemInteractions() const {
-	uint32 errors = true;
+	uint32 errors = 0;
 	for (const auto &pair : _roomItemInteractions._map) {
 		errors += _scripts.validateRef(pair._value, "room item interaction", pair._key.first, pair._key.second);
 	}
@@ -189,26 +195,24 @@ uint32 DB::validateRoomItemInteractions() const {
 }
 
 uint32 DB::validateRoomExits() const {
-	uint32 errors = true;
+	uint32 errors = 0;
 	for (const auto &pair : _roomExits._map) {
 		errors += _roomInteractions.validateRef(pair._value._interaction, "room exit", pair._key);
 		errors += _rooms.validateRef(pair._value._target, "room exit", pair._key);
-		// TODO: Validate walkTo and lookDirection
+		errors += validateScreenBounds(pair._value._walkToX, pair._value._walkToY, "room exit", pair._key);
 	}
 	return errors;
 }
 
 uint32 DB::validateItems() const {
-	uint32 errors = true;
+	uint32 errors = 0;
 	for (const auto &pair : _items._map) {
-		// TODO: Validate gui
 		if (strlen(pair._value._name) == 0) {
 			errors++;
 			debug("In item %u: empty name", pair._key);
 		}
 		errors += validatePath(pair._value._icon, "item", pair._key, "", ".png");
 		errors += validatePath(pair._value._icon, "item", pair._key, "", "_a.png");
-		// TODO: Validate defaultAction
 		errors += _scripts.validateRef(pair._value._lookScript, "item (look)", pair._value._lookScript);
 		errors += _scripts.validateRef(pair._value._useScript, "item (use)", pair._value._useScript);
 		errors += _scripts.validateRef(pair._value._talkScript, "item (talk)", pair._value._talkScript);
@@ -217,7 +221,7 @@ uint32 DB::validateItems() const {
 }
 
 uint32 DB::validateItemInteractions() const {
-	uint32 errors = true;
+	uint32 errors = 0;
 	for (const auto &pair : _itemInteractions._map) {
 		errors += _scripts.validateRef(pair._value, "item interaction", pair._key.first, pair._key.second);
 	}
@@ -225,7 +229,7 @@ uint32 DB::validateItemInteractions() const {
 }
 
 uint32 DB::validateTopics() const {
-	uint32 errors = true;
+	uint32 errors = 0;
 	for (const auto &pair : _topics._map) {
 		if (strlen(pair._value._name) == 0) {
 			errors++;
@@ -238,7 +242,7 @@ uint32 DB::validateTopics() const {
 }
 
 uint32 DB::validateAnimations() const {
-	uint32 errors = true;
+	uint32 errors = 0;
 	for (const auto &pair : _animations._map) {
 		errors += _animationFrames.validateRef(pair._key, "animation", pair._key);
 	}
@@ -246,7 +250,7 @@ uint32 DB::validateAnimations() const {
 }
 
 uint32 DB::validateAnimationFrames() const {
-	uint32 errors = true;
+	uint32 errors = 0;
 	for (const auto &frame : _animationFrames._items) {
 		errors += _animations.validateRef(frame._id, "animation frame", frame._id);
 		errors += validatePath(frame._image, "animation frame", frame._id);
@@ -255,7 +259,7 @@ uint32 DB::validateAnimationFrames() const {
 }
 
 uint32 DB::validateNPCs() const {
-	uint32 errors = true;
+	uint32 errors = 0;
 	for (const auto &pair : _npcs._map) {
 		errors += _roomObjects.validateRef(pair._value._object, "npc", pair._key);
 		errors += _charAnimSets.validateRef(pair._value._charAnimSet, "npc", pair._key);
@@ -263,7 +267,6 @@ uint32 DB::validateNPCs() const {
 			errors++;
 			debug("In npc %u: empty name", pair._key);
 		}
-		// TODO: Validate font
 		if (pair._value._vspeed < 0 || pair._value._hspeed < 0) {
 			errors++;
 			debug("In npc %u: invalid speeds", pair._key);
@@ -273,7 +276,7 @@ uint32 DB::validateNPCs() const {
 }
 
 uint32 DB::validateWalkableAreas() const {
-	uint32 errors = true;
+	uint32 errors = 0;
 	for (const auto &pair : _walkableAreas._map) {
 		errors += _rooms.validateRef(pair._value._room, "walkable area", pair._key);
 		// there is an association redundancy, let's check they match
@@ -288,7 +291,7 @@ uint32 DB::validateWalkableAreas() const {
 }
 
 uint32 DB::validateTimers() const {
-	uint32 errors = true;
+	uint32 errors = 0;
 	for (const auto &pair : _timers._map) {
 		errors += _scripts.validateRef(pair._value._script, "timer", pair._key);
 	}

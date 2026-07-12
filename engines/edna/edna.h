@@ -42,27 +42,13 @@ struct EdnaGameDescription;
 class DB;
 
 class EdnaEngine : public Engine {
-private:
-	const ADGameDescription *_gameDescription;
-	Common::RandomSource _randomSource;
 protected:
-	// Engine APIs
 	Common::Error run() override;
-public:
-	Graphics::Screen *_screen = nullptr;
 public:
 	EdnaEngine(OSystem *syst, const ADGameDescription *gameDesc);
 	~EdnaEngine() override;
 
 	inline DB &db() { assert(_db != nullptr); return *_db; }
-
-	uint32 getFeatures() const;
-
-	Common::String getGameId() const;
-
-	uint32 getRandomNumber(uint maxNum) {
-		return _randomSource.getRandomNumber(maxNum);
-	}
 
 	bool hasFeature(EngineFeature f) const override {
 		return
@@ -94,6 +80,11 @@ public:
 	}
 
 private:
+	void initGraphics();
+
+	const ADGameDescription *_gameDescription;
+	Common::RandomSource _randomSource;
+	Common::ScopedPtr<Graphics::Screen> _screen;
 	Common::ScopedPtr<DB> _db;
 };
 

@@ -139,7 +139,113 @@ static bool nextBool(char *&full, bool isLastColumn = false) {
 		return true;
 	if (strcmp(cell.data(), "false"))
 		return false;
-	error("Could not extract bool from data file");
+	error("Could not extract bool from data file: %s", cell.data());
+}
+
+static Direction nextDirection(char *&full, bool isLastColumn = false) {
+	auto cell = nextCell(full, isLastColumn);
+	if (cell.size() == 1) {
+		switch (tolower(cell[0])) {
+		case 'n':
+			return Direction::Up;
+		case 's':
+			return Direction::Down;
+		case 'o': // this is a default case and the developers apparently could not decide
+		case 'e': // whether to use english or german compass directions or enum numbers...
+		case '3': 
+			return Direction::Right;
+		case 'w':
+			return Direction::Left;
+		}
+	}
+	error("Could not extract direction from data file: %s", cell.data());
+}
+
+static GuiMode nextGuiMode(char *&full, bool isLastColumn = false) {
+	auto cell = nextCell(full, isLastColumn);
+	if (cell.size() == 1) {
+		switch (cell[0]) {
+		case '0':
+			return GuiMode::StartMenu;
+		case '1':
+			return GuiMode::EdnaStd;
+		case '2':
+			return GuiMode::Harvey;
+		case '3':
+			return GuiMode::EdnaGirl;
+		case '4':
+			return GuiMode::ScriptOnClick;
+		case '5':
+			return GuiMode::DragScript;
+		case '6':
+			return GuiMode::Zen;
+		case '7':
+			return GuiMode::MainMenu;
+		}
+	}
+	error("Could not extract GUI mode from data file: %s", cell.data());
+}
+
+static PlayerAction nextPlayerAction(char *&full, bool isLastColumn = false) {
+	auto cell = nextCell(full, isLastColumn);
+	if (cell.size() == 1) {
+		switch (cell[0]) {
+		case '0':
+			return PlayerAction::None;
+		case 'a':
+		case 'l':
+			return PlayerAction::Look;
+		case 'b':
+		case 'u':
+			return PlayerAction::Use;
+		case 'n':
+		case 'p':
+			return PlayerAction::Take;
+		case 'r':
+		case 't':
+			return PlayerAction::Talk;
+		}
+	}
+	error("Could not extract player action from data file: %s", cell.data());
+}
+
+static Font nextFont(char *&full, bool isLastColumn = false) {
+	auto cell = nextCell(full, isLastColumn);
+	if (strncmp("EdnaFont", cell.data(), cell.size()) == 0)
+		return Font::EdnaFont;
+	else if (strncmp("HarveyFont", cell.data(), cell.size()) == 0)
+		return Font::HarveyFont;
+	else if (strncmp("NscFontRot", cell.data(), cell.size()) == 0)
+		return Font::NscFontRot;
+	else if (strncmp("NscFontGelb", cell.data(), cell.size()) == 0)
+		return Font::NscFontGelb;
+	else if (strncmp("NscFontOrange", cell.data(), cell.size()) == 0)
+		return Font::NscFontOrange;
+	else if (strncmp("NscFontGreygreen", cell.data(), cell.size()) == 0)
+		return Font::NscFontGreygreen;
+	else if (strncmp("NscFontBlau", cell.data(), cell.size()) == 0)
+		return Font::NscFontBlau;
+	else if (strncmp("NscFontGrau", cell.data(), cell.size()) == 0)
+		return Font::NscFontGrau;
+	else if (strncmp("NscFontHellgelb", cell.data(), cell.size()) == 0)
+		return Font::NscFontHellgelb;
+	else if (strncmp("NscFontLind", cell.data(), cell.size()) == 0)
+		return Font::NscFontLind;
+	else if (strncmp("NscFontStahlblau", cell.data(), cell.size()) == 0)
+		return Font::NscFontStahlblau;
+	else if (strncmp("NscFontWeiss", cell.data(), cell.size()) == 0)
+		return Font::NscFontWeiss;
+	else if (strncmp("TestFont", cell.data(), cell.size()) == 0)
+		return Font::TestFont;
+	else if (strncmp("ActiveFont", cell.data(), cell.size()) == 0)
+		return Font::ActiveFont;
+	else if (strncmp("InactiveFont", cell.data(), cell.size()) == 0)
+		return Font::InactiveFont;
+	else if (strncmp("MenuFont", cell.data(), cell.size()) == 0)
+		return Font::MenuFont;
+	else if (strncmp("MenuFont2", cell.data(), cell.size()) == 0)
+		return Font::MenuFont2;
+	error("Could not extract font from data file: %s", cell.data());
 }
 
 DB::DB(const Path &path)
@@ -334,7 +440,7 @@ void DB::loadRooms() {
 		room._hspeed = nextFloat(full);
 		room._baseYAtZeroScale = nextFloat(full);
 		room._baseYAtFullScale = nextFloat(full);
-		room._guiId = nextUint(full);
+		room._guiMode = nextGuiMode(full);
 		room._charAnimSet = nextUint(full);
 		room._timer = nextUint(full, true);
 		_rooms.set(room._id, room);
@@ -376,8 +482,8 @@ void DB::loadRoomInteractions() {
 		interaction._name = nextString(full);
 		interaction._walkToX = nextSint(full);
 		interaction._walkToY = nextSint(full);
-		interaction._lookDirection = nextString(full);
-		interaction._defaultAction = nextString(full);
+		interaction._lookDirection = nextDirection(full);
+		interaction._defaultAction = nextPlayerAction(full);
 		interaction._lookScript = nextUint(full);
 		interaction._useScript = nextUint(full);
 		interaction._takeScript = nextUint(full);
@@ -399,11 +505,11 @@ void DB::loadItems() {
 	while (*full) {
 		Item item;
 		item._id = nextUint(full);
-		item._gui = nextUint(full);
+		item._guiMode = nextGuiMode(full);
 		item._name = nextString(full);
 		item._icon = nextString(full);
 		item._inventoryPos = nextUint(full);
-		item._defaultAction = nextString(full);
+		item._defaultAction = nextPlayerAction(full);
 		item._lookScript = nextUint(full);
 		item._useScript = nextUint(full);
 		item._talkScript = nextUint(full, true);
@@ -474,7 +580,7 @@ void DB::loadRoomExits() {
 		exit._target = nextUint(full);
 		exit._walkToX = nextSint(full);
 		exit._walkToY = nextSint(full);
-		exit._lookDirection = nextString(full, true);
+		exit._lookDirection = nextDirection(full, true);
 		_roomExits.set(exit._id, exit);
 
 		if (_roomInteractions._map.contains(exit._interaction))
@@ -569,7 +675,7 @@ void DB::loadNPCs() {
 		npc._object = nextUint(full);
 		npc._charAnimSet = nextUint(full);
 		npc._name = nextString(full);
-		npc._font = nextString(full);
+		npc._font = nextFont(full);
 		npc._vspeed = nextFloat(full);
 		npc._hspeed = nextFloat(full);
 		npc._baseYAtZeroScale = nextFloat(full);

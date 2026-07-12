@@ -29,11 +29,58 @@ namespace Edna {
 static constexpr const int kScreenWidth = 800;
 static constexpr const int kScreenHeight = 600;
 
+enum class Direction {
+	Up = 0,
+	Down,
+	Left,
+	Right
+};
+
+enum class GuiMode {
+	StartMenu = 0,
+	EdnaStd,
+	Harvey,
+	EdnaGirl,
+	ScriptOnClick,
+	DragScript,
+	Zen,
+	MainMenu, // might be unused
+	Intro,
+};
+
+enum PlayerAction {
+	None = 0,
+	Look,
+	Use,
+	Take,
+	Talk
+};
+
+enum class Font {
+	EdnaFont = 0,
+	HarveyFont,
+	NscFontRot,
+	NscFontGelb,
+	NscFontOrange,
+	NscFontGreygreen,
+	NscFontBlau,
+	NscFontGrau,
+	NscFontHellgelb,
+	NscFontLind,
+	NscFontStahlblau,
+	NscFontWeiss,
+	TestFont,
+	ActiveFont,
+	InactiveFont,
+	MenuFont,
+	MenuFont2
+};
+
 using FileData = Common::SpanOwner<Common::Span<char>>;
 
 using ScriptId = uint32;
 using CharAnimSetId = uint32;
-using ActionModeId = uint32;
+using ActionModeId = uint32; // not a DB record, might be an enum
 using AnimationId = uint32;
 using AnimationFrameId = uint32;
 using ChoiceSetId = uint32;
@@ -47,7 +94,6 @@ using TimerId = uint32;
 using ItemId = uint32;
 using TopicId = uint32;
 using NPCId = uint32;
-using GuiId = uint32; // not a DB data
 
 class DB {
 public:
@@ -94,7 +140,7 @@ public:
 		float _hspeed = 0;
 		float _baseYAtZeroScale = 0;
 		float _baseYAtFullScale = 0;
-		GuiId _guiId = 0;
+		GuiMode _guiMode = {};
 		CharAnimSetId _charAnimSet = 0;
 		TimerId _timer = 0;
 	};
@@ -136,8 +182,8 @@ public:
 		const char *_name = "";
 		int32 _walkToX = 0;
 		int32 _walkToY = 0;
-		const char *_lookDirection = "";
-		const char *_defaultAction = "";
+		Direction _lookDirection = {};
+		PlayerAction _defaultAction = {};
 		ScriptId _lookScript = 0;
 		ScriptId _useScript = 0;
 		ScriptId _takeScript = 0;
@@ -150,11 +196,11 @@ public:
 
 	struct Item {
 		ItemId _id = 0;
-		GuiId _gui = 0;
+		GuiMode _guiMode = {};
 		const char *_name = "";
 		const char *_icon = "";
 		uint32 _inventoryPos = 0;
-		const char *_defaultAction = "";
+		PlayerAction _defaultAction = {};
 		ScriptId _lookScript = 0;
 		ScriptId _useScript = 0;
 		ScriptId _talkScript = 0;
@@ -182,7 +228,7 @@ public:
 		RoomId _target = 0;
 		int32 _walkToX = 0;
 		int32 _walkToY = 0;
-		const char *_lookDirection = "";
+		Direction _lookDirection = {};
 	};
 	RoomExit roomExit(RoomExitId id) const;
 
@@ -207,7 +253,7 @@ public:
 		RoomObjectId _object = 0;
 		CharAnimSetId _charAnimSet = 0;
 		const char *_name = "";
-		const char *_font = "";
+		Font _font = {};
 		float _vspeed = 0;
 		float _hspeed = 0;
 		float _baseYAtZeroScale = 0;

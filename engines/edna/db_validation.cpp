@@ -61,7 +61,7 @@ uint32 DB::SimpleDataSet<TValue>::validateRef(uint32 key, const char *sourceType
 template<typename TValue>
 uint32 DB::TwoKeyDataSet<TValue>::validateRef(uint32 key, const char *sourceType, uint32 sourceKey) const {
 	const auto it = find_if(_map.begin(), _map.end(), [&](const TwoKeyMap<TValue>::Node &pair) {
-		return pair._key.first == sourceKey;
+		return pair._key.first == key;
 	});
 	if (it != _map.end())
 		return true;
@@ -125,7 +125,7 @@ uint32 DB::validateRooms() const {
 	uint32 errors = true;
 	for (const auto &pair : _rooms._map) {
 		errors += validatePath(pair._value._background, "room", pair._key);
-		errors += validateOptPath(pair._value._music, "room", pair._key);
+		errors += validateOptPath(pair._value._music, "room", pair._key, "", ".ogg");
 		errors += _walkableAreas.validateRef(pair._value._walkAreaId, "room", pair._key);
 		if (pair._value._vspeed < 0 || pair._value._hspeed < 0) {
 			errors++;
@@ -206,7 +206,8 @@ uint32 DB::validateItems() const {
 			errors++;
 			debug("In item %u: empty name", pair._key);
 		}
-		errors += validatePath(pair._value._icon, "item", pair._key);
+		errors += validatePath(pair._value._icon, "item", pair._key, "", ".png");
+		errors += validatePath(pair._value._icon, "item", pair._key, "", "_a.png");
 		// TODO: Validate defaultAction
 		errors += _scripts.validateRef(pair._value._lookScript, "item (look)", pair._value._lookScript);
 		errors += _scripts.validateRef(pair._value._useScript, "item (use)", pair._value._useScript);
@@ -281,7 +282,7 @@ uint32 DB::validateWalkableAreas() const {
 			errors++;
 			debug("In walkable area %u: room %u walkable area does not match (%u)", pair._key, room._id, room._walkAreaId);
 		}
-		errors += validatePath(pair._value._file, "walkable area", pair._key);
+		errors += validatePath(pair._value._file, "walkable area", pair._key, "data/map/");
 	}
 	return errors;
 }
@@ -294,20 +295,18 @@ uint32 DB::validateTimers() const {
 	return errors;
 }
 
-uint32 DB::validateOptPath(const char *path, const char *sourceType, uint32 sourceKey) {
-	return *path ? validatePath(path, sourceType, sourceKey) : 0;
+uint32 DB::validateOptPath(const char *path, const char *sourceType, uint32 sourceKey, const char *basePath, const char *ext) {
+	return *path ? validatePath(path, sourceType, sourceKey, basePath, ext) : 0;
 }
 
-uint32 DB::validatePath(const char *path, const char *sourceType, uint32 sourceKey, const char *ext) {
-	return 0; // no archives are mapped yet
-	/*uint32 errors;
-	if (*ext)
-		errors = File::exists(Path(String(path) + '.' + ext));
-	else
-		errors = File::exists(path);
-	if (!errors)
-		debug("In %s %u: missing file: %s", sourceType, sourceKey, path);
-	return errors;*/
+uint32 DB::validatePath(const char *path, const char *sourceType, uint32 sourceKey, const char *basePath, const char *ext) {
+	Path fullPath(basePath);
+	fullPath.appendInPlace(path);
+	fullPath.appendInPlace(ext);
+	if (File::exists(fullPath))
+		return 0;
+	debug("In %s %u: missing file: %s", sourceType, sourceKey, fullPath.toString().c_str());
+	return 1;
 }
 
 } // namespace Edna

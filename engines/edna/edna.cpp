@@ -29,8 +29,11 @@
 #include "common/debug-channels.h"
 #include "common/events.h"
 #include "common/system.h"
+#include "common/compression/unzip.h"
 #include "engines/util.h"
 #include "graphics/paletteman.h"
+
+using namespace Common;
 
 namespace Edna {
 
@@ -49,12 +52,27 @@ uint32 EdnaEngine::getFeatures() const {
 	return _gameDescription->flags;
 }
 
-Common::String EdnaEngine::getGameId() const {
+String EdnaEngine::getGameId() const {
 	return _gameDescription->gameId;
 }
 
-Common::Error EdnaEngine::run() {
-	_db.reset(new DB("script/de"));
+static void addArchive(const char *name) {
+	Path path("data/");
+	path.appendInPlace(name);
+	Archive *archive = makeZipArchive(path);
+	if (archive == nullptr)
+		error("Could not find data archive: %s", name);
+	SearchMan.add(name, archive);
+}
+
+Error EdnaEngine::run() {
+	const char *language = getLanguageCode(_gameDescription->language);
+	addArchive("audio.jar");
+	addArchive("comments.jar");
+	addArchive("visual.jar");
+	addArchive((String("speech_") + language + ".jar").c_str());
+
+	_db.reset(new DB(Path("script/").appendInPlace(language)));
 
 	// Initialize 320x200 paletted graphics mode
 	initGraphics(320, 200);
@@ -98,7 +116,7 @@ Common::Error EdnaEngine::run() {
 	return Common::kNoError;
 }
 
-Common::Error EdnaEngine::syncGame(Common::Serializer &s) {
+Error EdnaEngine::syncGame(Serializer &s) {
 	// The Serializer has methods isLoading() and isSaving()
 	// if you need to specific steps; for example setting
 	// an array size after reading it's length, whereas
@@ -106,7 +124,7 @@ Common::Error EdnaEngine::syncGame(Common::Serializer &s) {
 	int dummy = 0;
 	s.syncAsUint32LE(dummy);
 
-	return Common::kNoError;
+	return kNoError;
 }
 
 } // End of namespace Edna

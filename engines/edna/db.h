@@ -323,8 +323,14 @@ private:
 	uint32 validateWalkableAreas() const;
 	uint32 validateTimers() const;
 
-	static uint32 validateOptPath(const char *path, const char *sourceType, uint32 sourceKey);
-	static uint32 validatePath(const char *path, const char *sourceType, uint32 sourceKey, const char *ext = "");
+	static uint32 validateOptPath(
+		const char *path,
+		const char *sourceType, uint32 sourceKey,
+		const char *basePath = "", const char *ext = "");
+	static uint32 validatePath(
+		const char *path,
+		const char *sourceType, uint32 sourceKey,
+		const char *basePath = "", const char *ext = "");
 
 	const Common::Path path;
 	SequenceSet<ScriptLine> _scripts;

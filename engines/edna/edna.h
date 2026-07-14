@@ -32,7 +32,6 @@
 #include "common/ptr.h"
 #include "engines/engine.h"
 #include "engines/savestate.h"
-#include "graphics/screen.h"
 
 #include "edna/detection.h"
 
@@ -40,6 +39,7 @@ namespace Edna {
 
 struct EdnaGameDescription;
 class DB;
+class IRenderer;
 
 class EdnaEngine : public Engine {
 protected:
@@ -48,6 +48,7 @@ public:
 	EdnaEngine(OSystem *syst, const ADGameDescription *gameDesc);
 	~EdnaEngine() override;
 
+	inline IRenderer &renderer() { assert(_renderer != nullptr); return *_renderer; }
 	inline DB &db() { assert(_db != nullptr); return *_db; }
 
 	bool hasFeature(EngineFeature f) const override {
@@ -84,7 +85,7 @@ private:
 
 	const ADGameDescription *_gameDescription;
 	Common::RandomSource _randomSource;
-	Common::ScopedPtr<Graphics::Screen> _screen;
+	Common::ScopedPtr<IRenderer> _renderer;
 	Common::ScopedPtr<DB> _db;
 };
 

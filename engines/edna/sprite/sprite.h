@@ -33,7 +33,9 @@ class Sprite {
 public:
 	virtual ~Sprite();
 
+	inline uint32 &id() { return _id; }
 	inline bool &active() { return _active; }
+	inline bool &immutable() { return _immutable; } ///< An immutable sprite is not deleted if inactive
 	inline Common::Rect &bounds() { return _bounds; }
 
 	virtual void update();
@@ -44,9 +46,10 @@ public:
 
 private:
 	friend class AnimatedSprite;
-	bool _active = true;
+	bool _active = true, _immutable = false;
 	Common::Rect _bounds;
 	TexturePtr _texture;
+	uint32 _id = 0;
 };
 
 class AnimatedSprite : public Sprite {

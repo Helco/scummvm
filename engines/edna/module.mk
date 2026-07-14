@@ -6,9 +6,11 @@ MODULE_OBJS = \
 	db_validation.o \
 	edna.o \
 	graphics.o \
-	metaengine.o
+	gui\guibase.o \
 	metaengine.o \
-	sprite\Sprite.o \
+	sprite\animation.o \
+	sprite\group.o \
+	sprite\sprite.o \
 	util.o
 
 # This module can be built as a plugin

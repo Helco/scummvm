@@ -64,8 +64,8 @@ public:
     inline const AnimationRange &right() const { return _right.range(); }
     inline const AnimationRange &forward() const { return _forward.range(); }
     inline const AnimationRange &back() const { return _back.range(); }
-    inline TextureSpan textures() const {
-        return _textures;
+    inline TextureSpan textures() {
+		return { _textures.data(), _textures.size() };
     }
 
 private:

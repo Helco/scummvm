@@ -21,6 +21,7 @@
 
 #include "edna/edna.h"
 #include "edna/db.h"
+#include "edna/graphics.h"
 
 #include "engines/util.h"
 #include "graphics/framelimiter.h"
@@ -33,7 +34,6 @@
 #include "common/system.h"
 #include "common/compression/unzip.h"
 #include "engines/util.h"
-#include "graphics/paletteman.h"
 
 using namespace Common;
 
@@ -67,7 +67,8 @@ Error EdnaEngine::run() {
 	addArchive("visual.jar");
 	addArchive((String("speech_") + language + ".jar").c_str());
 
-	_db.reset(new DB(Path("script/").appendInPlace(language))); 
+	_db.reset(new DB(Path("script/").appendInPlace(language)));
+	_renderer.reset(createSoftwareRenderer());
 	initGraphics();
 
 	// If a savegame was selected from the launcher, load it
@@ -81,8 +82,10 @@ Error EdnaEngine::run() {
 		while (g_system->getEventManager()->pollEvent(e)) {
 		}
 
+		_renderer->begin();
+
 		limiter.delayBeforeSwap();
-		_screen->update();
+		_renderer->end();
 		limiter.startFrame();
 	}
 
@@ -90,26 +93,7 @@ Error EdnaEngine::run() {
 }
 
 void EdnaEngine::initGraphics() {
-	auto formats = g_system->getSupportedFormats();
-	for (auto it = formats.end(); it != formats.end(); ) {
-		if (it->bpp() == 32)
-			it++;
-		else
-			it = formats.erase(it);
-	}
-	if (formats.empty()) {
-		formats = g_system->getSupportedFormats();
-		for (auto it = formats.end(); it != formats.end(); ) {
-			if (it->bpp() == 24 && it->aBits() == 0)
-				it++;
-			else
-				it = formats.erase(it);
-		}
-	}
-	if (formats.empty())
-		error("Could not find any supported 32bit or 24bit screen format");
-	::initGraphics(kScreenWidth, kScreenHeight, &formats.front());
-	_screen.reset(new Graphics::Screen());
+	
 }
 
 Error EdnaEngine::syncGame(Serializer &s) {

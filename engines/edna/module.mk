@@ -1,11 +1,15 @@
 MODULE := engines/edna
 
 MODULE_OBJS = \
+	console.o \
 	db.o \
 	db_validation.o \
-	console.o \
 	edna.o \
+	graphics.o \
 	metaengine.o
+	metaengine.o \
+	sprite\Sprite.o \
+	util.o
 
 # This module can be built as a plugin
 ifeq ($(ENABLE_EDNA), DYNAMIC_PLUGIN)

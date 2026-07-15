@@ -57,6 +57,7 @@ public:
 	inline DB &db() { assert(_db != nullptr); return *_db; }
 	inline GameBase &game() { assert(_game != nullptr); return *_game; }
 
+	inline uint32 getElapsed() const { return _timeElapsed; }
 	uint32 getMillis() const;
 	void setMillis(uint32 newMillis);
 	Audio::SoundHandle playMusic(const char *fileName, bool loop = true);
@@ -102,6 +103,7 @@ private:
 
 	uint32 _timeNegOffset = 0, _timePosOffset = 0;
 	uint32 _timeBeforePause = 0;
+	uint32 _timeLastFrame = 0, _timeElapsed = 0;
 	RoomId _nextRoom = 0;
 };
 

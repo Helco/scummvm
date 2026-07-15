@@ -22,16 +22,16 @@
 #ifndef EDNA_INTRO_H
 #define EDNA_INTRO_H
 
-#include "audio/mixer.h"
-
 #include "edna/game/game.h"
 #include "edna/sprite/sprite.h"
+
+#include "audio/mixer.h"
 
 namespace Edna {
 
 class Intro final : public GameBase {
 public:
-	Intro();
+	Intro(bool withHarvey);
 	virtual ~Intro();
 
 	void update() override;
@@ -44,11 +44,12 @@ private:
 		Harvey
 	};
 
+	const bool _withHarvey = false;
 	Stage _stage = Stage::FadeIn;
 	Group _group;
 	Sprite _daedalic, _splash;
+	AnimatedSprite _harvey;
 	float _fadeAlpha = 1.0f;
-	uint32 _lastFrame = 0;
 	Audio::SoundHandle _music;
 };
 

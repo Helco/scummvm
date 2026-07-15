@@ -27,15 +27,15 @@ namespace Edna {
 bool Timer::update() {
     if (!_active)
         return false;
-    uint32 curTime = g_engine->getMillis();
-    if (curTime - _startTime < _delay)
+	_curDelay += g_engine->getElapsed();
+    if (_curDelay < _delay)
         return false;
-    _startTime += _delay;
+    _curDelay -= _delay;
     return true;
 }
 
 void Timer::reset() {
-    _startTime = g_engine->getMillis();
+	_curDelay = 0;
 }
 
 void Timer::toggle(bool active) {

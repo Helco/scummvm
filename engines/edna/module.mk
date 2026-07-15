@@ -7,6 +7,7 @@ MODULE_OBJS = \
 	edna.o \
 	graphics.o \
 	game\game.o \
+	game\intro.o \
 	metaengine.o \
 	sprite\animation.o \
 	sprite\group.o \

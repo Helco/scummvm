@@ -19,36 +19,39 @@
  *
  */
 
-#include "edna/edna.h"
-#include "edna/db.h"
+#ifndef EDNA_INTRO_H
+#define EDNA_INTRO_H
+
+#include "audio/mixer.h"
+
 #include "edna/game/game.h"
+#include "edna/sprite/sprite.h"
 
 namespace Edna {
 
-GameBase::GameBase(GameMode mode) : _gameMode(mode) { }
-GameBase::~GameBase() { }
+class Intro final : public GameBase {
+public:
+	Intro();
+	virtual ~Intro();
 
-void GameBase::update() {
-	for (auto &group : _groups)
-		group->update();
-}
+	void update() override;
+	void render() override;
 
-void GameBase::render() {
-	for (auto &group : _groups)
-		group->render();
-}
+private:
+	enum class Stage {
+		FadeIn,
+		FadeOut,
+		Harvey
+	};
 
-void GameBase::add(Group *group, DisposeAfterUse::Flag dispose) {
-	_groups.emplace_back(group, dispose);
-}
-
-Game::Game(GameMode mode, RoomId roomId)
-	: GameBase(mode)
-	, _roomId(roomId) {
-	assert(mode != GameMode::Intro);
-
-	DB::Room room = g_engine->db().room(roomId);
-	assert(room._gameMode == mode);
-}
+	Stage _stage = Stage::FadeIn;
+	Group _group;
+	Sprite _daedalic, _splash;
+	float _fadeAlpha = 1.0f;
+	uint32 _lastFrame = 0;
+	Audio::SoundHandle _music;
+};
 
 }
+
+#endif // EDNA_INTRO_H

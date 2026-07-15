@@ -179,8 +179,7 @@ static GameMode nextGameMode(char *&full, bool isLastColumn = false) {
 			return GameMode::DragScript;
 		case '6':
 			return GameMode::Zen;
-		case '7':
-			return GameMode::MainMenu;
+		// case 7 (MainMenu) does and should not exist
 		}
 	}
 	error("Could not extract game mode from data file: %s", cell.data());

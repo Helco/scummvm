@@ -45,7 +45,7 @@ enum class GameMode {
 	ScriptOnClick,
 	DragScript,
 	Zen,
-	MainMenu, // might be unused
+	MainMenu, // should be unused, there is no main menu mode
 	Intro,
 };
 const char *gameModeToString(GameMode mode);

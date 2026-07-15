@@ -43,4 +43,24 @@ void Timer::toggle(bool active) {
     reset();
 }
 
+static constexpr const char *const GameModeNames[] = {
+	"None",
+	"StartMenu",
+	"EdnaStd",
+	"Harvey",
+	"EdnaGirl",
+	"ScriptOnClick",
+	"DragScript",
+	"Zen",
+	"MainMenu",
+	"Intro"
+};
+
+const char *gameModeToString(GameMode mode) {
+	int index = 1 + (int)mode;
+	if (index < 0 || index >= ARRAYSIZE(GameModeNames))
+		return "<unknown>";
+	return GameModeNames[index];
+}
+
 }

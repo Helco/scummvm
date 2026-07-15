@@ -37,7 +37,7 @@ public:
 	uint32 validate(); ///< implemented in db_validation.cpp
 
 	struct ScriptLine {
-		ScriptId _id = 0;
+		ScriptId _script = 0;
 		uint32 _line = 0;
 		const char *_command = "";
 		const char *_comment = "";
@@ -56,7 +56,7 @@ public:
 	CharacterAnimationSet characterAnimationSet(CharAnimSetId set, ActionModeId actionMode) const;
 
 	struct Choice {
-		ChoiceSetId _id = 0;
+		ChoiceSetId _set = 0;
 		uint32 _line = 0;
 		bool _active = false;
 		const char *_text = "";
@@ -74,11 +74,11 @@ public:
 		float _hspeed = 0;
 		float _baseYAtZeroScale = 0;
 		float _baseYAtFullScale = 0;
-		GuiMode _guiMode = {};
+		GameMode _gameMode = {};
 		CharAnimSetId _charAnimSet = 0;
 		TimerId _timer = 0;
 	};
-	Room room(RoomId id) const;
+	Room room(RoomId id, bool required = true) const;
 
 	struct RoomObject {
 		RoomObjectId _id = 0;
@@ -97,7 +97,8 @@ public:
 		TopicId _toTopicObject = 0;
 		NPCId _toNPC = 0;
 	};
-	RoomObject roomObject(RoomObjectId id) const;
+	RoomObject roomObject(RoomObjectId id, bool required = true) const;
+	Common::Span<const uint32> roomObjectsByRoom(RoomId id, bool required = true) const;
 
 	struct RoomObjectDisplay {
 		RoomObjectDisplayId _id = 0;
@@ -108,7 +109,7 @@ public:
 		int32 _endX = 0;
 		int32 _endY = 0;
 	};
-	RoomObjectDisplay roomObjectDisplay(RoomObjectDisplayId id) const;
+	RoomObjectDisplay roomObjectDisplay(RoomObjectDisplayId id, bool required = true) const;
 
 	struct RoomInteraction {
 		RoomInteractionId _id = 0;
@@ -126,11 +127,11 @@ public:
 		// associations
 		RoomExitId _toExit = 0;
 	};
-	RoomInteraction roomInteraction(RoomInteractionId id) const;
+	RoomInteraction roomInteraction(RoomInteractionId id, bool required = true) const;
 
 	struct Item {
 		ItemId _id = 0;
-		GuiMode _guiMode = {};
+		GameMode _gameMode = {};
 		const char *_name = "";
 		const char *_icon = "";
 		uint32 _inventoryPos = 0;
@@ -164,7 +165,7 @@ public:
 		int32 _walkToY = 0;
 		Direction _lookDirection = {};
 	};
-	RoomExit roomExit(RoomExitId id) const;
+	RoomExit roomExit(RoomExitId id, bool required) const;
 
 	struct Animation {
 		AnimationId _id = 0;
@@ -176,7 +177,7 @@ public:
 
 	struct AnimationFrame {
 		AnimationFrameId _frame = 0;
-		AnimationId _id = 0;
+		AnimationId _animation = 0;
 		const char *_image = "";
 		uint32 _altDuration = 0;
 	};
@@ -193,7 +194,7 @@ public:
 		float _baseYAtZeroScale = 0;
 		float _baseYAtFullScale = 0;
 	};
-	NPC npc(NPCId id) const;
+	NPC npc(NPCId id, bool required = true) const;
 
 	struct WalkableArea {
 		WalkableAreaId _id = 0;
@@ -220,7 +221,7 @@ private:
 
 		SimpleDataSet(const char *typeName);
 		void set(uint32 key, const TValue &value);
-		TValue get(uint32 key) const;
+		TValue get(uint32 key, bool required = true) const;
 		uint32 validateRef(uint32 key, const char *sourceType, uint32 sourceKey) const;
 	};
 
@@ -263,11 +264,21 @@ private:
 		Common::HashMap<uint32, Range> _map;
 
 		SequenceSet(const char *typeName);
-		template<class StrictWeakOrdering>
-		void setupSequences(StrictWeakOrdering comp);
-		Common::Span<const TValue> get(uint32 key) const;
+		template<class GetMe, class GetParent>
+		void setupSequences(GetMe, GetParent getParent);
+		Common::Span<const TValue> get(uint32 key, bool required = true) const;
 		uint32 validateRef(uint32 key, const char *sourceType, uint32 sourceKey) const;
 		uint32 validateRef(uint32 key, const char *sourceType, uint32 sourceKey1, uint32 sourceKey2) const;
+	};
+
+	// For faster queries and easier data structures
+	template<class TValue>
+	struct SecondaryIndex : public SequenceSet<uint32> {
+		using PointerToID = uint32 TValue::*;
+		SimpleDataSet<TValue> &_source;
+
+		SecondaryIndex(const char *name, SimpleDataSet<TValue> &source);
+		void build(PointerToID toParent);
 	};
 
 	void loadScripts();
@@ -333,6 +344,8 @@ private:
 	SimpleDataSet<NPC> _npcs;
 	SimpleDataSet<WalkableArea> _walkableAreas;
 	SimpleDataSet<Timer> _timers;
+
+	SecondaryIndex<RoomObject> _roomObjectsByRoom;
 };
 
 }

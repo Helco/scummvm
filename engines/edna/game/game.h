@@ -1,4 +1,3 @@
-
 /* ScummVM - Graphic Adventure Engine
  *
  * ScummVM is the legal property of its developers, whose names
@@ -20,22 +19,24 @@
  *
  */
 
-#ifndef EDNA_CONSOLE_H
-#define EDNA_CONSOLE_H
-
-#include "gui/debugger.h"
+#include "edna/sprite/group.h"
 
 namespace Edna {
 
-class Console : public GUI::Debugger {
-	bool cmdValidate(int argc, const char **argv);
-	bool cmdRoom(int argc, const char **argv);
-
+class Game {
 public:
-	Console();
-	~Console() override;
+	Game(GameMode mode, RoomId roomId);
+	virtual ~Game();
+
+	inline GameMode gameMode() const { return _gameMode; }
+	inline RoomId roomid() const { return _roomId; }
+
+	virtual void update();
+	virtual void render();
+
+private:
+	const GameMode _gameMode;
+	const RoomId _roomId;
 };
 
-} // End of namespace Edna
-
-#endif // EDNA_CONSOLE_H
+}

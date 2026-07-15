@@ -27,6 +27,7 @@ namespace Edna {
 
 Console::Console() : GUI::Debugger() {
 	registerCmd("validate", WRAP_METHOD(Console, cmdValidate));
+	registerCmd("room", WRAP_METHOD(Console, cmdRoom));
 }
 
 Console::~Console() {
@@ -38,6 +39,59 @@ bool Console::cmdValidate(int argc, const char **argv) {
 		debugPrintf("Validation successful!\n");
 	else
 		debugPrintf("Validation failed (%u errors)!\n\n", errors);
+	return true;
+}
+
+bool Console::cmdRoom(int argc, const char **argv) {
+	RoomId roomId;
+	if (argc != 1 && argc != 2) {
+		debugPrintf("usage: room [id]");
+		return true;
+	} else if (argc == 1) {
+		debugPrintf("current room is not supported yet\n");
+		return true;
+	} else {
+		char *end = nullptr;
+		roomId = (RoomId)strtoul(argv[1], &end, 10);
+		if (end == nullptr || *end != '\0') {
+			debugPrintf("room id has to be an unsigned integer\n");
+			return true;
+		}
+	}
+
+	// Room details
+	auto &db = g_engine->db();
+	DB::Room room = db.room(roomId, false);
+	auto objects = db.roomObjectsByRoom(roomId, false);
+	if (room._id != roomId) {
+		debugPrintf("Unknown room and cannot look for partial room IDs yet\n");
+		return true;
+	}
+	debugPrintf("Room %u %s (%s)\n", room._id, room._name, gameModeToString(room._gameMode));
+	debugPrintf("  Background: %s\n  Music: %s\n  Speeds (V/H): %f, %f\n  BaseY: %f -> %f\n",
+		room._background, room._music, room._vspeed, room._hspeed, room._baseYAtZeroScale, room._baseYAtFullScale);
+	debugPrintf("  CharAnimSet: %u\n  WalkableAreaId: %u\n  Timer: %u\n  Objects: %u\n",
+		room._charAnimSet, room._walkAreaId, room._timer, objects.size());
+	if (objects.size() == 0)
+		return true;
+
+	// Object summary
+	debugPrintf("  ID        Active Name                    Flags Image\n");
+	char flags[6] = "IDTtN";
+	for (auto objectId : objects) {
+		DB::RoomObject obj = db.roomObject(objectId, false);
+		if (obj._id != objectId) {
+			debugPrintf("  %10d       <invalid>\n", objectId);
+			continue;
+		}
+		flags[0] = obj._toInteraction ? 'I' : ' ';
+		flags[1] = obj._toDisplay ? 'D' : ' ';
+		flags[2] = obj._toTopicId ? 'T' : ' ';
+		flags[3] = obj._toTopicObject ? 't' : ' ';
+		flags[4] = obj._toNPC ? 'N' : ' ';
+		debugPrintf("  %9d %-6s%-24s%s %s\n", obj._id, obj._active ? "true" : "false", obj._name, flags, obj._image);
+	}
+	debugPrintf("\n");
 	return true;
 }
 

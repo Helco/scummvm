@@ -161,29 +161,29 @@ static Direction nextDirection(char *&full, bool isLastColumn = false) {
 	error("Could not extract direction from data file: %s", cell.data());
 }
 
-static GuiMode nextGuiMode(char *&full, bool isLastColumn = false) {
+static GameMode nextGameMode(char *&full, bool isLastColumn = false) {
 	auto cell = nextCell(full, isLastColumn);
 	if (cell.size() == 1) {
 		switch (cell[0]) {
 		case '0':
-			return GuiMode::StartMenu;
+			return GameMode::StartMenu;
 		case '1':
-			return GuiMode::EdnaStd;
+			return GameMode::EdnaStd;
 		case '2':
-			return GuiMode::Harvey;
+			return GameMode::Harvey;
 		case '3':
-			return GuiMode::EdnaGirl;
+			return GameMode::EdnaGirl;
 		case '4':
-			return GuiMode::ScriptOnClick;
+			return GameMode::ScriptOnClick;
 		case '5':
-			return GuiMode::DragScript;
+			return GameMode::DragScript;
 		case '6':
-			return GuiMode::Zen;
+			return GameMode::Zen;
 		case '7':
-			return GuiMode::MainMenu;
+			return GameMode::MainMenu;
 		}
 	}
-	error("Could not extract GUI mode from data file: %s", cell.data());
+	error("Could not extract game mode from data file: %s", cell.data());
 }
 
 static PlayerAction nextPlayerAction(char *&full, bool isLastColumn = false) {
@@ -266,7 +266,8 @@ DB::DB(const Path &path)
 	, _animationFrames("animation frame")
 	, _npcs("npc")
 	, _walkableAreas("walkable area")
-	, _timers("timer") {
+	, _timers("timer")
+	, _roomObjectsByRoom("room object by room", _roomObjects) {
 	loadScripts();
 	loadAnimations();
 	loadAnimationFrames();
@@ -300,10 +301,12 @@ void DB::SimpleDataSet<TValue>::set(uint32 key, const TValue &value) {
 }
 
 template<class TValue>
-TValue DB::SimpleDataSet<TValue>::get(uint32 key) const {
+TValue DB::SimpleDataSet<TValue>::get(uint32 key, bool required) const {
 	TValue value;
-	if (!_map.tryGetVal(key, value))
-		error("Missing %s: %u", _typeName, key);
+	if (!_map.tryGetVal(key, value)) {
+		if (required)
+			error("Missing %s: %u", _typeName, key);
+	}
 	return value;
 }
 
@@ -330,27 +333,52 @@ template<class TValue>
 DB::SequenceSet<TValue>::SequenceSet(const char *typeName) : _typeName(typeName) { }
 
 template<class TValue>
-Span<const TValue> DB::SequenceSet<TValue>::get(uint32 key) const {
+Span<const TValue> DB::SequenceSet<TValue>::get(uint32 key, bool required) const {
 	Range range;
-	if (!_map.tryGetVal(key, range))
-		error("Missing %s: %u", _typeName, key);
+	if (!_map.tryGetVal(key, range)) {
+		if (required)
+			error("Missing %s: %u", _typeName, key);
+		return {};
+	}
 	assert(range._begin < _items.size() && range._begin + range._count <= _items.size());
 	return { &_items[range._begin], range._count };
 }
 
 template<class TValue>
-template<class StrictWeakOrdering>
-void DB::SequenceSet<TValue>::setupSequences(StrictWeakOrdering comp) {
-	sort(_items.begin(), _items.end(), comp);
+template<class GetMe, class GetParent>
+void DB::SequenceSet<TValue>::setupSequences(GetMe getMe, GetParent getParent) {
+	sort(_items.begin(), _items.end(), [&](const TValue &a, const TValue &b) {
+		return getParent(a) != getParent(b)
+			? getParent(a) < getParent(b)
+			: getMe(a) < getMe(b);
+	});
 
 	uint32 begin = 0;
 	for (uint32 i = 1; i < _items.size(); i++) {
-		if (_items[begin]._id != _items[i]._id) {
-			_map[_items[begin]._id] = { begin, i - begin };
+		if (getParent(_items[begin]) != getParent(_items[i])) {
+			_map[getParent(_items[begin])] = {begin, i - begin};
 			begin = i;
 		}
 	}
-	_map[_items[begin]._id] = { begin, _items.size() - begin };
+	_map[getParent(_items[begin])] = { begin, _items.size() - begin };
+}
+
+template<class TValue>
+DB::SecondaryIndex<TValue>::SecondaryIndex(const char *name, SimpleDataSet<TValue> &source)
+	: DB::SequenceSet<uint32>(name)
+	, _source(source) {}
+
+template<class TValue>
+void DB::SecondaryIndex<TValue>::build(PointerToID toParent) {
+	_map.clear();
+	_items.clear();
+	_items.reserve(_source._map.size());
+	for (const auto &pair : _source._map)
+		_items.push_back(pair._key);
+
+	setupSequences(
+		[](const uint32 &id) { return id; },
+		[&](const uint32 &id) { return _source._map[id].*toParent; });
 }
 
 Span<const DB::ScriptLine> DB::script(ScriptId scriptId) const {
@@ -362,18 +390,16 @@ void DB::loadScripts() {
 	skipWhitespace(full);
 	while (*full) {
 		ScriptLine scriptLine;
-		scriptLine._id = nextUint(full);
+		scriptLine._script = nextUint(full);
 		scriptLine._line = nextUint(full);
 		scriptLine._command = nextString(full);
 		scriptLine._comment = nextString(full, true);
 		_scripts._items.push_back(scriptLine);
 	}
 
-	_scripts.setupSequences([&](const ScriptLine &a, const ScriptLine &b) {
-		return a._id != b._id
-			? a._id < b._id
-			: a._line < b._line;
-	});
+	_scripts.setupSequences(
+		[](const ScriptLine &line) { return line._line; },
+		[](const ScriptLine &line) { return line._script; });
 }
 
 DB::CharacterAnimationSet DB::characterAnimationSet(CharAnimSetId setId, ActionModeId actionModeId) const {
@@ -405,7 +431,7 @@ void DB::loadChoices() {
 	skipWhitespace(full);
 	while (*full) {
 		Choice choice;
-		choice._id = nextUint(full);
+		choice._set = nextUint(full);
 		choice._line = nextUint(full);
 		choice._active = nextBool(full);
 		choice._text = nextString(full);
@@ -413,15 +439,13 @@ void DB::loadChoices() {
 		_choices._items.push_back(choice);
 	}
 
-	_scripts.setupSequences([&](const ScriptLine &a, const ScriptLine &b) {
-		return a._id != b._id
-			? a._id < b._id
-			: a._line < b._line;
-	});
+	_choices.setupSequences(
+		[](const Choice &c) { return c._line; },
+		[](const Choice &c) { return c._set; });
 }
 
-DB::Room DB::room(RoomId id) const {
-	return _rooms.get(id);
+DB::Room DB::room(RoomId id, bool required) const {
+	return _rooms.get(id, required);
 }
 
 void DB::loadRooms() {
@@ -440,15 +464,19 @@ void DB::loadRooms() {
 		room._hspeed = nextFloat(full);
 		room._baseYAtZeroScale = nextFloat(full);
 		room._baseYAtFullScale = nextFloat(full);
-		room._guiMode = nextGuiMode(full);
+		room._gameMode = nextGameMode(full);
 		room._charAnimSet = nextUint(full);
 		room._timer = nextUint(full, true);
 		_rooms.set(room._id, room);
 	}
 }
 
-DB::RoomObject DB::roomObject(RoomObjectId id) const {
-	return _roomObjects.get(id);
+DB::RoomObject DB::roomObject(RoomObjectId id, bool required) const {
+	return _roomObjects.get(id, required);
+}
+
+Span<const uint32> DB::roomObjectsByRoom(RoomId id, bool required) const {
+	return _roomObjectsByRoom.get(id, required);
 }
 
 void DB::loadRoomObjects() {
@@ -466,10 +494,12 @@ void DB::loadRoomObjects() {
 		obj._active = nextBool(full, true);
 		_roomObjects.set(obj._id, obj);
 	}
+
+	_roomObjectsByRoom.build(&RoomObject::_room);
 }
 
-DB::RoomInteraction DB::roomInteraction(RoomInteractionId id) const {
-	return _roomInteractions.get(id);
+DB::RoomInteraction DB::roomInteraction(RoomInteractionId id, bool required) const {
+	return _roomInteractions.get(id, required);
 }
 
 void DB::loadRoomInteractions() {
@@ -505,7 +535,7 @@ void DB::loadItems() {
 	while (*full) {
 		Item item;
 		item._id = nextUint(full);
-		item._guiMode = nextGuiMode(full);
+		item._gameMode = nextGameMode(full);
 		item._name = nextString(full);
 		item._icon = nextString(full);
 		item._inventoryPos = nextUint(full);
@@ -566,8 +596,8 @@ void DB::loadItemInteractions() {
 	}
 }
 
-DB::RoomExit DB::roomExit(RoomExitId id) const {
-	return _roomExits.get(id);
+DB::RoomExit DB::roomExit(RoomExitId id, bool required) const {
+	return _roomExits.get(id, required);
 }
 
 void DB::loadRoomExits() {
@@ -626,21 +656,19 @@ void DB::loadAnimationFrames() {
 	while (*full) {
 		AnimationFrame frame;
 		frame._frame = nextUint(full); // this is originally the sole primary key, but it is much easier to consume as sequence
-		frame._id = nextUint(full);
+		frame._animation = nextUint(full);
 		frame._image = nextString(full);
 		frame._altDuration = nextUint(full, true);
 		_animationFrames._items.push_back(frame);
 	}
 
-	_animationFrames.setupSequences([&](const AnimationFrame &a, const AnimationFrame &b) {
-		return a._id != b._id
-			? a._id < b._id
-			: a._frame < b._frame;
-	});
+	_animationFrames.setupSequences(
+		[](const AnimationFrame &f) { return f._frame; },
+		[](const AnimationFrame &f) { return f._animation; });
 }
 
-DB::RoomObjectDisplay DB::roomObjectDisplay(RoomObjectDisplayId id) const {
-	return _roomObjectDisplays.get(id);
+DB::RoomObjectDisplay DB::roomObjectDisplay(RoomObjectDisplayId id, bool required) const {
+	return _roomObjectDisplays.get(id, required);
 }
 
 void DB::loadRoomObjectDisplays() {
@@ -662,8 +690,8 @@ void DB::loadRoomObjectDisplays() {
 	}
 }
 
-DB::NPC DB::npc(NPCId id) const {
-	return _npcs.get(id);
+DB::NPC DB::npc(NPCId id, bool required) const {
+	return _npcs.get(id, required);
 }
 
 void DB::loadNPCs() {

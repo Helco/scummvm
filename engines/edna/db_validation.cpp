@@ -100,7 +100,7 @@ uint32 DB::validateScripts() const {
 			!isAlpha(line._command[0]) ||
 			strchr(line._command, '(') == nullptr ||
 			strchr(line._command, ')') == nullptr) {
-			debug("In script %u %u: invalid command", line._id, line._line);
+			debug("In script %u %u: invalid command", line._script, line._line);
 			errors++;
 		}
 	}
@@ -122,8 +122,8 @@ uint32 DB::validateChoices() const {
 	uint32 errors = 0;
 	for (const auto &line : _choices._items) {
 		if (strlen(line._text) == 0)
-			debug("In choice %u %u: empty text", line._id, line._line);
-		errors += _scripts.validateRef(line._script, "choice set", line._id);
+			debug("In choice %u %u: empty text", line._set, line._line);
+		errors += _scripts.validateRef(line._script, "choice set", line._set);
 	}
 	return errors;
 }
@@ -257,8 +257,8 @@ uint32 DB::validateAnimationFrames() const {
 			errors++;
 			debug("In animation frame %u %u: invalid duration");
 		}
-		errors += _animations.validateRef(frame._id, "animation frame", frame._id);
-		errors += validatePath(frame._image, "animation frame", frame._id);
+		errors += _animations.validateRef(frame._animation, "animation frame", frame._animation);
+		errors += validatePath(frame._image, "animation frame", frame._animation);
 	}
 	return errors;
 }

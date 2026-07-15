@@ -6,7 +6,7 @@ MODULE_OBJS = \
 	db_validation.o \
 	edna.o \
 	graphics.o \
-	gui\guibase.o \
+	game\game.o \
 	metaengine.o \
 	sprite\animation.o \
 	sprite\group.o \

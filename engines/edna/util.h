@@ -36,7 +36,8 @@ enum class Direction {
 	Right
 };
 
-enum class GuiMode {
+enum class GameMode {
+	None = -1,
 	StartMenu = 0,
 	EdnaStd,
 	Harvey,
@@ -47,6 +48,7 @@ enum class GuiMode {
 	MainMenu, // might be unused
 	Intro,
 };
+const char *gameModeToString(GameMode mode);
 
 enum PlayerAction {
 	None = 0,

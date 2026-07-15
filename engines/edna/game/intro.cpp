@@ -22,25 +22,51 @@
 #include "edna/edna.h"
 #include "edna/game/intro.h"
 
+#include "graphics/surface.h"
+#include "image/png.h"
+
 using namespace Common;
 
 namespace Edna {
 
-Intro::Intro()
+Intro::Intro(bool withHarvey)
 	: GameBase(GameMode::Intro)
+	, _withHarvey(withHarvey)
 	, _group("intro") {
 
 	_daedalic.setTexture("bildfolgen/intro/daedalic.png");
-	_splash.setTexture((String("gui/littleSplash_") + g_engine->language() + ".png").c_str());
-	_splash.pos() = { 250, 100 };
-	_splash.active() = false;
-	_splash.immutable() = true;
 	_group.add(&_daedalic, DisposeAfterUse::NO);
-	_group.add(&_splash, DisposeAfterUse::NO);
 	add(&_group, DisposeAfterUse::NO);
-
 	_music = g_engine->playMusic("music/jingle-spiritual", false);
-	_lastFrame = g_engine->getMillis();
+
+	if (_withHarvey) {
+		_splash.setTexture((String("gui/littleSplash_") + g_engine->language() + ".png").c_str());
+		_splash.pos() = { 250, 100 };
+		_splash.active() = false;
+		_splash.immutable() = true;
+		_group.add(&_splash, DisposeAfterUse::NO);
+
+		// this is the only sprite sheet animation, so we load it manually here
+		File file;
+		Image::PNGDecoder decoder;
+		if (!file.open("gui/harvey_walk_50x100x7.png") || !decoder.loadStream(file))
+			error("Could not open harvey intro animation");
+		const Graphics::Surface &surface = *decoder.getSurface();
+		const int CellCount = 7;
+		int cellWidth = surface.w / CellCount;
+		TexturePtr cells[CellCount];
+		for (int i = 0; i < CellCount; i++) {
+			cells[i] = g_engine->renderer().loadTexture(
+				surface.getSubArea(Rect(i * cellWidth, 0, (i + 1) * cellWidth, surface.h)));
+		}
+
+		_harvey.setTextures(TextureSpan(cells, CellCount));
+		_harvey.setAnimation(AnimationRange{ 0, CellCount - 1,  200, true });
+		_harvey.pos() = { 375, 300 };
+		_harvey.active() = false;
+		_harvey.immutable() = true;
+		_group.add(&_harvey, DisposeAfterUse::NO);
+	}
 }
 
 Intro::~Intro() {
@@ -50,25 +76,27 @@ Intro::~Intro() {
 void Intro::update() {
 	GameBase::update();
 
-	uint32 elapsed = g_engine->getMillis() - _lastFrame;
-	_lastFrame = g_engine->getMillis();
-
 	switch (_stage) {
 	case Stage::FadeIn:
-		_fadeAlpha -= elapsed / 1000.0f;
+		_fadeAlpha -= g_engine->getElapsed() / 1000.0f;
 		if (_fadeAlpha < 0.01f) {
 			_fadeAlpha = 0.01f;
 			_stage = Stage::FadeOut;
 		}
 		break;
 	case Stage::FadeOut:
-		_fadeAlpha += elapsed / 3500.0f;
+		_fadeAlpha += g_engine->getElapsed() / 3500.0f;
 		if (_fadeAlpha > 0.99f) {
 			_fadeAlpha = 0.99f;
-			_daedalic.active() = false;
-			_splash.active() = true;
-			_stage = Stage::Harvey;
-			g_engine->nextRoom() = 1; // startmenu
+
+			if (_withHarvey) {
+				_stage = Stage::Harvey;
+				_daedalic.active() = false;
+				_splash.active() = true;
+				_harvey.active() = true;
+			}
+			else
+				g_engine->nextRoom() = 1; // startmenu
 		}
 		break;
 	case Stage::Harvey:

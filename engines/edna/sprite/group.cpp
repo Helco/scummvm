@@ -31,6 +31,9 @@ Group::Group(const char *name) : _name(name) { }
 Group::~Group() { }
 
 void Group::update() {
+	if (!_active)
+		return;
+
 	Array<uint> inactive;
 	for (uint i = 0; i < _sprites.size(); i++) {
 		_sprites[i]->update();
@@ -44,6 +47,8 @@ void Group::update() {
 }
 
 void Group::render() {
+	if (!_active)
+		return;
 	for (const auto &sprite : _sprites)
 		sprite->render();
 }

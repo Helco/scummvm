@@ -52,7 +52,8 @@ class IRenderer {
 public:
 	virtual ~IRenderer();
 
-	virtual ITexture *loadTexture(const char *fileName) = 0;
+	TexturePtr loadTexture(const char *fileName);
+	virtual TexturePtr loadTexture(const Graphics::Surface &surface) = 0;
 	virtual IRenderedText *createText(Graphics::Font *font, uint8 r, uint8 g, uint8 b) = 0;
 
 	virtual void begin() = 0;

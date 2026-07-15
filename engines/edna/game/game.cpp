@@ -19,10 +19,36 @@
  *
  */
 
+#include "edna/edna.h"
+#include "edna/db.h"
 #include "edna/game/game.h"
 
 namespace Edna {
 
+GameBase::GameBase(GameMode mode) : _gameMode(mode) { }
+GameBase::~GameBase() { }
 
+void GameBase::update() {
+	for (auto &group : _groups)
+		group->update();
+}
+
+void GameBase::render() {
+	for (auto &group : _groups)
+		group->render();
+}
+
+void GameBase::add(Group *group, DisposeAfterUse::Flag dispose) {
+	_groups.emplace_back(group, dispose);
+}
+
+Game::Game(GameMode mode, RoomId roomId)
+	: GameBase(mode)
+	, _roomId(roomId) {
+	assert(mode != GameMode::Intro);
+
+	DB::Room room = g_engine->db().room(roomId);
+	assert(room._gameMode == mode);
+}
 
 }

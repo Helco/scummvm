@@ -19,24 +19,48 @@
  *
  */
 
+#ifndef EDNA_GAME_H
+#define EDNA_GAME_H
+
+#include "common/span.h"
+
 #include "edna/sprite/group.h"
 
 namespace Edna {
 
-class Game {
+// Everything except Intro inherits from Game
+
+class GameBase {
 public:
-	Game(GameMode mode, RoomId roomId);
-	virtual ~Game();
+	GameBase(GameMode mode);
+	virtual ~GameBase();
 
 	inline GameMode gameMode() const { return _gameMode; }
-	inline RoomId roomid() const { return _roomId; }
+	inline Common::Span<const Common::DisposablePtr<Group>> groups() const {
+		return { _groups.data(), _groups.size() };
+	}
 
 	virtual void update();
 	virtual void render();
 
+protected:
+	void add(Group *group, DisposeAfterUse::Flag dispose = DisposeAfterUse::YES);
+
 private:
 	const GameMode _gameMode;
+	Common::Array<Common::DisposablePtr<Group>> _groups;
+};
+
+class Game : public GameBase {
+public:
+	Game(GameMode mode, RoomId roomId);
+
+	inline RoomId roomId() const { return _roomId; }
+
+private:
 	const RoomId _roomId;
 };
 
 }
+
+#endif // EDNA_GAME_H

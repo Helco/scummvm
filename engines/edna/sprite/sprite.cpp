@@ -100,7 +100,7 @@ void AnimatedSprite::setAnimation(AnimationRange animation) {
 	_curFrame = animation._startFrame;
 	_texture = _textures[_curFrame];
 	_timer.delay() = animation._delay;
-	_timer.toggle(false);
+	_timer.toggle(true);
 }
 
 void AnimatedSprite::stopAnimation() {

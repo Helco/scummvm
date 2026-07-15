@@ -72,16 +72,21 @@ Error EdnaEngine::run() {
 	_db.reset(new DB(Path("script/").appendInPlace(language())));
 	_renderer.reset(createSoftwareRenderer());
 
+
 	// If a savegame was selected from the launcher, load it
 	int saveSlot = ConfMan.getInt("save_slot");
 	if (saveSlot == -1)
-		_game.reset(new Intro());
+		_game.reset(new Intro(true));
 	else
 		(void)loadGameState(saveSlot);
 
+	_timeLastFrame = g_system->getMillis();
 	Common::Event e;
 	Graphics::FrameLimiter limiter(g_system, 40); // this is the original framerate
 	while (!shouldQuit()) {
+		_timeElapsed = g_system->getMillis() - _timeLastFrame;
+		_timeLastFrame = g_system->getMillis();
+
 		while (g_system->getEventManager()->pollEvent(e)) {
 		}
 

@@ -96,7 +96,7 @@ using TopicId = uint32;
 using NPCId = uint32;
 
 class Timer {
-	uint32 _startTime = 0, _delay = 0;
+	uint32 _curDelay = 0, _delay = 0;
 	bool _active = false;
 public:
 	inline uint32 &delay() { return _delay; }

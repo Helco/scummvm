@@ -22,6 +22,7 @@
 #ifndef EDNA_H
 #define EDNA_H
 
+#include "audio/mixer.h"
 #include "common/scummsys.h"
 #include "common/system.h"
 #include "common/error.h"
@@ -34,12 +35,14 @@
 #include "engines/savestate.h"
 
 #include "edna/detection.h"
+#include "edna/util.h"
 
 namespace Edna {
 
 struct EdnaGameDescription;
 class DB;
 class IRenderer;
+class GameBase;
 
 class EdnaEngine : public Engine {
 protected:
@@ -48,11 +51,15 @@ public:
 	EdnaEngine(OSystem *syst, const ADGameDescription *gameDesc);
 	~EdnaEngine() override;
 
+	inline RoomId &nextRoom() { return _nextRoom; }
+	inline const char *language() const { return getLanguageCode(_gameDescription->language); }
 	inline IRenderer &renderer() { assert(_renderer != nullptr); return *_renderer; }
 	inline DB &db() { assert(_db != nullptr); return *_db; }
+	inline GameBase &game() { assert(_game != nullptr); return *_game; }
 
 	uint32 getMillis() const;
 	void setMillis(uint32 newMillis);
+	Audio::SoundHandle playMusic(const char *fileName, bool loop = true);
 	void pauseEngineIntern(bool pause) override;
 
 	bool hasFeature(EngineFeature f) const override {
@@ -63,10 +70,10 @@ public:
 	};
 
 	bool canLoadGameStateCurrently(Common::U32String *msg = nullptr) override {
-		return true;
+		return false;
 	}
 	bool canSaveGameStateCurrently(Common::U32String *msg = nullptr) override {
-		return true;
+		return false;
 	}
 
 	/**
@@ -85,15 +92,17 @@ public:
 	}
 
 private:
-	void initGraphics();
+	GameBase *createRoom(RoomId roomId);
 
 	const ADGameDescription *_gameDescription;
 	Common::RandomSource _randomSource;
 	Common::ScopedPtr<IRenderer> _renderer;
 	Common::ScopedPtr<DB> _db;
+	Common::ScopedPtr<GameBase> _game;
 
 	uint32 _timeNegOffset = 0, _timePosOffset = 0;
 	uint32 _timeBeforePause = 0;
+	RoomId _nextRoom = 0;
 };
 
 extern EdnaEngine *g_engine;

@@ -33,26 +33,24 @@ void Sprite::update() { }
 
 void Sprite::render() {
 	if (_active && _texture != nullptr)
-		g_engine->renderer().sprite(_texture.get(), _bounds.origin(), Point(_bounds.width(), _bounds.height()));
+		g_engine->renderer().sprite(_texture.get(), _pos, _size);
+}
+
+void Sprite::setTexture(const char *fileName) {
+	setTexture(g_engine->renderer().loadTexture(fileName));
 }
 
 void Sprite::setTexture(TexturePtr texture) {
 	_texture = texture;
-	if (texture == nullptr) {
-		_bounds.setWidth(0);
-		_bounds.setHeight(0);
-	} else {
-		_bounds.setWidth(texture->size().x);
-		_bounds.setHeight(texture->size().y);
-	}
+	_size = texture == nullptr ? Point() : texture->size();
 }
 
 bool Sprite::checkClick(Point screenPos) const {
 	return
 		_active &&
 		_texture != nullptr &&
-		_bounds.contains(screenPos) &&
-		_texture->alphaCheck(screenPos - _bounds.origin());
+		bounds().contains(screenPos) &&
+		_texture->alphaCheck(screenPos - _pos);
 }
 
 void AnimatedSprite::update() {

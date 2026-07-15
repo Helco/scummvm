@@ -37,6 +37,16 @@ ITexture::~ITexture() { }
 IRenderedText::~IRenderedText() { }
 IRenderer::~IRenderer() { }
 
+TexturePtr IRenderer::loadTexture(const char *fileName) {
+	File file;
+	if (!file.open(fileName))
+		return nullptr;
+	Image::PNGDecoder decoder;
+	if (!decoder.loadStream(file))
+		return nullptr;
+	return loadTexture(*decoder.getSurface());
+}
+
 static Graphics::AlphaType getAlphaType(const Graphics::ManagedSurface &surface) {
 	assert(surface.format.bytesPerPixel == 4); // this should be true for BlendBlit::getSupportedPixelFormat 
 	Graphics::AlphaType type = Graphics::ALPHA_OPAQUE;
@@ -57,8 +67,8 @@ static Graphics::AlphaType getAlphaType(const Graphics::ManagedSurface &surface)
 
 class SoftwareTexture final : public ITexture {
 public:
-	const Graphics::AlphaType _alphaType;
 	Graphics::ManagedSurface _surface;
+	const Graphics::AlphaType _alphaType;
 
 	SoftwareTexture(Graphics::ManagedSurface &&surface)
 		: _surface(Common::move(surface))
@@ -119,19 +129,13 @@ public:
 		_screen.reset(new Graphics::Screen());
 	}
 
-	ITexture *loadTexture(const char *fileName) {
-		File file;
-		if (!file.open(fileName))
-			return nullptr;
-		Image::PNGDecoder decoder;
-		if (!decoder.loadStream(file))
-			return nullptr;
+	TexturePtr loadTexture(const Graphics::Surface &surface) override {
 		Graphics::ManagedSurface converted; // TODO: check whether any images are paletted and cannot be converted like this
-		converted.convertFrom(*decoder.getSurface(), g_system->getScreenFormat());
-		return new SoftwareTexture(Common::move(converted));
+		converted.convertFrom(surface, g_system->getScreenFormat());
+		return TexturePtr(new SoftwareTexture(Common::move(converted)));
 	}
 
-	IRenderedText *createText(Graphics::Font *font, uint8 r, uint8 g, uint8 b) {
+	IRenderedText *createText(Graphics::Font *font, uint8 r, uint8 g, uint8 b) override {
 		return new SoftwareRenderedText(font, r, g, b);
 	}
 
@@ -139,7 +143,7 @@ public:
 
 	void end() override {
 		_screen->markAllDirty();
-		_screen->updateScreen();
+		_screen->update();
 	}
 
 	void sprite(ITexture *textureRaw, Point pos, Point size = {}) override {
@@ -155,7 +159,7 @@ public:
 			(byte *)_screen->getPixels(),
 			(const byte *)texture->_surface.getPixels(),
 			_screen->pitch, texture->_surface.pitch,
-			pos.x, pos.y, _screen->w, _screen->h,
+			pos.x, pos.y, size.x, size.y,
 			texture->_surface.w * Graphics::BlendBlit::SCALE_THRESHOLD / size.x,
 			texture->_surface.h * Graphics::BlendBlit::SCALE_THRESHOLD / size.y,
 			0, 0, // scale offset
@@ -185,11 +189,12 @@ public:
 		if (rect.isEmpty())
 			return;
 
+		auto color = Graphics::BlendBlit::getSupportedPixelFormat().ARGBToColor(a, r, g, b);
 		Graphics::BlendBlit::fill(
 			(byte *)_screen->getBasePtr(rect.left, rect.top),
 			_screen->pitch,
 			rect.width(), rect.height(),
-			0xffffffff, // colormod
+			color,
 			Graphics::BLEND_NORMAL);
 	}
 

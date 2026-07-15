@@ -22,7 +22,10 @@
 #include "edna/edna.h"
 #include "edna/db.h"
 #include "edna/graphics.h"
+#include "edna/game/intro.h"
 
+#include "audio/decoders/vorbis.h"
+#include "audio/audiostream.h"
 #include "engines/util.h"
 #include "graphics/framelimiter.h"
 #include "edna/detection.h"
@@ -61,29 +64,35 @@ static void addArchive(const char *name) {
 Error EdnaEngine::run() {
 	setDebugger(new Console());
 
-	const char *language = getLanguageCode(_gameDescription->language);
 	addArchive("audio.jar");
 	addArchive("comments.jar");
 	addArchive("visual.jar");
-	addArchive((String("speech_") + language + ".jar").c_str());
+	addArchive((String("speech_") + language() + ".jar").c_str());
 
-	_db.reset(new DB(Path("script/").appendInPlace(language)));
+	_db.reset(new DB(Path("script/").appendInPlace(language())));
 	_renderer.reset(createSoftwareRenderer());
-	initGraphics();
 
 	// If a savegame was selected from the launcher, load it
 	int saveSlot = ConfMan.getInt("save_slot");
-	if (saveSlot != -1)
+	if (saveSlot == -1)
+		_game.reset(new Intro());
+	else
 		(void)loadGameState(saveSlot);
 
 	Common::Event e;
-	Graphics::FrameLimiter limiter(g_system, 40); // this is the original framerate in 1.3.1 
+	Graphics::FrameLimiter limiter(g_system, 40); // this is the original framerate
 	while (!shouldQuit()) {
 		while (g_system->getEventManager()->pollEvent(e)) {
 		}
 
-		_renderer->begin();
+		if (_nextRoom != 0) {
+			_game.reset(createRoom(_nextRoom));
+			_nextRoom = 0;
+		}
+		_game->update();
 
+		_renderer->begin();
+		_game->render();
 		limiter.delayBeforeSwap();
 		_renderer->end();
 		limiter.startFrame();
@@ -92,8 +101,12 @@ Error EdnaEngine::run() {
 	return Common::kNoError;
 }
 
-void EdnaEngine::initGraphics() {
-	
+GameBase *EdnaEngine::createRoom(RoomId roomId) {
+	DB::Room room = db().room(roomId);
+	switch (room._gameMode) {
+	default:
+		error("Unimplemented game mode: %s", gameModeToString(room._gameMode));
+	}
 }
 
 Error EdnaEngine::syncGame(Serializer &s) {
@@ -129,6 +142,21 @@ void EdnaEngine::pauseEngineIntern(bool pause) {
 		_timeBeforePause = getMillis();
 	else
 		setMillis(_timeBeforePause);
+}
+
+Audio::SoundHandle EdnaEngine::playMusic(const char *fileName, bool loop) {
+	File *file = new File();
+	if (!file->open(Path(String(fileName) + ".ogg"))) {
+		delete file;
+		return {};
+	}
+	auto *fileStream = Audio::makeVorbisStream(file, DisposeAfterUse::YES);
+	Audio::AudioStream *playStream = fileStream;
+	if (loop)
+		playStream = Audio::makeLoopingAudioStream(fileStream, 0);
+	Audio::SoundHandle handle;
+	g_system->getMixer()->playStream(Audio::Mixer::kMusicSoundType, &handle, playStream);
+	return handle;
 }
 
 } // End of namespace Edna

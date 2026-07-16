@@ -23,6 +23,7 @@
 #define EDNA_GROUP_H
 
 #include "common/array.h"
+#include "common/span.h"
 #include "common/ptr.h"
 #include "edna/util.h"
 
@@ -37,6 +38,9 @@ public:
 
 	inline const char *name() const { return _name; } ///< only for debugging
 	inline bool &active() { return _active; }
+	inline Common::Span<const Common::DisposablePtr<Sprite>> sprites() const {
+		return { _sprites.data(), _sprites.size() };
+	}
 
 	virtual void update();
 	virtual void render();

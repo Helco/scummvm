@@ -44,7 +44,7 @@ public:
 	virtual void render();
 
 protected:
-	void add(Group *group, DisposeAfterUse::Flag dispose = DisposeAfterUse::YES);
+	void add(Group *group, DisposeAfterUse::Flag dispose = DisposeAfterUse::NO);
 
 private:
 	const GameMode _gameMode;
@@ -56,9 +56,28 @@ public:
 	Game(GameMode mode, RoomId roomId);
 
 	inline RoomId roomId() const { return _roomId; }
+	inline Group &background() { return _background; }
+	inline Group &bgObjects() { return _bgObjects; }
+	inline Group &objects() { return _objects; }
+	inline Group &texts() { return _texts; }
+	inline Group &gui() { return _gui; }
+
+protected:
+	void initBackground(const char *background);
+	virtual void initGroups();
+	void initGroups(Group *specialObjects, Group *specialGui);
+	void initObjects();
 
 private:
+
 	const RoomId _roomId;
+	Group
+		_background,
+		_bgObjects,
+		_objects, // TODO: sprite ordering
+		_texts,
+		_gui;
+	// missing due to custom type: comment, mainMenu, choiceList
 };
 
 }

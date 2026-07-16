@@ -8,6 +8,7 @@ MODULE_OBJS = \
 	graphics.o \
 	game\game.o \
 	game\intro.o \
+	game\scriptonclick.o \
 	metaengine.o \
 	sprite\animation.o \
 	sprite\group.o \

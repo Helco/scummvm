@@ -42,6 +42,7 @@ public:
 
 	virtual void update();
 	virtual void render();
+	virtual void debugPrint();
 
 	void setTexture(const char *fileName); ///< shortcut for loading textures
 	virtual void setTexture(TexturePtr texture);
@@ -61,12 +62,15 @@ public:
 	inline bool isAnimating() const { return _timer.active(); }
 
 	void update() override;
+	void debugPrint() override;
 	void setTexture(TexturePtr texture) override;
+	void setTextures(std::initializer_list<const char *> fileNames);
 	void setTextures(TextureSpan textures);
 	void setTextures(TextureArray &&textures);
 	void setAnimation(AnimationRange animation);
 	void setAnimation(const Animation& animation);
 	void stopAnimation();
+	void setFrame(uint32 index);
 
 private:
 	void resetTextures();

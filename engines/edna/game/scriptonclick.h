@@ -19,43 +19,24 @@
  *
  */
 
-#ifndef EDNA_GROUP_H
-#define EDNA_GROUP_H
+#ifndef EDNA_SCRIPTONCLICK_H
+#define EDNA_SCRIPTONCLICK_H
 
-#include "common/array.h"
-#include "common/span.h"
-#include "common/ptr.h"
-#include "edna/util.h"
+#include "edna/game/game.h"
+#include "edna/sprite/sprite.h"
 
 namespace Edna {
 
-class Sprite;
-
-class Group {
+class ScriptOnClick : public Game {
 public:
-	Group(const char *name);
-	virtual ~Group();
+	ScriptOnClick(RoomId roomId);
 
-	inline const char *name() const { return _name; } ///< only for debugging
-	inline bool &active() { return _active; }
-	inline Common::Span<const Common::DisposablePtr<Sprite>> sprites() const {
-		return { _sprites.data(), _sprites.size() };
-	}
-
-	virtual void update();
-	virtual void render();
-
-	void add(Sprite *sprite, DisposeAfterUse::Flag dispose = DisposeAfterUse::YES);
-	Sprite *byId(uint32 id) const;
-	Sprite *firstActive() const;
-	Sprite *checkClick(Common::Point screenPos) const;
+	void update() override;
 
 private:
-	const char *const _name;
-	Common::Array<Common::DisposablePtr<Sprite>> _sprites;
-	bool _active = true;
+
 };
 
 }
 
-#endif // EDNA_GROUP_H
+#endif // EDNA_SCRIPTONCLICK_H

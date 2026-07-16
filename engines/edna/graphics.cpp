@@ -39,7 +39,7 @@ IRenderer::~IRenderer() { }
 
 TexturePtr IRenderer::loadTexture(const char *fileName) {
 	File file;
-	if (!file.open(fileName))
+	if (!file.open(fileName) && !file.open(Path(String(fileName) + ".png")))
 		return nullptr;
 	Image::PNGDecoder decoder;
 	if (!decoder.loadStream(file))

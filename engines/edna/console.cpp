@@ -22,12 +22,15 @@
 #include "edna/console.h"
 #include "edna/db.h"
 #include "edna/edna.h"
+#include "edna/game/game.h"
+#include "edna/sprite/sprite.h"
 
 namespace Edna {
 
 Console::Console() : GUI::Debugger() {
 	registerCmd("validate", WRAP_METHOD(Console, cmdValidate));
 	registerCmd("room", WRAP_METHOD(Console, cmdRoom));
+	registerCmd("sprites", WRAP_METHOD(Console, cmdSprites));
 }
 
 Console::~Console() {
@@ -48,8 +51,12 @@ bool Console::cmdRoom(int argc, const char **argv) {
 		debugPrintf("usage: room [id]");
 		return true;
 	} else if (argc == 1) {
-		debugPrintf("current room is not supported yet\n");
-		return true;
+		Game *game = dynamic_cast<Game *>(&g_engine->game());
+		if (game == nullptr) {
+			debugPrintf("Current game (%s) is not a room game\n", gameModeToString(g_engine->game().gameMode()));
+			return true;
+		}
+		roomId = game->roomId();
 	} else {
 		char *end = nullptr;
 		roomId = (RoomId)strtoul(argv[1], &end, 10);
@@ -92,6 +99,24 @@ bool Console::cmdRoom(int argc, const char **argv) {
 		debugPrintf("  %9d %-6s%-24s%s %s\n", obj._id, obj._active ? "true" : "false", obj._name, flags, obj._image);
 	}
 	debugPrintf("\n");
+	return true;
+}
+
+bool Console::cmdSprites(int argc, const char **argv) {
+	GameBase &game = g_engine->game();
+	debugPrintf("  ID         Flags PosX   PosY   Width  Height \n");
+	for (const auto &group : game.groups()) {
+		const auto sprites = group->sprites();
+		debugPrintf("%s \"%s\" (%u)\n", group->active() ? "ACTIVE" : "INACTIVE", group->name(), sprites.size());
+		for (const auto &sprite : sprites) {
+			char flags[3] = "AI";
+			flags[0] = sprite->active() ? 'A' : ' ';
+			flags[1] = sprite->immutable() ? 'I' : ' ';
+			debugPrintf("  %10u  %s   %6d %6d %6d %6d ",
+				sprite->id(), flags, sprite->pos().x, sprite->pos().y, sprite->size().x, sprite->size().y);
+			sprite->debugPrint();
+		}
+	}
 	return true;
 }
 

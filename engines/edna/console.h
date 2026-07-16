@@ -30,6 +30,7 @@ namespace Edna {
 class Console : public GUI::Debugger {
 	bool cmdValidate(int argc, const char **argv);
 	bool cmdRoom(int argc, const char **argv);
+	bool cmdSprites(int argc, const char **argv);
 
 public:
 	Console();

@@ -23,6 +23,8 @@
 #include "edna/sprite/Animation.h"
 #include "edna/sprite/Sprite.h"
 
+#include "gui/debugger.h"
+
 using namespace Common;
 
 namespace Edna {
@@ -34,6 +36,10 @@ void Sprite::update() { }
 void Sprite::render() {
 	if (_active && _texture != nullptr)
 		g_engine->renderer().sprite(_texture.get(), _pos, _size);
+}
+
+void Sprite::debugPrint() {
+	g_engine->getDebugger()->debugPrintf("Sprite\n");
 }
 
 void Sprite::setTexture(const char *fileName) {
@@ -66,8 +72,22 @@ void AnimatedSprite::update() {
 	}
 }
 
+void AnimatedSprite::debugPrint() {
+	g_engine->getDebugger()->debugPrintf("AnimatedSprite %u->%u (%u) %ums %s%s\n",
+		_animation._startFrame, _animation._endFrame, _curFrame, _animation._delay,
+		(_animation._loop ? "LOOP " : ""), (_timer.active() ? "RUNNING" : ""));
+}
+
 void AnimatedSprite::setTexture(TexturePtr texture) {
 	setTextures(TextureSpan { &texture, 1 });
+}
+
+void AnimatedSprite::setTextures(std::initializer_list<const char *> fileNames) {
+	TextureArray textures;
+	textures.reserve(fileNames.size());
+	for (const auto fileName : fileNames)
+		textures.emplace_back(move(g_engine->renderer().loadTexture(fileName)));
+	setTextures(move(textures));
 }
 
 void AnimatedSprite::setTextures(TextureSpan textures) {
@@ -90,6 +110,7 @@ void AnimatedSprite::resetTextures() {
 	assert(_textures.size() > 0);
 	assert(find(_textures.begin(), _textures.end(), nullptr) == _textures.end());
 	stopAnimation();
+	_size = _textures.front()->size();
 }
 
 void AnimatedSprite::setAnimation(AnimationRange animation) {
@@ -108,6 +129,12 @@ void AnimatedSprite::stopAnimation() {
 	_timer.toggle(false);
 	_curFrame = _animation._startFrame;
 	_texture = _textures.empty() ? nullptr : _textures[_curFrame];
+}
+
+void AnimatedSprite::setFrame(uint32 index) {
+	assert(index <= _textures.size());
+	setAnimation({ index, index, 0, true });
+	_timer.toggle(false);
 }
 
 }

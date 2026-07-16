@@ -22,6 +22,7 @@
 #include "edna/edna.h"
 #include "edna/db.h"
 #include "edna/game/game.h"
+#include "edna/sprite/sprite.h"
 
 namespace Edna {
 
@@ -44,11 +45,81 @@ void GameBase::add(Group *group, DisposeAfterUse::Flag dispose) {
 
 Game::Game(GameMode mode, RoomId roomId)
 	: GameBase(mode)
-	, _roomId(roomId) {
+	, _roomId(roomId)
+	, _background("background")
+	, _bgObjects("bgObjects")
+	, _objects("objects")
+	, _texts("texts")
+	, _gui("gui") {
 	assert(mode != GameMode::Intro);
-
 	DB::Room room = g_engine->db().room(roomId);
 	assert(room._gameMode == mode);
+
+	initBackground(room._background);
+	// TODO: Init timer
+	initGroups();
+	// TODO: Init walkableareamap
+	// TODO: Init font and cursor
+	// TODO: Init comment
+	// TODO: Init characterAnimationSet
+	initObjects();
+	// TODO: Init CommandPrompt
+	// TODO: Init ScriptInterpreter
+	// TODO: Init music
+}
+
+void Game::initBackground(const char *background) {
+	auto backgroundSprite = new Sprite();
+	backgroundSprite->setTexture(background);
+	_background.add(backgroundSprite, DisposeAfterUse::YES);
+}
+
+void Game::initGroups() {
+	initGroups(nullptr, nullptr);
+}
+
+void Game::initGroups(Group *specialObjects, Group *specialGui) {
+	add(&_background);
+	add(&_bgObjects);
+	add(&_objects);
+	if (specialObjects != nullptr)
+		add(specialObjects);
+	add(&_texts);
+	add(&_gui);
+	// TODO: comment
+	if (specialGui != nullptr)
+		add(specialGui);
+	// TODO: start menu
+}
+
+void Game::initObjects() {
+	auto dbObjects = g_engine->db().roomObjectsByRoom(_roomId, false);
+	for (uint32 dbObjectId : dbObjects) {
+		const auto dbObject = g_engine->db().roomObject(dbObjectId);
+		// not sure what the logic behind this is, display is still ignored for NPC/Exit/Interaction
+		Group &targetGroup = dbObject._toDisplay != 0 ? _objects : _bgObjects;
+
+		if (dbObject._toNPC != 0) {
+			warning("NPC is not supported (room=%u, object=%u, npc=%u)", _roomId, dbObjectId, dbObject._toNPC);
+			continue;
+		}
+
+		if (dbObject._toInteraction != 0) {
+			const auto dbInteraction = g_engine->db().roomInteraction(dbObject._toInteraction);
+			if (dbInteraction._toExit) {
+				warning("Exit is not supported (room=%u, object=%u, interaction=%u, exit=%u)",
+					_roomId, dbObjectId, dbObject._toInteraction, dbInteraction._toExit);
+				continue;
+			}
+		}
+
+		if (dbObject._toDisplay != 0) {
+			warning("Display object not supported (room=%u, object=%u, display=%u)", _roomId, dbObjectId, dbObject._toDisplay);
+			continue;
+		}
+
+		// if we get here this is a pure logic object used by scripts
+	}
 }
 
 }

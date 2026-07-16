@@ -23,6 +23,7 @@
 #include "edna/db.h"
 #include "edna/graphics.h"
 #include "edna/game/intro.h"
+#include "edna/game/scriptonclick.h"
 
 #include "audio/decoders/vorbis.h"
 #include "audio/audiostream.h"
@@ -80,6 +81,8 @@ Error EdnaEngine::run() {
 	else
 		(void)loadGameState(saveSlot);
 
+	_nextRoom = 2;
+
 	_timeLastFrame = g_system->getMillis();
 	Common::Event e;
 	Graphics::FrameLimiter limiter(g_system, 40); // this is the original framerate
@@ -109,6 +112,8 @@ Error EdnaEngine::run() {
 GameBase *EdnaEngine::createRoom(RoomId roomId) {
 	DB::Room room = db().room(roomId);
 	switch (room._gameMode) {
+	case GameMode::ScriptOnClick:
+		return new ScriptOnClick(roomId);
 	default:
 		error("Unimplemented game mode: %s", gameModeToString(room._gameMode));
 	}

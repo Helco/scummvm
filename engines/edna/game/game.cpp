@@ -22,7 +22,8 @@
 #include "edna/edna.h"
 #include "edna/db.h"
 #include "edna/game/game.h"
-#include "edna/sprite/sprite.h"
+#include "edna/sprite/animation.h"
+#include "edna/sprite/object.h"
 
 namespace Edna {
 
@@ -114,7 +115,20 @@ void Game::initObjects() {
 		}
 
 		if (dbObject._toDisplay != 0) {
-			warning("Display object not supported (room=%u, object=%u, display=%u)", _roomId, dbObjectId, dbObject._toDisplay);
+			const auto dbDisplay = g_engine->db().roomObjectDisplay(dbObject._toDisplay);
+			auto *object = new VisualObject(
+				{ (int16)dbDisplay._startX, (int16)dbDisplay._startY },
+				{ (int16)dbDisplay._endX, (int16)dbDisplay._endY });
+			object->pos() = { (int16)dbObject._posX, (int16)dbObject._posY };
+			object->active() = dbObject._active;
+			object->immutable() = true;
+			object->id() = dbObjectId;
+			if (dbDisplay._animation > 0) {
+				Animation animation(dbDisplay._animation);
+				object->setAnimation(animation);
+			} else
+				object->setTexture(dbObject._image);
+			targetGroup.add(object, DisposeAfterUse::YES);
 			continue;
 		}
 

@@ -71,12 +71,11 @@ protected:
 private:
 
 	const RoomId _roomId;
-	Group
-		_background,
-		_bgObjects,
-		_objects, // TODO: sprite ordering
-		_texts,
-		_gui;
+	Group _background;
+	Group _bgObjects;
+	ObjectGroup _objects;
+	Group _texts;
+	Group _gui;
 	// missing due to custom type: comment, mainMenu, choiceList
 };
 

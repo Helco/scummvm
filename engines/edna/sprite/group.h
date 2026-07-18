@@ -30,6 +30,7 @@
 namespace Edna {
 
 class Sprite;
+class InteractableObject;
 
 class Group {
 public:
@@ -50,10 +51,17 @@ public:
 	Sprite *firstActive() const;
 	Sprite *checkClick(Common::Point screenPos) const;
 
-private:
+protected:
 	const char *const _name;
 	Common::Array<Common::DisposablePtr<Sprite>> _sprites;
 	bool _active = true;
+};
+
+class ObjectGroup : public Group {
+public:
+	using Group::Group;
+	void render() override;
+	InteractableObject *checkInteractableClick(Common::Point screenPos) const;
 };
 
 }

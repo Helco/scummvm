@@ -37,6 +37,7 @@ public:
 	inline bool &active() { return _active; }
 	inline bool &immutable() { return _immutable; } ///< An immutable sprite is not deleted if inactive
 	inline Common::Point &pos() { return _pos; }
+	inline Common::Point pos() const { return _pos; }
 	inline Common::Point size() const { return _size; }
 	inline Common::Rect bounds() const { return { _pos, _pos + _size }; }
 
@@ -56,13 +57,14 @@ private:
 	uint32 _id = 0;
 };
 
-class AnimatedSprite : public Sprite {
+class AnimatedSprite : public virtual Sprite {
 public:
 	inline uint32 &curFrame() { return _curFrame; }
 	inline bool isAnimating() const { return _timer.active(); }
 
 	void update() override;
 	void debugPrint() override;
+	using Sprite::setTexture;
 	void setTexture(TexturePtr texture) override;
 	void setTextures(std::initializer_list<const char *> fileNames);
 	void setTextures(TextureSpan textures);

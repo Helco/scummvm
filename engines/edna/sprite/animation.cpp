@@ -52,6 +52,8 @@ void Animation::loadTextures(AnimationId id, TextureArray &targetTextures) {
             _textures->push_back(texture);
         _range._endFrame += dbFrame._altDuration;
     }
+	_range._endFrame--; // end frame is inclusive
+	// ^ animationFrames errors if there are no frame so this cannot underflow
 }
 
 CharacterAnimationSet::CharacterAnimationSet(CharAnimSetId charAnimSetId, ActionModeId actionModeId) {

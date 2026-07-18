@@ -20,7 +20,7 @@
  */
 
 #include "edna/sprite/group.h"
-#include "edna/sprite/sprite.h"
+#include "edna/sprite/object.h"
 
 using namespace Common;
 
@@ -76,6 +76,26 @@ Sprite *Group::checkClick(Point screenPos) const {
 	auto it = find_if(_sprites.begin(), _sprites.end(),
 		[screenPos](const DisposablePtr<Sprite> &ptr) { return ptr->checkClick(screenPos); });
 	return it == _sprites.end() ? nullptr : it->get();
+}
+
+void ObjectGroup::render() {
+	sort(_sprites.begin(), _sprites.end(), [](const DisposablePtr<Sprite> &aRaw, const DisposablePtr<Sprite> &bRaw) {
+		const auto *a = dynamic_cast<const SpatialObject *>(aRaw.get());
+		const auto *b = dynamic_cast<const SpatialObject *>(bRaw.get());
+		assert(a != nullptr && b != nullptr);
+		int aBase = a->basePosY(b->basePosX());
+		int bBase = b->basePosY(a->basePosX());
+		return aBase < bBase;
+	});
+	Group::render();
+}
+
+InteractableObject *ObjectGroup::checkInteractableClick(Point screenPos) const {
+	auto it = find_if(_sprites.begin(), _sprites.end(), [screenPos](const DisposablePtr<Sprite> &ptr) {
+		const auto *interactable = dynamic_cast<const InteractableObject *>(ptr.get());
+		return interactable != nullptr && interactable->checkClick(screenPos);
+	});
+	return it == _sprites.end() ? nullptr : dynamic_cast<InteractableObject *>(it->get());
 }
 
 }

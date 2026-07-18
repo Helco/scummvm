@@ -135,9 +135,9 @@ static float nextFloat(char *&full, bool isLastColumn = false) {
 
 static bool nextBool(char *&full, bool isLastColumn = false) {
 	auto cell = nextCell(full, isLastColumn);
-	if (strcmp(cell.data(), "true"))
+	if (!strcmp(cell.data(), "true"))
 		return true;
-	if (strcmp(cell.data(), "false"))
+	if (!strcmp(cell.data(), "false"))
 		return false;
 	error("Could not extract bool from data file: %s", cell.data());
 }

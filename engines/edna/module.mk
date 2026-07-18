@@ -12,6 +12,7 @@ MODULE_OBJS = \
 	metaengine.o \
 	sprite\animation.o \
 	sprite\group.o \
+	sprite\object.o \
 	sprite\sprite.o \
 	util.o
 

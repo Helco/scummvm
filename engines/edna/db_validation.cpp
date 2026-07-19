@@ -96,10 +96,7 @@ uint32 DB::validateScripts() const {
 	// a complete script validation would take much much more effort than this...
 	uint32 errors = 0;
 	for (const auto &line : _scripts._items) {
-		if (strlen(line._command) < 3 ||
-			!isAlpha(line._command[0]) ||
-			strchr(line._command, '(') == nullptr ||
-			strchr(line._command, ')') == nullptr) {
+		if (line._command._function == nullptr || line._command._handler == nullptr) {
 			debug("In script %u %u: invalid command", line._script, line._line);
 			errors++;
 		}

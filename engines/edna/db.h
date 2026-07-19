@@ -22,12 +22,11 @@
 #ifndef EDNA_DB_H
 #define EDNA_DB_H
 
-#include "common/span.h"
-#include "edna/util.h"
+#include "edna/scriptcommand.h"
 
 namespace Edna {
 
-using FileData = Common::SpanOwner<Common::Span<char>>;
+using FileData = Common::SpanOwner<StringSpan>;
 
 class DB {
 public:
@@ -39,7 +38,7 @@ public:
 	struct ScriptLine {
 		ScriptId _script = 0;
 		uint32 _line = 0;
-		const char *_command = "";
+		ScriptCommand _command;
 		const char *_comment = "";
 	};
 	Common::Span<const ScriptLine> script(ScriptId scriptId) const;

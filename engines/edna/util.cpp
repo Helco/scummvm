@@ -63,4 +63,58 @@ const char *gameModeToString(GameMode mode) {
 	return GameModeNames[index];
 }
 
+bool parseDirection(const char *text, Direction &value) {
+	assert(text != nullptr);
+	switch (tolower(text[0])) {
+	case '0':
+	case 'n':
+		value = Direction::Up;
+		break;
+	case '1':
+	case 's':
+		value = Direction::Down;
+		break;
+	case 'o': // this is a default case and the developers apparently could not decide
+	case 'e': // whether to use english or german compass directions or enum numbers...
+	case '3':
+		value = Direction::Right;
+		break;
+	case '2':
+	case 'w':
+		value =  Direction::Left;
+		break;
+	default:
+		return false;
+	}
+	return text[1] == '\0';
+}
+
+bool parsePlayerAction(const char *text, PlayerAction &value) {
+	assert(text != nullptr);
+	switch (tolower(text[0])) {
+	case '0':
+		value = PlayerAction::None;
+		break;
+	case 'a':
+	case 'l':
+		value = PlayerAction::Look;
+		break;
+	case 'b':
+	case 'u':
+		value = PlayerAction::Use;
+		break;
+	case 'n':
+	case 'p':
+		value = PlayerAction::Take;
+		break;
+	case 'r':
+	case 't':
+		value = PlayerAction::Talk;
+		break;
+	default:
+		return false;
+	}
+	return text[1] == '\0';
+}
+
 }

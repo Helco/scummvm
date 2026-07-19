@@ -10,6 +10,8 @@ MODULE_OBJS = \
 	game\intro.o \
 	game\scriptonclick.o \
 	metaengine.o \
+	script.o \
+	scriptcommand.o \
 	sprite\animation.o \
 	sprite\group.o \
 	sprite\object.o \

@@ -23,11 +23,14 @@
 #define EDNA_UTIL_H
 
 #include "common/rect.h"
+#include "common/span.h"
 
 namespace Edna {
 
 static constexpr const int kScreenWidth = 800;
 static constexpr const int kScreenHeight = 600;
+
+static constexpr const Common::Point kInvalidPoint = { -1, -1 };
 
 enum class Direction {
 	Up = 0,
@@ -35,6 +38,7 @@ enum class Direction {
 	Left,
 	Right
 };
+bool parseDirection(const char *text, Direction &value);
 
 enum class GameMode {
 	None = -1,
@@ -57,6 +61,7 @@ enum PlayerAction {
 	Take,
 	Talk
 };
+bool parsePlayerAction(const char *text, PlayerAction &value);
 
 enum class Font {
 	EdnaFont = 0,
@@ -111,6 +116,9 @@ struct AnimationRange {
 	uint32 _startFrame = 0, _endFrame = 0, _delay = 0;
 	bool _loop = false;
 };
+
+using StringSpan = Common::Span<char>;
+using StringView = Common::Span<const char>;
 
 }
 

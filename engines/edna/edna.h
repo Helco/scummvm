@@ -40,8 +40,8 @@
 namespace Edna {
 
 struct EdnaGameDescription;
-class DB;
 class IRenderer;
+class DB;
 class GameBase;
 
 class EdnaEngine : public Engine {

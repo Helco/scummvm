@@ -90,12 +90,13 @@ Error EdnaEngine::run() {
 		_timeElapsed = g_system->getMillis() - _timeLastFrame;
 		_timeLastFrame = g_system->getMillis();
 
-		while (g_system->getEventManager()->pollEvent(e)) {
-		}
-
+		// change room before handling events as we publish events to be processed by the next room
 		if (_nextRoom != 0) {
 			_game.reset(createRoom(_nextRoom));
 			_nextRoom = 0;
+		}
+
+		while (g_system->getEventManager()->pollEvent(e)) {
 		}
 		_game->update();
 

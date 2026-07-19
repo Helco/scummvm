@@ -54,7 +54,7 @@ static void skipWhitespace(char *&full) {
 }
 
 // the returned span is also null-terminated
-static Span<char> nextCell(char *&full, bool isLastColumn = false) {
+static StringSpan nextCell(char *&full, bool isLastColumn = false) {
 	char *const cell = full;
 	uint32 length = 0;
 	bool containsNewLine = false;
@@ -80,7 +80,7 @@ static Span<char> nextCell(char *&full, bool isLastColumn = false) {
 		full++;
 	}
 	if (!containsNewLine)
-		return Span<char>(cell, length);
+		return StringSpan(cell, length);
 
 	// if there are newlines there might be carriage returns.
 	// those have to be removed
@@ -92,7 +92,7 @@ static Span<char> nextCell(char *&full, bool isLastColumn = false) {
 		cursor = cr;
 		cr = strchr(cursor, '\r');
 	}
-	return Span<char>(cell, length);
+	return StringSpan(cell, length);
 }
 
 static char *nextString(char *&full, bool isLastColumn = false) {
@@ -144,20 +144,9 @@ static bool nextBool(char *&full, bool isLastColumn = false) {
 
 static Direction nextDirection(char *&full, bool isLastColumn = false) {
 	auto cell = nextCell(full, isLastColumn);
-	if (cell.size() == 1) {
-		switch (tolower(cell[0])) {
-		case 'n':
-			return Direction::Up;
-		case 's':
-			return Direction::Down;
-		case 'o': // this is a default case and the developers apparently could not decide
-		case 'e': // whether to use english or german compass directions or enum numbers...
-		case '3': 
-			return Direction::Right;
-		case 'w':
-			return Direction::Left;
-		}
-	}
+	Direction result;
+	if (parseDirection(cell.data(), result))
+		return result;
 	error("Could not extract direction from data file: %s", cell.data());
 }
 
@@ -187,24 +176,9 @@ static GameMode nextGameMode(char *&full, bool isLastColumn = false) {
 
 static PlayerAction nextPlayerAction(char *&full, bool isLastColumn = false) {
 	auto cell = nextCell(full, isLastColumn);
-	if (cell.size() == 1) {
-		switch (cell[0]) {
-		case '0':
-			return PlayerAction::None;
-		case 'a':
-		case 'l':
-			return PlayerAction::Look;
-		case 'b':
-		case 'u':
-			return PlayerAction::Use;
-		case 'n':
-		case 'p':
-			return PlayerAction::Take;
-		case 'r':
-		case 't':
-			return PlayerAction::Talk;
-		}
-	}
+	PlayerAction result;
+	if (parsePlayerAction(cell.data(), result))
+		return result;
 	error("Could not extract player action from data file: %s", cell.data());
 }
 
@@ -612,8 +586,10 @@ void DB::loadRoomExits() {
 		exit._lookDirection = nextDirection(full, true);
 		_roomExits.set(exit._id, exit);
 
-		if (_roomInteractions._map.contains(exit._interaction))
+		if (_roomInteractions._map.contains(exit._interaction)) {
+			assert(_roomInteractions._map[exit._interaction]._toExit == 0);
 			_roomInteractions._map[exit._interaction]._toExit = exit._id;
+		}
 	}
 }
 

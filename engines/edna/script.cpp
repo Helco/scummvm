@@ -1,0 +1,223 @@
+/* ScummVM - Graphic Adventure Engine
+ *
+ * ScummVM is the legal property of its developers, whose names
+ * are too numerous to list here. Please refer to the COPYRIGHT
+ * file distributed with this source distribution.
+ *
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ *
+ */
+
+#include "edna/edna.h"
+#include "edna/db.h"
+#include "edna/script.h"
+
+namespace Edna {
+
+bool Script::opAchievement(const ScriptCommand &line) {
+	warning("STUB script op: Achievement");
+	return true;
+}
+
+bool Script::opIfActive(const ScriptCommand &line) {
+	warning("STUB script op: IfActive");
+	return true;
+}
+
+bool Script::opIfItemActive(const ScriptCommand &line) {
+	warning("STUB script op: IfItemActive");
+	return true;
+}
+
+bool Script::opSay(const ScriptCommand &line) {
+	warning("STUB script op: Say");
+	return true;
+}
+
+bool Script::opThink(const ScriptCommand &line) {
+	warning("STUB script op: Think");
+	return true;
+}
+
+bool Script::opSayNpc(const ScriptCommand &line) {
+	warning("STUB script op: SayNpc");
+	return true;
+}
+
+bool Script::opSaySound(const ScriptCommand &line) {
+	warning("STUB script op: SaySound");
+	return true;
+}
+
+bool Script::opChoice(const ScriptCommand &line) {
+	warning("STUB script op: Choice");
+	return true;
+}
+
+bool Script::opToggleChoice(const ScriptCommand &line) {
+	warning("STUB script op: ToggleChoice");
+	return true;
+}
+
+bool Script::opChangeInteraction(const ScriptCommand &line) {
+	warning("STUB script op: ChangeInteraction");
+	return true;
+}
+
+bool Script::opChangeItemInteraction(const ScriptCommand &line) {
+	warning("STUB script op: ChangeItemInteraction");
+	return true;
+}
+
+bool Script::opChangeItemImage(const ScriptCommand &line) {
+	warning("STUB script op: ChangeItemImage");
+	return true;
+}
+
+bool Script::opChangeRoomItemInteraction(const ScriptCommand &line) {
+	warning("STUB script op: ChangeRoomItemInteraction");
+	return true;
+}
+
+bool Script::opChangeInvOBMScript(const ScriptCommand &line) {
+	warning("STUB script op: ChangeInvOBMScript");
+	return true;
+}
+
+bool Script::opChangeChoiceScript(const ScriptCommand &line) {
+	warning("STUB script op: ChangeChoiceScript");
+	return true;
+}
+
+bool Script::opScript(const ScriptCommand &line) {
+	warning("STUB script op: Script");
+	return true;
+}
+
+bool Script::opExit(const ScriptCommand &line) {
+	warning("STUB script op: Exit");
+	return true;
+}
+
+bool Script::opParamExit(const ScriptCommand &line) {
+	warning("STUB script op: ParamExit");
+	return true;
+}
+
+bool Script::opFade(const ScriptCommand &line) {
+	warning("STUB script op: Fade");
+	return true;
+}
+
+bool Script::opTempoMorph(const ScriptCommand &line) {
+	warning("STUB script op: TempoMorph");
+	return true;
+}
+
+bool Script::opAnimatePlayer(const ScriptCommand &line) {
+	warning("STUB script op: AnimatePlayer");
+	return true;
+}
+
+bool Script::opAnimatePlayerP(const ScriptCommand &line) {
+	warning("STUB script op: AnimatePlayerP");
+	return true;
+}
+
+bool Script::opAnimateNpc(const ScriptCommand &line) {
+	warning("STUB script op: AnimateNpc");
+	return true;
+}
+
+bool Script::opWalk(const ScriptCommand &line) {
+	warning("STUB script op: Walk");
+	return true;
+}
+
+bool Script::opWalkNpc(const ScriptCommand &line) {
+	warning("STUB script op: WalkNpc");
+	return true;
+}
+
+bool Script::opWalkNpcP(const ScriptCommand &line) {
+	warning("STUB script op: WalkNpcP");
+	return true;
+}
+
+bool Script::opFreeWalk(const ScriptCommand &line) {
+	warning("STUB script op: FreeWalk");
+	return true;
+}
+
+bool Script::opFreeWalkNpc(const ScriptCommand &line) {
+	warning("STUB script op: FreeWalkNpc");
+	return true;
+}
+
+bool Script::opPutPlayer(const ScriptCommand &line) {
+	warning("STUB script op: PutPlayer");
+	return true;
+}
+
+bool Script::opWait(const ScriptCommand &line) {
+	warning("STUB script op: Wait");
+	return true;
+}
+
+bool Script::opItemActivate(const ScriptCommand &line) {
+	warning("STUB script op: ItemActivate");
+	return true;
+}
+
+bool Script::opItemActivateSound(const ScriptCommand &line) {
+	warning("STUB script op: ItemActivateSound");
+	return true;
+}
+
+bool Script::opItemDeactivate(const ScriptCommand &line) {
+	warning("STUB script op: ItemDeactivate");
+	return true;
+}
+
+bool Script::opActivate(const ScriptCommand &line) {
+	warning("STUB script op: Activate");
+	return true;
+}
+
+bool Script::opDeactivate(const ScriptCommand &line) {
+	warning("STUB script op: Deactivate");
+	return true;
+}
+
+bool Script::opToggleTimer(const ScriptCommand &line) {
+	warning("STUB script op: ToggleTimer");
+	return true;
+}
+
+bool Script::opAnimateObject(const ScriptCommand &line) {
+	warning("STUB script op: AnimateObject");
+	return true;
+}
+
+bool Script::opLookAt(const ScriptCommand &line) {
+	warning("STUB script op: LookAt");
+	return true;
+}
+
+bool Script::opNpcLookAt(const ScriptCommand &line) {
+	warning("STUB script op: NpcLookAt");
+	return true;
+}
+
+}

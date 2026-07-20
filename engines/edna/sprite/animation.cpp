@@ -21,7 +21,7 @@
 
 #include "edna/edna.h"
 #include "edna/db.h"
-#include "edna/sprite/Animation.h"
+#include "edna/sprite/animation.h"
 
 namespace Edna {
 

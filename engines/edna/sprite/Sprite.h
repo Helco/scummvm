@@ -27,6 +27,8 @@
 
 namespace Edna {
 
+class Animation;
+
 class Sprite {
 public:
 	virtual ~Sprite();
@@ -37,38 +39,35 @@ public:
 	virtual void update();
 	virtual void render();
 
-	virtual void setTexture(Common::SharedPtr<ITexture> texture);
+	virtual void setTexture(TexturePtr texture);
 	virtual bool checkClick(Common::Point screenPos) const;
 
 private:
 	friend class AnimatedSprite;
 	bool _active = true;
 	Common::Rect _bounds;
-	Common::SharedPtr<ITexture> _texture;
-};
-
-struct AnimationRange {
-	uint32 _startFrame = 0, _endFrame = 0, _delay = 0;
+	TexturePtr _texture;
 };
 
 class AnimatedSprite : public Sprite {
 public:
 	inline uint32 &curFrame() { return _curFrame; }
+	inline bool isAnimating() const { return _timer.active(); }
 
 	void update() override;
-	void setTexture(Common::SharedPtr<ITexture> texture) override;
-	void setTextures(Common::Span<Common::SharedPtr<ITexture>> textures);
-	void setTextures(Common::Array<Common::SharedPtr<ITexture>> &&textures);
+	void setTexture(TexturePtr texture) override;
+	void setTextures(TextureSpan textures);
+	void setTextures(TextureArray &&textures);
 	void setAnimation(AnimationRange animation);
+	void setAnimation(const Animation& animation);
 	void stopAnimation();
 
 private:
 	void resetTextures();
 
-	Common::Array<Common::SharedPtr<ITexture>> _textures;
+	TextureArray _textures;
 	uint32 _curFrame = 0;
 	AnimationRange _animation;
-	bool _loop = false;
 	Timer _timer;
 };
 

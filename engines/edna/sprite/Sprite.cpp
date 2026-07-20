@@ -20,6 +20,7 @@
  */
 
 #include "edna/edna.h"
+#include "edna/sprite/Animation.h"
 #include "edna/sprite/Sprite.h"
 
 using namespace Common;
@@ -35,7 +36,7 @@ void Sprite::render() {
 		g_engine->renderer().sprite(_texture.get(), _bounds.origin(), Point(_bounds.width(), _bounds.height()));
 }
 
-void Sprite::setTexture(SharedPtr<ITexture> texture) {
+void Sprite::setTexture(TexturePtr texture) {
 	_texture = texture;
 	if (texture == nullptr) {
 		_bounds.setWidth(0);
@@ -59,7 +60,7 @@ void AnimatedSprite::update() {
 	if (_active && _timer.update()) {
 		if (_curFrame < _animation._endFrame)
 			_curFrame++;
-		else if (_loop)
+		else if (_animation._loop)
 			_curFrame = _animation._startFrame;
 		else
 			_timer.toggle(false);
@@ -67,19 +68,24 @@ void AnimatedSprite::update() {
 	}
 }
 
-void AnimatedSprite::setTexture(SharedPtr<ITexture> texture) {
-	setTextures(Span<SharedPtr<ITexture>> { &texture, 1 });
+void AnimatedSprite::setTexture(TexturePtr texture) {
+	setTextures(TextureSpan { &texture, 1 });
 }
 
-void AnimatedSprite::setTextures(Span<SharedPtr<ITexture>> textures) {
+void AnimatedSprite::setTextures(TextureSpan textures) {
 	_textures.resize(textures.size());
 	copy(textures.begin(), textures.end(), _textures.data());
 	resetTextures();
 }
 
-void AnimatedSprite::setTextures(Array<SharedPtr<ITexture>> &&textures) {
+void AnimatedSprite::setTextures(TextureArray &&textures) {
 	_textures = move(textures);
 	resetTextures();
+}
+
+void AnimatedSprite::setAnimation(const Animation &animation) {
+	setTextures(animation.textures());
+	setAnimation(animation.range());
 }
 
 void AnimatedSprite::resetTextures() {

@@ -105,6 +105,11 @@ public:
 	void toggle(bool active);
 };
 
+struct AnimationRange {
+	uint32 _startFrame = 0, _endFrame = 0, _delay = 0;
+	bool _loop = false;
+};
+
 }
 
 #endif // EDNA_UTIL_H

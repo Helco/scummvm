@@ -92,6 +92,16 @@ uint32 DB::SequenceSet<TValue>::validateRef(uint32 key, const char *sourceType, 
 	return 1;
 }
 
+template<typename TValue>
+uint32 DB::SequenceSet<TValue>::validateRef(uint32 key1, uint32 key2, const char *sourceType, uint32 sourceKey1, uint32 sourceKey2) const {
+	auto lines = get(key1, false);
+	auto it = find(lines.begin(), lines.end(), [key2](const TValue &v) { v._line == key2; });
+	if (it != lines.end())
+		return 0;
+	debug("In %s %u %u: invalid %s ref: %u", sourceType, sourceKey1, sourceKey2, _typeName, key);
+	return 1;
+}
+
 uint32 DB::validateScripts() const {
 	// a complete script validation would take much much more effort than this...
 	uint32 errors = 0;
@@ -99,7 +109,8 @@ uint32 DB::validateScripts() const {
 		if (line._command._function == nullptr || line._command._handler == nullptr) {
 			debug("In script %u %u: invalid command", line._script, line._line);
 			errors++;
-		}
+		} else
+			errors += validateScriptCommand(line);
 	}
 	return errors;
 }
@@ -312,6 +323,116 @@ uint32 DB::validatePath(const char *path, const char *sourceType, uint32 sourceK
 		return 0;
 	debug("In %s %u: missing file: %s", sourceType, sourceKey, fullPath.toString().c_str());
 	return 1;
+}
+
+uint32 DB::validateScriptCommand(const ScriptLine &line) const {
+	if (line._command._handler == nullptr || line._command._function == nullptr)
+		return 0; // we already reported the parsing error, this method validates arguments
+
+	const char *const function = line._command._function;
+	const auto &args = line._command._args;
+	// no validation for achievement
+	if (!scumm_stricmp(function, "ifActive"))
+		return _roomObjects.validateRef(args._ifActive, "script", line._script);
+	if (!scumm_stricmp(function, "ifItemActive"))
+		return _items.validateRef(args._ifItemActive, "script", line._script);
+	if (!scumm_stricmp(function, "sayNsc"))
+		return _npcs.validateRef(args._say._npc, "script", line._script);
+	if (!scumm_stricmp(function, "saySoundFile"))
+		return validateOptPath(args._saySound._sound, "script", line._script);
+	if (!scumm_stricmp(function, "choice"))
+		return _choices.validateRef(args._choiceSet, "script", line._script, line._line);
+	if (!scumm_stricmp(function, "activateChoice"))
+		return _choices.validateRef(args._toggleChoice._set, args._toggleChoice._line,
+			"script", line._script, line._line);
+	if (!scumm_stricmp(function, "changeROISkript")) {
+		return _roomObjects.validateRef(args._changeInteraction._object, "script", line._script) +
+			_scripts.validateRef(args._changeInteraction._newScript, "script", line._script);
+	}
+	if (!scumm_stricmp(function, "changeInvoSkript")) {
+		return _items.validateRef(args._changeItemInteraction._item, "script", line._script) +
+			_scripts.validateRef(args._changeInteraction._newScript, "script", line._script);
+	}
+	if (!scumm_stricmp(function, "changeInvoImg")) {
+		return _items.validateRef(args._changeItemImage._item, "script", line._script) +
+			validatePath(args._changeItemImage._image, "script", line._script);
+	}
+	if (!scumm_stricmp(function, "changeBMSkript")) {
+		return _items.validateRef(args._changeRoomItemInteraction._item, "script", line._script) +
+			_roomObjects.validateRef(args._changeRoomItemInteraction._object, "script", line._script) +
+			_scripts.validateRef(args._changeRoomItemInteraction._newScript, "script", line._script);
+	}
+	if (!scumm_stricmp(function, "changeInvoBMSkript")) {
+		return _items.validateRef(args._changeItemItemInteraction._item1, "script (first)", line._script) +
+			_items.validateRef(args._changeItemItemInteraction._item2, "script", line._script) +
+			_scripts.validateRef(args._changeItemItemInteraction._newScript, "script", line._script);
+	}
+	if (!scumm_stricmp(function, "changeCLSkript")) {
+		return _choices.validateRef(args._changeChoiceScript._set, args._changeChoiceScript._line,
+			"script", line._script, line._line) +
+			_scripts.validateRef(args._changeChoiceScript._newScript, "script", line._script);
+	}
+	if (!scumm_stricmp(function, "skript"))
+		return _scripts.validateRef(args._script, "script", line._script);
+	if (!scumm_stricmp(function, "exit")) {
+		return _roomObjects.validateRef(args._exit._object, "script", line._script) +
+			_rooms.validateRef(args._exit._target, "script", line._script);
+	}
+	if (!scumm_stricmp(function, "paramExit"))
+		return _rooms.validateRef(args._paramExit._target, "script", line._script);
+	// no validation for fadeIn/fadeOut
+	// no validation for animateSC(P) (we cannot check actionMode without knowing the charAnimSet at runtime)
+	if (!scumm_stricmp(function, "animateNsc")) {
+		if (_npcs.validateRef(args._animateCharacter._npc, "script", line._script))
+			return 1;
+		auto dbNpc = npc(args._animateCharacter._npc);
+		auto charAnimSet = characterAnimationSet(dbNpc._charAnimSet, args._animateCharacter._actionMode, false);
+		if (charAnimSet._id != dbNpc._charAnimSet) {
+			debug("In script %u %u: Missing charAnimSet %u %u for animated NPC %u",
+				line._script, line._line, dbNpc._charAnimSet, args._animateCharacter._actionMode, dbNpc._id);
+			return 1;
+		}
+		return 0;
+	}
+	if (!scumm_stricmp(function, "walk"))
+		return validateScreenBounds(args._walk._target.x, args._walk._target.y, "script", line._script);
+	if (!scumm_stricmp(function, "walkNsc") || !scumm_stricmp(function, "walkNscP")) {
+		return validateScreenBounds(args._walk._target.x, args._walk._target.y, "script", line._script) +
+			_npcs.validateRef(args._walk._npc, "script", line._script);
+	}
+	// no validation for freeWalk(Nsc) (without path finding, the character is allowed to walk off-screen)
+	// no validation for putSC (the script might freeWalk the player back in-screen)
+	if (!scumm_stricmp(function, "itemActivate") ||
+		!scumm_stricmp(function, "itemActivateSound") ||
+		!scumm_stricmp(function, "itemDeactivate"))
+		return _items.validateRef(args._toggleItem, "script", line._script);
+	if (!scumm_stricmp(function, "activate") ||
+		!scumm_stricmp(function, "inactivate"))
+		return _roomObjects.validateRef(args._toggleObject, "script", line._script);
+	if (!scumm_stricmp(function, "activateTimer"))
+		return _timers.validateRef(args._toggleTimer._timer, "script", line._script);
+	if (!scumm_stricmp(function, "animate")) {
+		if (_roomObjects.validateRef(args._animateObject, "script", line._script))
+			return 1;
+		auto dbObject = roomObject(args._animateObject);
+		auto dbDisplay = roomObjectDisplay(dbObject._toDisplay, false);
+		if (dbDisplay._id != dbObject._toDisplay) {
+			debug("In script %u %u: Missing display %u for animate object %u",
+				line._script, line._line, dbObject._toDisplay, dbObject._id);
+			return 1;
+		}
+		auto dbAnim = animation(dbDisplay._animation, false);
+		if (dbAnim._id != dbDisplay._animation) {
+			debug("In script %u %u: Missing animation %u for animtae object %u (display %u)",
+				line._script, line._line, dbDisplay._animation, dbObject._id, dbDisplay._id);
+			return 1;
+		}
+		return 0;
+	}
+	// no validation for lookAt
+	if (!scumm_stricmp(function, "nscLookAt"))
+		return _npcs.validateRef(args._lookAt._npcId, "script", line._script);
+	return 0; // the function is unknown, this is a parser error, not a validation error
 }
 
 } // namespace Edna

@@ -52,7 +52,7 @@ public:
 		AnimationId _forward = 0;
 		AnimationId _back = 0;
 	};
-	CharacterAnimationSet characterAnimationSet(CharAnimSetId set, ActionModeId actionMode) const;
+	CharacterAnimationSet characterAnimationSet(CharAnimSetId set, ActionModeId actionMode, bool required = true) const;
 
 	struct Choice {
 		ChoiceSetId _set = 0;
@@ -164,7 +164,7 @@ public:
 		int32 _walkToY = 0;
 		Direction _lookDirection = {};
 	};
-	RoomExit roomExit(RoomExitId id, bool required) const;
+	RoomExit roomExit(RoomExitId id, bool required = true) const;
 
 	struct Animation {
 		AnimationId _id = 0;
@@ -172,7 +172,7 @@ public:
 		uint32 _duration = 0;
 		bool _loop = false;
 	};
-	Animation animation(AnimationId id) const;
+	Animation animation(AnimationId id, bool required = true) const;
 
 	struct AnimationFrame {
 		AnimationFrameId _frame = 0;
@@ -246,7 +246,7 @@ private:
 
 		TwoKeyDataSet(const char *typeName);
 		void set(uint32 key1, uint32 key2, const TValue &value);
-		TValue get(uint32 key1, uint32 key2) const;
+		TValue get(uint32 key1, uint32 key2, bool required = true) const;
 		uint32 validateRef(uint32 key, const char *sourceType, uint32 sourceKey) const; ///< Checks that some pair starting with key exists
 	};
 
@@ -268,6 +268,7 @@ private:
 		Common::Span<const TValue> get(uint32 key, bool required = true) const;
 		uint32 validateRef(uint32 key, const char *sourceType, uint32 sourceKey) const;
 		uint32 validateRef(uint32 key, const char *sourceType, uint32 sourceKey1, uint32 sourceKey2) const;
+		uint32 validateRef(uint32 key1, uint32 key2, const char *sourceType, uint32 sourceKey1, uint32 sourceKey2) const;
 	};
 
 	// For faster queries and easier data structures
@@ -315,6 +316,7 @@ private:
 	uint32 validateNPCs() const;
 	uint32 validateWalkableAreas() const;
 	uint32 validateTimers() const;
+	uint32 validateScriptCommand(const ScriptLine &line) const;
 
 	static uint32 validateOptPath(
 		const char *path,

@@ -51,6 +51,10 @@ public:
 	inline IRenderer &renderer() { assert(_renderer != nullptr); return *_renderer; }
 	inline DB &db() { assert(_db != nullptr); return *_db; }
 
+	uint32 getMillis() const;
+	void setMillis(uint32 newMillis);
+	void pauseEngineIntern(bool pause) override;
+
 	bool hasFeature(EngineFeature f) const override {
 		return
 		    (f == kSupportsLoadingDuringRuntime) ||
@@ -87,6 +91,9 @@ private:
 	Common::RandomSource _randomSource;
 	Common::ScopedPtr<IRenderer> _renderer;
 	Common::ScopedPtr<DB> _db;
+
+	uint32 _timeNegOffset = 0, _timePosOffset = 0;
+	uint32 _timeBeforePause = 0;
 };
 
 extern EdnaEngine *g_engine;

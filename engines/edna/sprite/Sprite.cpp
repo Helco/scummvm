@@ -54,4 +54,56 @@ bool Sprite::checkClick(Point screenPos) const {
 		_texture->alphaCheck(screenPos - _bounds.origin());
 }
 
+void AnimatedSprite::update() {
+	Sprite::update();
+	if (_active && _timer.update()) {
+		if (_curFrame < _animation._endFrame)
+			_curFrame++;
+		else if (_loop)
+			_curFrame = _animation._startFrame;
+		else
+			_timer.toggle(false);
+		_texture = _textures[_curFrame]; // for Sprite to render
+	}
+}
+
+void AnimatedSprite::setTexture(SharedPtr<ITexture> texture) {
+	setTextures(Span<SharedPtr<ITexture>> { &texture, 1 });
+}
+
+void AnimatedSprite::setTextures(Span<SharedPtr<ITexture>> textures) {
+	_textures.resize(textures.size());
+	copy(textures.begin(), textures.end(), _textures.data());
+	resetTextures();
+}
+
+void AnimatedSprite::setTextures(Array<SharedPtr<ITexture>> &&textures) {
+	_textures = move(textures);
+	resetTextures();
+}
+
+void AnimatedSprite::resetTextures() {
+	assert(_textures.size() > 0);
+	assert(find(_textures.begin(), _textures.end(), nullptr) == _textures.end());
+	stopAnimation();
+}
+
+void AnimatedSprite::setAnimation(AnimationRange animation) {
+	assert(animation._startFrame < _textures.size());
+	assert(animation._endFrame < _textures.size());
+	assert(animation._startFrame <= animation._endFrame);
+	_animation = animation;
+	_curFrame = animation._startFrame;
+	_texture = _textures[_curFrame];
+	_timer.delay() = animation._delay;
+	_timer.toggle(false);
+}
+
+void AnimatedSprite::stopAnimation() {
+	_animation = {};
+	_timer.toggle(false);
+	_curFrame = _animation._startFrame;
+	_texture = _textures.empty() ? nullptr : _textures[_curFrame];
+}
+
 }

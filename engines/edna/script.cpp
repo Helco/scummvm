@@ -19,11 +19,66 @@
  *
  */
 
-#include "edna/edna.h"
 #include "edna/db.h"
-#include "edna/script.h"
+#include "edna/edna.h"
+#include "edna/game/game.h"
+#include "edna/scriptcommand.h"
+#include "edna/sprite/sprite.h"
 
 namespace Edna {
+
+Script::Script(Game &game) : _game(game) { }
+
+bool Script::isPerforming() {
+	bool isPlayerBusy = false;
+	bool isNpcBusy = false;
+	if (!isPlayerBusy && (_parallelPerformance || !isNpcBusy)) {
+		// TODO: Check whether some sound is still playing
+		_isPerforming = false;
+
+		// TODO: Check if this logic sill works for parallel performance by player
+		if (_parallelPerformance && !_isPerforming)
+			_parallelPerformance = false;
+	}
+
+	return _isPerforming;
+}
+
+void Script::runNewScript(ScriptId scriptId, uint32 firstLine) {
+	assert(!_isPerforming);
+	assert(firstLine > 0);
+	assert(firstLine <= g_engine->db().script(scriptId).size());
+	_scriptId = scriptId;
+	_scriptLine = firstLine;
+	_isScriptRunning = true;
+	continueScript();
+}
+
+void Script::continueScript() {
+	assert(_isScriptRunning && !_isPerforming);
+	if (!_isScriptRunning)
+		return;
+	debugC(1, kDebugScript, "Run script %u from %u", _scriptId, _scriptLine);
+
+	// TODO: Exit handling
+
+	_isPerforming = true;
+	bool shouldKeepRunning = true;
+	const auto scriptLines = g_engine->db().script(_scriptId);
+	while (shouldKeepRunning && _scriptLine <= scriptLines.size()) {
+		const auto &command = scriptLines[_scriptLine - 1]._command;
+		if (debugChannelSet(2, kDebugScript)) {
+			debugN(">%10d %3d ", _scriptId, _scriptLine);
+			command.debugPrintLog();
+		}
+		shouldKeepRunning = command._handler == nullptr ||
+			(this->*command._handler)(command);
+		_scriptLine++;
+	}
+	_isScriptRunning = _scriptLine <= scriptLines.size();
+	if (!_isScriptRunning)
+		debugC(2, kDebugScript, "Finished script %u at %u", _scriptId, _scriptLine);
+}
 
 bool Script::opAchievement(const ScriptCommand &line) {
 	warning("STUB script op: Achievement");
@@ -31,8 +86,11 @@ bool Script::opAchievement(const ScriptCommand &line) {
 }
 
 bool Script::opIfActive(const ScriptCommand &line) {
-	warning("STUB script op: IfActive");
-	return true;
+	if (!g_engine->db().roomObject(line._args._ifActive)._active)
+		return true;
+	assert(line._thenLine != nullptr);
+	const auto &thenLine = *line._thenLine;
+	return thenLine._handler == nullptr || (this->*thenLine._handler)(thenLine);
 }
 
 bool Script::opIfItemActive(const ScriptCommand &line) {
@@ -191,13 +249,26 @@ bool Script::opItemDeactivate(const ScriptCommand &line) {
 }
 
 bool Script::opActivate(const ScriptCommand &line) {
-	warning("STUB script op: Activate");
+	toggleObject(line._args._toggleObject, true);
 	return true;
 }
 
 bool Script::opDeactivate(const ScriptCommand &line) {
-	warning("STUB script op: Deactivate");
+	toggleObject(line._args._toggleObject, false);
 	return true;
+}
+
+void Script::toggleObject(RoomObjectId objectId, bool isActive) {
+	auto sprite = _game.objectById(objectId);
+	if (sprite == nullptr) {
+		auto dbObject = g_engine->db().roomObject(objectId);
+		if (dbObject._active != isActive) {
+			dbObject._active = isActive;
+			// TODO: Store dbObject back
+		}
+	}
+	else
+		sprite->toggle(isActive);
 }
 
 bool Script::opToggleTimer(const ScriptCommand &line) {

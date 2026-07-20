@@ -27,10 +27,17 @@
 
 namespace Edna {
 
+class Game;
+
 class Console : public GUI::Debugger {
 	bool cmdValidate(int argc, const char **argv);
 	bool cmdRoom(int argc, const char **argv);
 	bool cmdSprites(int argc, const char **argv);
+	bool cmdScript(int argc, const char **argv);
+	bool cmdEval(int argc, const char **argv);
+
+	Game *getGame();
+	bool tryParseUint(const char *arg, uint32 &value, const char *context);
 
 public:
 	Console();

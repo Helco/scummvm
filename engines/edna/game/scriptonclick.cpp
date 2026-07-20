@@ -26,6 +26,8 @@ namespace Edna {
 ScriptOnClick::ScriptOnClick(RoomId roomId)
 	: Game(GameMode::ScriptOnClick, roomId) { }
 
-void ScriptOnClick::update() {}
+void ScriptOnClick::update() {
+	Game::update();
+}
 
 }

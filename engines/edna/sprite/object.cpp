@@ -19,6 +19,7 @@
  *
  */
 
+#include "edna/db.h"
 #include "edna/edna.h"
 #include "edna/sprite/object.h"
 
@@ -27,6 +28,22 @@
 using namespace Common;
 
 namespace Edna {
+
+void RoomObject::toggle(bool isActive) {
+	Sprite::toggle(isActive);
+	if (id() == 0)
+		return;
+
+	auto dbObject = g_engine->db().roomObject(id());
+	if (dbObject._active != isActive) {
+		dbObject._active = isActive;
+		// TODO: Save modified object back
+	}
+}
+
+void SpatialObject::setBasePos(Point basePos) {
+	pos() = basePos - Point(size().x / 2, size().y);
+}
 
 VisualObject::VisualObject(Point baseLineStart, Point baseLineEnd)
 	: _baseLineStart(baseLineStart)

@@ -34,13 +34,14 @@ public:
 	virtual ~Sprite();
 
 	inline uint32 &id() { return _id; }
-	inline bool &active() { return _active; }
+	inline bool active() const { return _active; }
 	inline bool &immutable() { return _immutable; } ///< An immutable sprite is not deleted if inactive
 	inline Common::Point &pos() { return _pos; }
 	inline Common::Point pos() const { return _pos; }
 	inline Common::Point size() const { return _size; }
 	inline Common::Rect bounds() const { return { _pos, _pos + _size }; }
 
+	virtual void toggle(bool isActive);
 	virtual void update();
 	virtual void render();
 	virtual void debugPrint();

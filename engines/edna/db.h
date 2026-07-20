@@ -38,10 +38,10 @@ public:
 	struct ScriptLine {
 		ScriptId _script = 0;
 		uint32 _line = 0;
-		ScriptCommand _command;
+		ScriptCommand _command = {};
 		const char *_comment = "";
 	};
-	Common::Span<const ScriptLine> script(ScriptId scriptId) const;
+	Common::Span<const ScriptLine> script(ScriptId scriptId, bool required = true) const;
 
 	struct CharacterAnimationSet {
 		CharAnimSetId _id = 0;
@@ -133,7 +133,7 @@ public:
 		GameMode _gameMode = {};
 		const char *_name = "";
 		const char *_icon = "";
-		uint32 _inventoryPos = 0;
+		uint32 _inventoryPos = 0; ///< TODO: could this be used for "is in inventory?
 		PlayerAction _defaultAction = {};
 		ScriptId _lookScript = 0;
 		ScriptId _useScript = 0;

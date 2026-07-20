@@ -19,7 +19,9 @@
  *
  */
 
-#include "edna/script.h"
+#include "edna/scriptcommand.h"
+
+#include "gui/debugger.h"
 
 using namespace Common;
 
@@ -344,6 +346,48 @@ ScriptCommand::ScriptCommand(char *line) : _fullLength(strlen(line)) {
 			_handler = &Script::opNpcLookAt;
 	} else
 		_handler = nullptr;
+}
+
+template<typename T>
+static void debugPrint(const ScriptCommand &cmd, T print) {
+	enum {
+		kStart = 0,
+		kFirstArg,
+		kArg
+	} state = kStart;
+	const char *const end = cmd._function + cmd._fullLength;
+	const char *ptr = cmd._function - 1;
+	while (ptr + 1 < end) {
+		ptr++; // skipping the null-terminator before a segment
+
+		if (*ptr == ',') { // this can only happen for conditions
+			print("),");
+			ptr++;
+			state = kStart;
+			continue;
+		}
+		if (state == kFirstArg) {
+			state = kArg;
+			print("(");
+		} else if (state == kArg)
+			print(",");
+		else
+			state = kFirstArg;
+		print(ptr);
+		ptr += strlen(ptr);
+	}
+	print(")\n");
+	assert(ptr + 1 == end); // otherwise we overshot the end
+}
+
+void ScriptCommand::debugPrintLog() const {
+	debugPrint(*this, [](const char *s) { debugN(s); });
+}
+
+void ScriptCommand::debugPrintConsole() const {
+	auto debugger = g_engine->getDebugger();
+	assert(debugger != nullptr);
+	debugPrint(*this, [debugger](const char *s) { debugger->debugPrintf(s); });
 }
 
 

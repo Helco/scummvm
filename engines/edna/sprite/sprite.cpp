@@ -31,6 +31,10 @@ namespace Edna {
 
 Sprite::~Sprite() { }
 
+void Sprite::toggle(bool isActive) {
+	_active = isActive;
+}
+
 void Sprite::update() { }
 
 void Sprite::render() {

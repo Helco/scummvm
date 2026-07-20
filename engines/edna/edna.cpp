@@ -83,12 +83,13 @@ Error EdnaEngine::run() {
 
 	_nextRoom = 2;
 
-	_timeLastFrame = g_system->getMillis();
+	_timeLastFrame = getMillis();
 	Common::Event e;
 	Graphics::FrameLimiter limiter(g_system, 40); // this is the original framerate
 	while (!shouldQuit()) {
-		_timeElapsed = g_system->getMillis() - _timeLastFrame;
-		_timeLastFrame = g_system->getMillis();
+		uint32 now = getMillis();
+		_timeElapsed = now > _timeLastFrame ? now - _timeLastFrame : 1;
+		_timeLastFrame = now;
 
 		// change room before handling events as we publish events to be processed by the next room
 		if (_nextRoom != 0) {

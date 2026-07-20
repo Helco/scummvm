@@ -26,14 +26,21 @@
 
 namespace Edna {
 
-class SpatialObject : virtual public Sprite {
+class RoomObject : virtual public Sprite {
+public:
+	void toggle(bool isActive) override;
+};
+
+class SpatialObject : virtual public RoomObject {
 public:
 	virtual int basePosX() const = 0;
 	virtual int basePosY() const = 0;
 	virtual int basePosY(int x) const = 0;
+
+	void setBasePos(Common::Point pos);
 };
 
-class InteractableObject : virtual public Sprite {
+class InteractableObject : virtual public RoomObject {
 public:
 
 };

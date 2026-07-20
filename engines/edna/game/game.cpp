@@ -47,6 +47,7 @@ void GameBase::add(Group *group, DisposeAfterUse::Flag dispose) {
 Game::Game(GameMode mode, RoomId roomId)
 	: GameBase(mode)
 	, _roomId(roomId)
+	, _script(*this)
 	, _background("background")
 	, _bgObjects("bgObjects")
 	, _objects("objects")
@@ -57,7 +58,7 @@ Game::Game(GameMode mode, RoomId roomId)
 	assert(room._gameMode == mode);
 
 	initBackground(room._background);
-	// TODO: Init timer
+	initTimer(room._timer);
 	initGroups();
 	// TODO: Init walkableareamap
 	// TODO: Init font and cursor
@@ -73,6 +74,15 @@ void Game::initBackground(const char *background) {
 	auto backgroundSprite = new Sprite();
 	backgroundSprite->setTexture(background);
 	_background.add(backgroundSprite, DisposeAfterUse::YES);
+}
+
+void Game::initTimer(TimerId timerId) {
+	if (timerId == 0)
+		return;
+	const auto dbTimer = g_engine->db().timer(timerId);
+	_timerScript = dbTimer._script;
+	_timer.delay() = dbTimer._duration;
+	_timer.toggle(dbTimer._active);
 }
 
 void Game::initGroups() {
@@ -119,21 +129,57 @@ void Game::initObjects() {
 			auto *object = new VisualObject(
 				{ (int16)dbDisplay._startX, (int16)dbDisplay._startY },
 				{ (int16)dbDisplay._endX, (int16)dbDisplay._endY });
-			object->pos() = { (int16)dbObject._posX, (int16)dbObject._posY };
-			object->active() = dbObject._active;
-			object->immutable() = true;
-			object->id() = dbObjectId;
 			if (dbDisplay._animation > 0) {
 				Animation animation(dbDisplay._animation);
 				object->setAnimation(animation);
 			} else
 				object->setTexture(dbObject._image);
+			object->setBasePos({ (int16)dbObject._posX, (int16)dbObject._posY });
+			object->toggle(dbObject._active);
+			object->immutable() = true;
+			object->id() = dbObjectId;
 			targetGroup.add(object, DisposeAfterUse::YES);
 			continue;
 		}
 
 		// if we get here this is a pure logic object used by scripts
 	}
+}
+
+void Game::update() {
+	if (!updateScript())
+		return;
+	GameBase::update(); // updates sprite groups
+}
+
+bool Game::updateScript() {
+	// TODO: Missing continue after savegame load
+	// TODO: Missing continue choice list after savegame load
+	// TODO: Missing continue script across rooms
+
+	if (_script.isScriptRunning()) {
+		if (!_script.isPerforming())
+			_script.continueScript();
+	} else {
+		// TODO: Enable cursor
+		if (_pendingTimerInvoke) {
+			debugC(0, kDebugScript, "Invoke timer script %u", _timerScript);
+			_pendingTimerInvoke = false;
+			_timer.toggle(false);
+			_script.runNewScript(_timerScript);
+		}
+	}
+
+	if (_timer.update())
+		_pendingTimerInvoke = true;
+	return true;
+}
+
+Sprite *Game::objectById(RoomObjectId id) const {
+	auto sprite = _objects.byId(id);
+	if (sprite == nullptr)
+		sprite = _bgObjects.byId(id);
+	return sprite;
 }
 
 }

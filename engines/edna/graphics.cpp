@@ -149,22 +149,16 @@ public:
 	void sprite(ITexture *textureRaw, Point pos, Point size = {}) override {
 		auto texture = dynamic_cast<SoftwareTexture *>(textureRaw);
 		assert(texture != nullptr);
-
 		if (size == Point())
 			size = texture->size();
 
-		// TODO: Clipping :(
-
-		Graphics::BlendBlit::blit(
-			(byte *)_screen->getPixels(),
-			(const byte *)texture->_surface.getPixels(),
-			_screen->pitch, texture->_surface.pitch,
-			pos.x, pos.y, size.x, size.y,
-			texture->_surface.w * Graphics::BlendBlit::SCALE_THRESHOLD / size.x,
-			texture->_surface.h * Graphics::BlendBlit::SCALE_THRESHOLD / size.y,
-			0, 0, // scale offset
-			0xffffffff, // colormod
+		texture->_surface.blendBlitTo(
+			*_screen,
+			pos.x, pos.y,
 			Graphics::FLIP_NONE,
+			nullptr,
+			0xffffffff, // colormod
+			size.x, size.y,
 			Graphics::BLEND_NORMAL,
 			texture->_alphaType);
 	}
@@ -173,15 +167,17 @@ public:
 		auto text = dynamic_cast<SoftwareRenderedText *>(textRaw);
 		assert(text != nullptr);
 
-		// TODO: Clipping
-
-		Graphics::alphaBlit(
-			(byte *)_screen->getBasePtr(pos.x, pos.y),
-			(const byte *)text->_surface.getPixels(),
-			_screen->pitch, text->_surface.pitch,
-			text->_surface.w, text->_surface.h,
-			_screen->format, text->_surface.format,
-			Graphics::FLIP_NONE, 0xff);
+		uint32 color = text->_surface.format.ARGBToColor(
+			255, text->_r, text->_g, text->_b);
+		text->_surface.blendBlitTo(
+			*_screen,
+			pos.x, pos.y,
+			Graphics::FLIP_NONE,
+			nullptr,
+			color,
+			-1, -1, // destination size
+			Graphics::BLEND_NORMAL,
+			Graphics::ALPHA_FULL); // TODO: Check if we can reduce to ALPHA_BINARY
 	}
 
 	void rect(Rect rect, uint8 r, uint8 g, uint8 b, uint8 a) override {

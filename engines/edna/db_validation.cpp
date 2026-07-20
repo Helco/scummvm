@@ -252,6 +252,11 @@ uint32 DB::validateAnimations() const {
 uint32 DB::validateAnimationFrames() const {
 	uint32 errors = 0;
 	for (const auto &frame : _animationFrames._items) {
+		if (frame._altDuration < 1)
+		{
+			errors++;
+			debug("In animation frame %u %u: invalid duration");
+		}
 		errors += _animations.validateRef(frame._id, "animation frame", frame._id);
 		errors += validatePath(frame._image, "animation frame", frame._id);
 	}

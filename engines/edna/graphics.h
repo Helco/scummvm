@@ -36,6 +36,10 @@ public:
 	virtual bool alphaCheck(Common::Point pos) const = 0;
 };
 
+using TexturePtr = Common::SharedPtr<ITexture>;
+using TextureArray = Common::Array<TexturePtr>;
+using TextureSpan = Common::Span<TexturePtr>;
+
 class IRenderedText {
 public:
 	virtual ~IRenderedText();

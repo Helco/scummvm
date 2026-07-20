@@ -106,6 +106,9 @@ uint32 DB::validateScripts() const {
 	// a complete script validation would take much much more effort than this...
 	uint32 errors = 0;
 	for (const auto &line : _scripts._items) {
+		if (line._script / 1000000 == 888)
+			continue; // these are only to section off the csv
+
 		if (line._command._function == nullptr || line._command._handler == nullptr) {
 			debug("In script %u %u: invalid command", line._script, line._line);
 			errors++;
@@ -113,6 +116,9 @@ uint32 DB::validateScripts() const {
 			errors += validateScriptCommand(line);
 	}
 	for (const auto &script : _scripts._map) {
+		if (script._key / 1000000 == 888)
+			continue;
+
 		auto firstLine = _scripts._items[script._value._begin]._line;
 		if (firstLine != 1) {
 			debug("In script %u: first line has line number %u", script._key, firstLine);
@@ -291,6 +297,10 @@ uint32 DB::validateNPCs() const {
 			errors++;
 			debug("In npc %u: invalid speeds", pair._key);
 		}
+		if (roomObject(pair._value._object, false)._toNPC != pair._key) {
+			errors++;
+			debug("In npc %u: object %u does not point to this npc", pair._key, pair._value._object);
+		}
 	}
 	return errors;
 }
@@ -332,6 +342,18 @@ uint32 DB::validatePath(const char *path, const char *sourceType, uint32 sourceK
 	return 1;
 }
 
+uint32 DB::validateNpcByRoomObject(RoomObjectId objectId, const char *sourceType, uint32 sourceKey1, uint32 sourceKey2) const {
+	if (_roomObjects.validateRef(objectId, sourceType, sourceKey1))
+		return 1;
+	auto dbObject = roomObject(objectId);
+	if (dbObject._toNPC == 0) {
+		debug("In %s %u %u: Object %u is not a Npc", sourceType, sourceKey1, sourceKey2, objectId);
+		return 1;
+	}
+	// validation of NPC ID is already done by validateNPCs
+	return 0;
+}
+
 uint32 DB::validateScriptCommand(const ScriptLine &line) const {
 	if (line._command._handler == nullptr || line._command._function == nullptr)
 		return 0; // we already reported the parsing error, this method validates arguments
@@ -344,9 +366,9 @@ uint32 DB::validateScriptCommand(const ScriptLine &line) const {
 	if (!scumm_stricmp(function, "ifItemActive"))
 		return _items.validateRef(args._ifItemActive, "script", line._script);
 	if (!scumm_stricmp(function, "sayNsc"))
-		return _npcs.validateRef(args._say._npc, "script", line._script);
+		return validateNpcByRoomObject(args._say._npc, "script", line._script, line._line);
 	if (!scumm_stricmp(function, "saySoundFile"))
-		return validateOptPath(args._saySound._sound, "script", line._script);
+		return validateOptPath(args._saySound._sound, "script", line._script, "soundfx/", ".ogg");
 	if (!scumm_stricmp(function, "choice"))
 		return _choices.validateRef(args._choiceSet, "script", line._script, line._line);
 	if (!scumm_stricmp(function, "activateChoice"))
@@ -362,7 +384,8 @@ uint32 DB::validateScriptCommand(const ScriptLine &line) const {
 	}
 	if (!scumm_stricmp(function, "changeInvoImg")) {
 		return _items.validateRef(args._changeItemImage._item, "script", line._script) +
-			validatePath(args._changeItemImage._image, "script", line._script);
+			validatePath(args._changeItemImage._image, "script", line._script, "", ".png") +
+			validatePath(args._changeItemImage._image, "script (active)", line._script, "", "_a.png");
 	}
 	if (!scumm_stricmp(function, "changeBMSkript")) {
 		return _items.validateRef(args._changeRoomItemInteraction._item, "script", line._script) +
@@ -390,9 +413,10 @@ uint32 DB::validateScriptCommand(const ScriptLine &line) const {
 	// no validation for fadeIn/fadeOut
 	// no validation for animateSC(P) (we cannot check actionMode without knowing the charAnimSet at runtime)
 	if (!scumm_stricmp(function, "animateNsc")) {
-		if (_npcs.validateRef(args._animateCharacter._npc, "script", line._script))
+		if (validateNpcByRoomObject(args._animateCharacter._npc, "script", line._script, line._line))
 			return 1;
-		auto dbNpc = npc(args._animateCharacter._npc);
+		auto dbObject = roomObject(args._animateCharacter._npc, false);
+		auto dbNpc = npc(dbObject._toNPC, false);
 		auto charAnimSet = characterAnimationSet(dbNpc._charAnimSet, args._animateCharacter._actionMode, false);
 		if (charAnimSet._id != dbNpc._charAnimSet) {
 			debug("In script %u %u: Missing charAnimSet %u %u for animated NPC %u",
@@ -405,7 +429,7 @@ uint32 DB::validateScriptCommand(const ScriptLine &line) const {
 		return validateScreenBounds(args._walk._target.x, args._walk._target.y, "script", line._script);
 	if (!scumm_stricmp(function, "walkNsc") || !scumm_stricmp(function, "walkNscP")) {
 		return validateScreenBounds(args._walk._target.x, args._walk._target.y, "script", line._script) +
-			_npcs.validateRef(args._walk._npc, "script", line._script);
+			validateNpcByRoomObject(args._walk._npc, "script", line._script, line._line);
 	}
 	// no validation for freeWalk(Nsc) (without path finding, the character is allowed to walk off-screen)
 	// no validation for putSC (the script might freeWalk the player back in-screen)
@@ -438,7 +462,7 @@ uint32 DB::validateScriptCommand(const ScriptLine &line) const {
 	}
 	// no validation for lookAt
 	if (!scumm_stricmp(function, "nscLookAt"))
-		return _npcs.validateRef(args._lookAt._npcId, "script", line._script);
+		return validateNpcByRoomObject(args._lookAt._npcId, "script", line._script, line._line);
 	return 0; // the function is unknown, this is a parser error, not a validation error
 }
 

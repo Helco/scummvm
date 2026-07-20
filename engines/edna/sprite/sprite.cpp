@@ -20,8 +20,8 @@
  */
 
 #include "edna/edna.h"
-#include "edna/sprite/Animation.h"
-#include "edna/sprite/Sprite.h"
+#include "edna/sprite/animation.h"
+#include "edna/sprite/sprite.h"
 
 #include "gui/debugger.h"
 
@@ -137,7 +137,7 @@ void AnimatedSprite::stopAnimation() {
 
 void AnimatedSprite::setFrame(uint32 index) {
 	assert(index <= _textures.size());
-	setAnimation({ index, index, 0, true });
+	setAnimation(AnimationRange { index, index, 0, true });
 	_timer.toggle(false);
 }
 

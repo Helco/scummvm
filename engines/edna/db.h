@@ -316,6 +316,7 @@ private:
 	uint32 validateNPCs() const;
 	uint32 validateWalkableAreas() const;
 	uint32 validateTimers() const;
+	uint32 validateNpcByRoomObject(RoomObjectId objectId, const char *sourceType, uint32 sourceKey1, uint32 sourceKey2) const;
 	uint32 validateScriptCommand(const ScriptLine &line) const;
 
 	static uint32 validateOptPath(
@@ -327,7 +328,7 @@ private:
 		const char *sourceType, uint32 sourceKey,
 		const char *basePath = "", const char *ext = "");
 
-	const Common::Path path;
+	const Common::Path _path;
 	SequenceSet<ScriptLine> _scripts;
 	TwoKeyDataSet<CharacterAnimationSet> _charAnimSets;
 	SequenceSet<Choice> _choices;

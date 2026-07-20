@@ -222,7 +222,7 @@ static Font nextFont(char *&full, bool isLastColumn = false) {
 }
 
 DB::DB(const Path &path)
-	: path(path)
+	: _path(path)
 	, _scripts("script")
 	, _charAnimSets("character animation set")
 	, _choices("choice set")
@@ -327,11 +327,11 @@ void DB::SequenceSet<TValue>::setupSequences(GetMe getMe, GetParent getParent) {
 	uint32 begin = 0;
 	for (uint32 i = 1; i < _items.size(); i++) {
 		if (getParent(_items[begin]) != getParent(_items[i])) {
-			_map[getParent(_items[begin])] = {begin, i - begin};
+			_map[getParent(_items[begin])] = Range { begin, i - begin };
 			begin = i;
 		}
 	}
-	_map[getParent(_items[begin])] = { begin, _items.size() - begin };
+	_map[getParent(_items[begin])] = Range { begin, _items.size() - begin };
 }
 
 template<class TValue>
@@ -361,7 +361,7 @@ struct Incomplete {
 };
 
 void DB::loadScripts() {
-	char *full = loadFile(_scripts._data, path, "skript.csv");
+	char *full = loadFile(_scripts._data, _path, "skript.csv");
 	skipWhitespace(full);
 	while (*full) {
 		ScriptLine scriptLine;
@@ -382,7 +382,7 @@ DB::CharacterAnimationSet DB::characterAnimationSet(CharAnimSetId setId, ActionM
 }
 
 void DB::loadCharAnimSets() {
-	char *full = loadFile(_charAnimSets._data, path, "characteranimationset.csv");
+	char *full = loadFile(_charAnimSets._data, _path, "characteranimationset.csv");
 	skipWhitespace(full);
 	while (*full) {
 		CharacterAnimationSet set;
@@ -402,7 +402,7 @@ Span<const DB::Choice> DB::choices(ChoiceSetId choiceId) const {
 }
 
 void DB::loadChoices() {
-	char *full = loadFile(_choices._data, path, "choiceliste.csv");
+	char *full = loadFile(_choices._data, _path, "choiceliste.csv");
 	skipWhitespace(full);
 	while (*full) {
 		Choice choice;
@@ -424,7 +424,7 @@ DB::Room DB::room(RoomId id, bool required) const {
 }
 
 void DB::loadRooms() {
-	char *full = loadFile(_rooms._data, path, "raum.csv");
+	char *full = loadFile(_rooms._data, _path, "raum.csv");
 	skipWhitespace(full);
 	while (*full) {
 		Room room;
@@ -455,7 +455,7 @@ Span<const uint32> DB::roomObjectsByRoom(RoomId id, bool required) const {
 }
 
 void DB::loadRoomObjects() {
-	char *full = loadFile(_roomObjects._data, path, "raumobjekt.csv");
+	char *full = loadFile(_roomObjects._data, _path, "raumobjekt.csv");
 	skipWhitespace(full);
 	while (*full) {
 		RoomObject obj;
@@ -478,7 +478,7 @@ DB::RoomInteraction DB::roomInteraction(RoomInteractionId id, bool required) con
 }
 
 void DB::loadRoomInteractions() {
-	char *full = loadFile(_roomInteractions._data, path, "raumobjektinteraktion.csv");
+	char *full = loadFile(_roomInteractions._data, _path, "raumobjektinteraktion.csv");
 	skipWhitespace(full);
 	while (*full) {
 		RoomInteraction interaction;
@@ -505,7 +505,7 @@ DB::Item DB::item(ItemId id) const {
 }
 
 void DB::loadItems() {
-	char *full = loadFile(_items._data, path, "inventarobjekt.csv");
+	char *full = loadFile(_items._data, _path, "inventarobjekt.csv");
 	skipWhitespace(full);
 	while (*full) {
 		Item item;
@@ -527,7 +527,7 @@ DB::Topic DB::topic(TopicId id) const {
 }
 
 void DB::loadTopics() {
-	char *full = loadFile(_topics._data, path, "topic.csv");
+	char *full = loadFile(_topics._data, _path, "topic.csv");
 	skipWhitespace(full);
 	while (*full) {
 		Topic topic;
@@ -560,7 +560,7 @@ ScriptId DB::roomItemInteraction(ItemId item, RoomObjectId object) const {
 }
 
 void DB::loadItemInteractions() {
-	char *full = loadFile(_itemInteractions._data, path, "inventarbenutzemit.csv");
+	char *full = loadFile(_itemInteractions._data, _path, "inventarbenutzemit.csv");
 	skipWhitespace(full);
 	while (*full) {
 		ItemId item1 = nextUint(full);
@@ -576,7 +576,7 @@ DB::RoomExit DB::roomExit(RoomExitId id, bool required) const {
 }
 
 void DB::loadRoomExits() {
-	char *full = loadFile(_roomExits._data, path, "ausgang.csv");
+	char *full = loadFile(_roomExits._data, _path, "ausgang.csv");
 	skipWhitespace(full);
 	while (*full) {
 		RoomExit exit;
@@ -596,7 +596,7 @@ void DB::loadRoomExits() {
 }
 
 void DB::loadRoomItemInteractions() {
-	char *full = loadFile(_roomItemInteractions._data, path, "benutzemit.csv");
+	char *full = loadFile(_roomItemInteractions._data, _path, "benutzemit.csv");
 	skipWhitespace(full);
 	while (*full) {
 		ItemId item = nextUint(full);
@@ -611,7 +611,7 @@ DB::Animation DB::animation(AnimationId id, bool required) const {
 }
 
 void DB::loadAnimations() {
-	char *full = loadFile(_animations._data, path, "bildfolge.csv");
+	char *full = loadFile(_animations._data, _path, "bildfolge.csv");
 	skipWhitespace(full);
 	while (*full) {
 		Animation anim;
@@ -628,7 +628,7 @@ Span<const DB::AnimationFrame> DB::animationFrames(AnimationId id) const {
 }
 
 void DB::loadAnimationFrames() {
-	char *full = loadFile(_animationFrames._data, path, "animationsbild.csv");
+	char *full = loadFile(_animationFrames._data, _path, "animationsbild.csv");
 	skipWhitespace(full);
 	while (*full) {
 		AnimationFrame frame;
@@ -649,7 +649,7 @@ DB::RoomObjectDisplay DB::roomObjectDisplay(RoomObjectDisplayId id, bool require
 }
 
 void DB::loadRoomObjectDisplays() {
-	char *full = loadFile(_roomObjectDisplays._data, path, "raumobjektdarstellung.csv");
+	char *full = loadFile(_roomObjectDisplays._data, _path, "raumobjektdarstellung.csv");
 	skipWhitespace(full);
 	while (*full) {
 		RoomObjectDisplay display;
@@ -672,7 +672,7 @@ DB::NPC DB::npc(NPCId id, bool required) const {
 }
 
 void DB::loadNPCs() {
-	char *full = loadFile(_npcs._data, path, "nsc.csv");
+	char *full = loadFile(_npcs._data, _path, "nsc.csv");
 	skipWhitespace(full);
 	while (*full) {
 		NPC npc;
@@ -687,8 +687,8 @@ void DB::loadNPCs() {
 		npc._baseYAtFullScale = nextFloat(full, true);
 		_npcs.set(npc._id, npc);
 
-		if (_roomObjects._map.contains(npc._id))
-			_roomObjects._map[npc._id]._toNPC = npc._id;
+		if (_roomObjects._map.contains(npc._object))
+			_roomObjects._map[npc._object]._toNPC = npc._id;
 	}
 }
 
@@ -697,7 +697,7 @@ DB::WalkableArea DB::walkableArea(WalkableAreaId id) const {
 }
 
 void DB::loadWalkableAreas() {
-	char *full = loadFile(_walkableAreas._data, path, "walkableareamap.csv");
+	char *full = loadFile(_walkableAreas._data, _path, "walkableareamap.csv");
 	skipWhitespace(full);
 	while (*full) {
 		WalkableArea area;
@@ -713,7 +713,7 @@ DB::Timer DB::timer(TimerId id) const {
 }
 
 void DB::loadTimers() {
-	char *full = loadFile(_timers._data, path, "timer.csv");
+	char *full = loadFile(_timers._data, _path, "timer.csv");
 	skipWhitespace(full);
 	while (*full) {
 		Timer timer;

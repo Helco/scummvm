@@ -27,6 +27,7 @@
 namespace Edna {
 
 class Game;
+struct ScriptCommand;
 
 class Script {
 public:

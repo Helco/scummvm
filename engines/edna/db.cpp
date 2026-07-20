@@ -352,9 +352,13 @@ void DB::SecondaryIndex<TValue>::build(PointerToID toParent) {
 		[&](const uint32 &id) { return _source._map[id].*toParent; });
 }
 
-Span<const DB::ScriptLine> DB::script(ScriptId scriptId) const {
-	return _scripts.get(scriptId);
+Span<const DB::ScriptLine> DB::script(ScriptId scriptId, bool required) const {
+	return _scripts.get(scriptId, required);
 }
+
+struct Incomplete {
+	int a, b, c;
+};
 
 void DB::loadScripts() {
 	char *full = loadFile(_scripts._data, path, "skript.csv");

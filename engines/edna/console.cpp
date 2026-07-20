@@ -31,9 +31,29 @@ Console::Console() : GUI::Debugger() {
 	registerCmd("validate", WRAP_METHOD(Console, cmdValidate));
 	registerCmd("room", WRAP_METHOD(Console, cmdRoom));
 	registerCmd("sprites", WRAP_METHOD(Console, cmdSprites));
+	registerCmd("script", WRAP_METHOD(Console, cmdScript));
+	registerCmd("eval", WRAP_METHOD(Console, cmdEval));
+	registerCmd("e", WRAP_METHOD(Console, cmdEval));
 }
 
 Console::~Console() {
+}
+
+Game *Console::getGame() {
+	Game *game = dynamic_cast<Game *>(&g_engine->game());
+	if (game == nullptr)
+		debugPrintf("Current game (%s) is not a room game\n", gameModeToString(g_engine->game().gameMode()));
+	return game;
+}
+
+bool Console::tryParseUint(const char *arg, uint32 &value, const char *context) {
+	char *end = nullptr;
+	value = (uint32)strtoul(arg, &end, 10);
+	if (end == nullptr || *end != '\0') {
+		debugPrintf("%s has to be an unsigned integer\n", context);
+		return false;
+	}
+	return true;
 }
 
 bool Console::cmdValidate(int argc, const char **argv) {
@@ -51,20 +71,12 @@ bool Console::cmdRoom(int argc, const char **argv) {
 		debugPrintf("usage: room [id]");
 		return true;
 	} else if (argc == 1) {
-		Game *game = dynamic_cast<Game *>(&g_engine->game());
-		if (game == nullptr) {
-			debugPrintf("Current game (%s) is not a room game\n", gameModeToString(g_engine->game().gameMode()));
+		Game *game = getGame();
+		if (game == nullptr)
 			return true;
-		}
 		roomId = game->roomId();
-	} else {
-		char *end = nullptr;
-		roomId = (RoomId)strtoul(argv[1], &end, 10);
-		if (end == nullptr || *end != '\0') {
-			debugPrintf("room id has to be an unsigned integer\n");
-			return true;
-		}
-	}
+	} else if (!tryParseUint(argv[1], roomId, "Room id"))
+		return true;
 
 	// Room details
 	auto &db = g_engine->db();
@@ -118,6 +130,67 @@ bool Console::cmdSprites(int argc, const char **argv) {
 		}
 	}
 	return true;
+}
+
+bool Console::cmdScript(int argc, const char **argv) {
+	uint32 scriptId;
+	uint32 markLine = UINT32_MAX;
+	if (argc == 1) {
+		Game *game = getGame();
+		if (game == nullptr)
+			return true;
+		if (!game->script().isScriptRunning()) {
+			debugPrintf("No script is currently running\n");
+			return true;
+		}
+		scriptId = game->script().scriptId();
+		markLine = game->script().scriptLine();
+	} else if (argc == 2) {
+		if (!tryParseUint(argv[1], scriptId, "Script id"))
+			return true;
+	} else {
+		debugPrintf("usage: script [<script id>]\n");
+		return true;
+	}
+	auto lines = g_engine->db().script(scriptId, false);
+	if (lines.size() == 0) {
+		debugPrintf("Invalid script id\n");
+		return true;
+	}
+
+	debugPrintf("Script %u:\n", scriptId);
+	for (const auto &line : lines) {
+		debugPrintf("%c %3d: ", (line._line == markLine ? '>' : ' '), line._line);
+		line._command.debugPrintConsole();
+	}
+	return true;
+}
+
+bool Console::cmdEval(int argc, const char **argv) {
+	Game *game = getGame();
+	if (game == nullptr)
+		return true;
+	if (argc != 2) {
+		debugPrintf("usage: eval <script line>\n");
+		return true;
+	}
+	Script &script = game->script();
+	if (script.isScriptRunning() || script.isPerforming()) {
+		debugPrintf("Cannot evaluate script command, another script is running or performing\n");
+		return true;
+	}
+
+	char *commandStr = scumm_strdup(argv[1]);
+	ScriptCommand command(commandStr);
+	if (command._handler == nullptr) {
+		free(commandStr);
+		debugPrintf("Could not parse script line\n");
+		return true;
+	}
+
+	bool result = (script.*command._handler)(command);
+	free(commandStr);
+	return result;
 }
 
 } // End of namespace Edna

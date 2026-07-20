@@ -95,10 +95,10 @@ uint32 DB::SequenceSet<TValue>::validateRef(uint32 key, const char *sourceType, 
 template<typename TValue>
 uint32 DB::SequenceSet<TValue>::validateRef(uint32 key1, uint32 key2, const char *sourceType, uint32 sourceKey1, uint32 sourceKey2) const {
 	auto lines = get(key1, false);
-	auto it = find(lines.begin(), lines.end(), [key2](const TValue &v) { v._line == key2; });
+	auto it = find_if(lines.begin(), lines.end(), [key2](const TValue &v) { return v._line == key2; });
 	if (it != lines.end())
 		return 0;
-	debug("In %s %u %u: invalid %s ref: %u", sourceType, sourceKey1, sourceKey2, _typeName, key);
+	debug("In %s %u %u: invalid %s ref: %u %u", sourceType, sourceKey1, sourceKey2, _typeName, key1, key2);
 	return 1;
 }
 
@@ -111,6 +111,13 @@ uint32 DB::validateScripts() const {
 			errors++;
 		} else
 			errors += validateScriptCommand(line);
+	}
+	for (const auto &script : _scripts._map) {
+		auto firstLine = _scripts._items[script._value._begin]._line;
+		if (firstLine != 1) {
+			debug("In script %u: first line has line number %u", script._key, firstLine);
+			errors++;
+		}
 	}
 	return errors;
 }

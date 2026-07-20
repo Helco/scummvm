@@ -22,7 +22,7 @@
 #ifndef EDNA_SCRIPT_H
 #define EDNA_SCRIPT_H
 
-#include "edna/scriptcommand.h"
+#include "edna/util.h"
 
 namespace Edna {
 
@@ -33,12 +33,12 @@ public:
 	Script(Game &game);
 
 	inline bool isScriptRunning() const { return _isScriptRunning; }
-	inline bool isPerforming() const { return _isPerforming; }
 	inline ScriptId scriptId() const { return _scriptId; }
 	inline uint32 scriptLine() const { return _scriptLine; }
 
 	void continueScript();
 	void runNewScript(ScriptId scriptId, uint32 firstLine = 1);
+	bool isPerforming(); ///< this function has side-effects...
 
 private:
 	friend struct ScriptCommand;
@@ -86,8 +86,13 @@ private:
 	bool opNpcLookAt(const ScriptCommand &line);
 	// bool opEnd(const ScriptCommand &line); (unused)
 
+	// helper functions for ^
+	void toggleObject(RoomObjectId objectId, bool isActive);
+
 	Game &_game;
-	bool _isScriptRunning = false, _isPerforming = false;
+	bool _isScriptRunning = false,
+		_isPerforming = false,
+		_parallelPerformance = false;
 	ScriptId _scriptId = 0;
 	uint32 _scriptLine = 0;
 };

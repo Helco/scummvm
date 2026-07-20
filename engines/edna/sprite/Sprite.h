@@ -23,6 +23,7 @@
 #define EDNA_SPRITE_H
 
 #include "edna/graphics.h"
+#include "edna/util.h"
 
 namespace Edna {
 
@@ -40,9 +41,35 @@ public:
 	virtual bool checkClick(Common::Point screenPos) const;
 
 private:
+	friend class AnimatedSprite;
 	bool _active = true;
 	Common::Rect _bounds;
 	Common::SharedPtr<ITexture> _texture;
+};
+
+struct AnimationRange {
+	uint32 _startFrame = 0, _endFrame = 0, _delay = 0;
+};
+
+class AnimatedSprite : public Sprite {
+public:
+	inline uint32 &curFrame() { return _curFrame; }
+
+	void update() override;
+	void setTexture(Common::SharedPtr<ITexture> texture) override;
+	void setTextures(Common::Span<Common::SharedPtr<ITexture>> textures);
+	void setTextures(Common::Array<Common::SharedPtr<ITexture>> &&textures);
+	void setAnimation(AnimationRange animation);
+	void stopAnimation();
+
+private:
+	void resetTextures();
+
+	Common::Array<Common::SharedPtr<ITexture>> _textures;
+	uint32 _curFrame = 0;
+	AnimationRange _animation;
+	bool _loop = false;
+	Timer _timer;
 };
 
 }

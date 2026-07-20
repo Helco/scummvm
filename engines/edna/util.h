@@ -93,6 +93,18 @@ using ItemId = uint32;
 using TopicId = uint32;
 using NPCId = uint32;
 
+class Timer {
+	uint32 _startTime = 0, _delay = 0;
+	bool _active = false;
+public:
+	inline uint32 &delay() { return _delay; }
+	inline bool active() const { return _active; }
+
+	bool update();
+	void reset();
+	void toggle(bool active);
+};
+
 }
 
 #endif // EDNA_UTIL_H

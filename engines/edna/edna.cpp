@@ -107,4 +107,28 @@ Error EdnaEngine::syncGame(Serializer &s) {
 	return kNoError;
 }
 
+uint32 EdnaEngine::getMillis() const {
+	// We modify system time in order to simplify timing calculations
+	// and pauses (including pauses by in-game menus)
+	return g_system->getMillis() - _timeNegOffset + _timePosOffset;
+}
+
+void EdnaEngine::setMillis(uint32 newMillis) {
+	const uint32 sysMillis = g_system->getMillis();
+	if (newMillis > sysMillis) {
+		_timeNegOffset = 0;
+		_timePosOffset = newMillis - sysMillis;
+	} else {
+		_timeNegOffset = sysMillis - newMillis;
+		_timePosOffset = 0;
+	}
+}
+
+void EdnaEngine::pauseEngineIntern(bool pause) {
+	if (pause)
+		_timeBeforePause = getMillis();
+	else
+		setMillis(_timeBeforePause);
+}
+
 } // End of namespace Edna

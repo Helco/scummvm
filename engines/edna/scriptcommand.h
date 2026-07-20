@@ -22,7 +22,9 @@
 #ifndef EDNA_SCRIPTLINE_H
 #define EDNA_SCRIPTLINE_H
 
-#include "edna/util.h"
+// Including script.h is necessary (instead of just util.h) to fix a MSVC bug
+// regarding pointer-to-member-functions of incomplete types
+#include "edna/script.h"
 
 namespace Edna {
 
@@ -38,14 +40,16 @@ using ScriptHandler = bool (Script:: *)(const ScriptCommand &line);
 struct ScriptCommand {
 	ScriptCommand();
 	ScriptCommand(char *line); ///< line is modified to insert null-terminators
-	ScriptCommand(const ScriptCommand &o) = default;
-	ScriptCommand(ScriptCommand &&o) = default;
-	ScriptCommand &operator =(const ScriptCommand &o) = default;
-	ScriptCommand &operator =(ScriptCommand &&o) = default;
+
+	void debugPrintLog() const;
+	void debugPrintConsole() const;
 
 	ScriptHandler _handler = nullptr; ///< if nullptr the script line was not parsed
 	const char *_function = nullptr;
 	uint32 _fullLength = 0; ///< for debug print purposes as brackets/commas were replaced upon parsing
+	Common::SharedPtr<const ScriptCommand> _thenLine = nullptr; ///< only for ifActive / ifItemActive
+	// using an allocation for _thenLine saves around 2MiB of memory
+
 	union {
 		// TODO: AchievementKind _achievement;
 		RoomObjectId _ifActive;
@@ -132,9 +136,6 @@ struct ScriptCommand {
 			NPCId _npcId;
 		} _lookAt; ///< both lookAt and npcLookAt
 	} _args;
-
-	Common::SharedPtr<const ScriptCommand> _thenLine; ///< only for ifActive / ifItemActive
-	// using an allocation for _thenLine saves around 2MiB of memory
 };
 
 }

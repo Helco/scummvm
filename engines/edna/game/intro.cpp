@@ -42,7 +42,7 @@ Intro::Intro(bool withHarvey)
 	if (_withHarvey) {
 		_splash.setTexture((String("gui/littleSplash_") + g_engine->language() + ".png").c_str());
 		_splash.pos() = { 250, 100 };
-		_splash.active() = false;
+		_splash.toggle(false);
 		_splash.immutable() = true;
 		_group.add(&_splash, DisposeAfterUse::NO);
 
@@ -63,7 +63,7 @@ Intro::Intro(bool withHarvey)
 		_harvey.setTextures(TextureSpan(cells, CellCount));
 		_harvey.setAnimation(AnimationRange{ 0, CellCount - 1,  200, true });
 		_harvey.pos() = { 375, 300 };
-		_harvey.active() = false;
+		_harvey.toggle(false);
 		_harvey.immutable() = true;
 		_group.add(&_harvey, DisposeAfterUse::NO);
 	}
@@ -91,9 +91,9 @@ void Intro::update() {
 
 			if (_withHarvey) {
 				_stage = Stage::Harvey;
-				_daedalic.active() = false;
-				_splash.active() = true;
-				_harvey.active() = true;
+				_daedalic.toggle(false);
+				_splash.toggle(true);
+				_harvey.toggle(true);
 			}
 			else
 				g_engine->nextRoom() = 1; // startmenu

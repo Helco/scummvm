@@ -24,6 +24,7 @@
 
 #include "common/span.h"
 
+#include "edna/script.h"
 #include "edna/sprite/group.h"
 
 namespace Edna {
@@ -56,27 +57,39 @@ public:
 	Game(GameMode mode, RoomId roomId);
 
 	inline RoomId roomId() const { return _roomId; }
+	inline Script &script() { return _script; }
 	inline Group &background() { return _background; }
 	inline Group &bgObjects() { return _bgObjects; }
 	inline Group &objects() { return _objects; }
 	inline Group &texts() { return _texts; }
 	inline Group &gui() { return _gui; }
 
+	void update() override;
+	Sprite *objectById(RoomObjectId id) const;
+
 protected:
 	void initBackground(const char *background);
+	void initTimer(TimerId timerId);
 	virtual void initGroups();
 	void initGroups(Group *specialObjects, Group *specialGui);
 	void initObjects();
 
+	bool updateScript();
+
 private:
 
 	const RoomId _roomId;
+	Script _script;
 	Group _background;
 	Group _bgObjects;
 	ObjectGroup _objects;
 	Group _texts;
 	Group _gui;
 	// missing due to custom type: comment, mainMenu, choiceList
+
+	bool _pendingTimerInvoke = false;
+	ScriptId _timerScript;
+	Timer _timer;
 };
 
 }

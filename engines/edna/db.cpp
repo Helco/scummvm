@@ -275,11 +275,9 @@ void DB::SimpleDataSet<TValue>::set(uint32 key, const TValue &value) {
 
 template<class TValue>
 TValue DB::SimpleDataSet<TValue>::get(uint32 key, bool required) const {
-	TValue value;
-	if (!_map.tryGetVal(key, value)) {
-		if (required)
-			error("Missing %s: %u", _typeName, key);
-	}
+	TValue value = {};
+	if (!_map.tryGetVal(key, value) && required)
+		error("Missing %s: %u", _typeName, key);
 	return value;
 }
 
@@ -295,9 +293,9 @@ void DB::TwoKeyDataSet<TValue>::set(uint32 key1, uint32 key2, const TValue &valu
 }
 
 template<class TValue>
-TValue DB::TwoKeyDataSet<TValue>::get(uint32 key1, uint32 key2) const {
-	TValue value;
-	if (!_map.tryGetVal({ key1, key2 }, value ))
+TValue DB::TwoKeyDataSet<TValue>::get(uint32 key1, uint32 key2, bool required) const {
+	TValue value = {};
+	if (!_map.tryGetVal({ key1, key2 }, value ) && required)
 		error("Missing %s: %u %u", _typeName, key1, key2);
 	return value;
 }
@@ -375,8 +373,8 @@ void DB::loadScripts() {
 		[](const ScriptLine &line) { return line._script; });
 }
 
-DB::CharacterAnimationSet DB::characterAnimationSet(CharAnimSetId setId, ActionModeId actionModeId) const {
-	return _charAnimSets.get(setId, actionModeId);
+DB::CharacterAnimationSet DB::characterAnimationSet(CharAnimSetId setId, ActionModeId actionModeId, bool required) const {
+	return _charAnimSets.get(setId, actionModeId, required);
 }
 
 void DB::loadCharAnimSets() {
@@ -604,8 +602,8 @@ void DB::loadRoomItemInteractions() {
 	}
 }
 
-DB::Animation DB::animation(AnimationId id) const {
-	return _animations.get(id);
+DB::Animation DB::animation(AnimationId id, bool required) const {
+	return _animations.get(id, required);
 }
 
 void DB::loadAnimations() {

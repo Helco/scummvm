@@ -143,8 +143,8 @@ uint32 DB::validateChoices() const {
 	uint32 errors = 0;
 	for (const auto &line : _choices._items) {
 		if (strlen(line._text) == 0)
-			debug("In choice %u %u: empty text", line._set, line._line);
-		errors += _scripts.validateRef(line._script, "choice set", line._set);
+			debug("In choice %u %u: empty text", line._id, line._line);
+		errors += _scripts.validateRef(line._script, "choice set", line._id);
 	}
 	return errors;
 }
@@ -232,8 +232,8 @@ uint32 DB::validateItems() const {
 			errors++;
 			debug("In item %u: empty name", pair._key);
 		}
-		errors += validatePath(pair._value._icon, "item", pair._key, "", ".png");
-		errors += validatePath(pair._value._icon, "item", pair._key, "", "_a.png");
+		errors += validatePath(pair._value._icon.get(), "item", pair._key, "", ".png");
+		errors += validatePath(pair._value._icon.get(), "item", pair._key, "", "_a.png");
 		errors += _scripts.validateRef(pair._value._lookScript, "item (look)", pair._value._lookScript);
 		errors += _scripts.validateRef(pair._value._useScript, "item (use)", pair._value._useScript);
 		errors += _scripts.validateRef(pair._value._talkScript, "item (talk)", pair._value._talkScript);

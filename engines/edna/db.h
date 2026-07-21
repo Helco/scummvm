@@ -24,22 +24,50 @@
 
 #include "edna/scriptcommand.h"
 
+#include "common/serializer.h"
+
 namespace Edna {
 
 using FileData = Common::SpanOwner<StringSpan>;
 
-class DB {
+class DB final {
+	struct StringBuffer;
 public:
 	DB(const Common::Path &path);
-	~DB();
 
+	void resetOverlay(); ///< implemented in db_overlay.cpp
+	void syncOverlay(Common::Serializer &s); 
 	uint32 validate(); ///< implemented in db_validation.cpp
+
+	// custom string that supports foreign references
+	// i.e. either mostly ref into FileData or rarely own strings through overlay
+	// only necessary for strings that could change
+	class DBString {
+		const char *_string = nullptr;
+		bool _ownsString = false;
+		DBString(const char *string, bool ownsString);
+		static DBString ownerOf(char *string);
+		static DBString copyOf(const char *string);
+		static DBString refTo(const char *string);
+		friend class DB;
+	public:
+		DBString() = default;
+		DBString(DBString &&other);
+		DBString(const DBString &other);
+		DBString &operator=(DBString &&other);
+		DBString &operator=(const DBString &other);
+		~DBString();
+
+		const char *get() const;
+		bool operator==(const DBString &other) const;
+		bool operator!=(const DBString &other) const;
+	};
 
 	struct ScriptLine {
 		ScriptId _script = 0;
 		uint32 _line = 0;
 		ScriptCommand _command = {};
-		const char *_comment = "";
+		const char *_comment = {};
 	};
 	Common::Span<const ScriptLine> script(ScriptId scriptId, bool required = true) const;
 
@@ -55,7 +83,7 @@ public:
 	CharacterAnimationSet characterAnimationSet(CharAnimSetId set, ActionModeId actionMode, bool required = true) const;
 
 	struct Choice {
-		ChoiceSetId _set = 0;
+		ChoiceSetId _id = 0;
 		uint32 _line = 0;
 		bool _active = false;
 		const char *_text = "";
@@ -132,7 +160,7 @@ public:
 		ItemId _id = 0;
 		GameMode _gameMode = {};
 		const char *_name = "";
-		const char *_icon = "";
+		DBString _icon = {};
 		uint32 _inventoryPos = 0; ///< TODO: could this be used for "is in inventory?
 		PlayerAction _defaultAction = {};
 		ScriptId _lookScript = 0;
@@ -211,17 +239,27 @@ public:
 	Timer timer(TimerId id) const;
 
 private:
+	// When loading value will be the original value, 
+	// only modifiable values should be loaded or saved
+	template<class TValue>
+	using RecordSyncFn = void (*)(TValue &value, Common::Serializer &s);
+
 	// For singular data referenced by one integer key
 	template<class TValue>
 	struct SimpleDataSet {
 		const char *const _typeName;
+		const RecordSyncFn<TValue> _sync;
 		FileData _data;
 		Common::HashMap<uint32, TValue> _map;
+		Common::HashMap<uint32, TValue> _overlay;
 
-		SimpleDataSet(const char *typeName);
+		SimpleDataSet(const char *typeName, RecordSyncFn<TValue> sync = nullptr);
 		void set(uint32 key, const TValue &value);
 		TValue get(uint32 key, bool required = true) const;
 		uint32 validateRef(uint32 key, const char *sourceType, uint32 sourceKey) const;
+		void overlay(const TValue &value);
+		void resetOverlay();
+		void sync(Common::Serializer &s);
 	};
 
 	// For singular data referenced by two integer keys
@@ -241,13 +279,18 @@ private:
 	template<class TValue>
 	struct TwoKeyDataSet {
 		const char *const _typeName;
+		const RecordSyncFn<TValue> _sync;
 		FileData _data;
 		TwoKeyMap<TValue> _map;
+		TwoKeyMap<TValue> _overlay;
 
-		TwoKeyDataSet(const char *typeName);
+		TwoKeyDataSet(const char *typeName, RecordSyncFn<TValue> sync = nullptr);
 		void set(uint32 key1, uint32 key2, const TValue &value);
 		TValue get(uint32 key1, uint32 key2, bool required = true) const;
 		uint32 validateRef(uint32 key, const char *sourceType, uint32 sourceKey) const; ///< Checks that some pair starting with key exists
+		void overlay(uint32 key1, uint32 key2, const TValue &value);
+		void resetOverlay();
+		void sync(Common::Serializer &s);
 	};
 
 	// For a sequence referenced by one key
@@ -258,17 +301,24 @@ private:
 	template<class TValue>
 	struct SequenceSet {
 		const char *const _typeName;
+		const RecordSyncFn<TValue> _sync;
 		FileData _data;
 		Common::Array<TValue> _items;
 		Common::HashMap<uint32, Range> _map;
+		Common::HashMap<uint32, TValue> _backup; ///< for SequenceSet we write the *original* values into the separate map
+		// this is so we can still return a span of (modified) items
 
-		SequenceSet(const char *typeName);
+		SequenceSet(const char *typeName, RecordSyncFn<TValue> sync = nullptr);
 		template<class GetMe, class GetParent>
 		void setupSequences(GetMe, GetParent getParent);
 		Common::Span<const TValue> get(uint32 key, bool required = true) const;
 		uint32 validateRef(uint32 key, const char *sourceType, uint32 sourceKey) const;
 		uint32 validateRef(uint32 key, const char *sourceType, uint32 sourceKey1, uint32 sourceKey2) const;
 		uint32 validateRef(uint32 key1, uint32 key2, const char *sourceType, uint32 sourceKey1, uint32 sourceKey2) const;
+		uint32 getItemIndex(uint32 set, uint32 line) const; ///< returns UINT32_MAX if the entry does not exist
+		void overlay(const TValue &value);
+		void resetOverlay();
+		void sync(Common::Serializer &s);
 	};
 
 	// For faster queries and easier data structures
@@ -298,6 +348,15 @@ private:
 	void loadNPCs();
 	void loadWalkableAreas();
 	void loadTimers();
+
+	static void syncDBString(DBString &value, Common::Serializer &s);
+	static void syncChoice(Choice &value, Common::Serializer &s);
+	static void syncItem(Item &value, Common::Serializer &s);
+	static void syncScriptId(ScriptId &value, Common::Serializer &s);
+	static void syncRoomObject(RoomObject &value, Common::Serializer &s);
+	static void syncRoomInteraction(RoomInteraction &value, Common::Serializer &s);
+	static void syncTopic(Topic &value, Common::Serializer &s);
+	static void syncTimer(Timer &value, Common::Serializer &s);
 
 	uint32 validateScripts() const;
 	uint32 validateCharAnimSets() const;

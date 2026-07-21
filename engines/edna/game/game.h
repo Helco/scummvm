@@ -29,6 +29,8 @@
 
 namespace Edna {
 
+class Player;
+
 // Everything except Intro inherits from Game
 
 class GameBase {
@@ -58,6 +60,7 @@ public:
 
 	inline RoomId roomId() const { return _roomId; }
 	inline Script &script() { return _script; }
+	inline Player &player() { assert(_player != nullptr); return *_player; }
 	inline Group &background() { return _background; }
 	inline Group &bgObjects() { return _bgObjects; }
 	inline Group &objects() { return _objects; }
@@ -72,14 +75,15 @@ protected:
 	void initTimer(TimerId timerId);
 	virtual void initGroups();
 	void initGroups(Group *specialObjects, Group *specialGui);
+	void initPlayer();
 	void initObjects();
 
 	bool updateScript();
 
 private:
-
 	const RoomId _roomId;
 	Script _script;
+	Player *_player = nullptr;
 	Group _background;
 	Group _bgObjects;
 	ObjectGroup _objects;

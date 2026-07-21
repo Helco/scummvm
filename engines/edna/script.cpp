@@ -23,16 +23,16 @@
 #include "edna/edna.h"
 #include "edna/game/game.h"
 #include "edna/scriptcommand.h"
-#include "edna/sprite/sprite.h"
+#include "edna/sprite/player.h"
 
 namespace Edna {
 
 Script::Script(Game &game) : _game(game) { }
 
 bool Script::isPerforming() {
-	bool isPlayerBusy = false;
+	const bool isPlayerDone = _game.player().state() == Player::State::Waiting;
 	bool isNpcBusy = false;
-	if (!isPlayerBusy && (_parallelPerformance || !isNpcBusy)) {
+	if (isPlayerDone && (_parallelPerformance || !isNpcBusy)) {
 		// TODO: Check whether some sound is still playing
 		_isPerforming = false;
 
@@ -58,7 +58,6 @@ void Script::continueScript() {
 	assert(_isScriptRunning && !_isPerforming);
 	if (!_isScriptRunning)
 		return;
-	debugC(1, kDebugScript, "Run script %u from %u", _scriptId, _scriptLine);
 
 	// TODO: Exit handling
 
@@ -229,8 +228,8 @@ bool Script::opPutPlayer(const ScriptCommand &line) {
 }
 
 bool Script::opWait(const ScriptCommand &line) {
-	warning("STUB script op: Wait");
-	return true;
+	_game.player().wait(line._args._waitDuration);
+	return false;
 }
 
 bool Script::opItemActivate(const ScriptCommand &line) {

@@ -33,9 +33,9 @@ public:
 
 class SpatialObject : virtual public RoomObject {
 public:
-	virtual int basePosX() const = 0;
-	virtual int basePosY() const = 0;
-	virtual int basePosY(int x) const = 0;
+	virtual int32 basePosX() const = 0;
+	virtual int32 basePosY() const = 0;
+	virtual int32 basePosY(int x) const = 0;
 
 	void setBasePos(Common::Point pos);
 };
@@ -50,9 +50,9 @@ public:
 	VisualObject(Common::Point baseLineStart, Common::Point baseLineEnd);
 
 	void debugPrint() override;
-	int basePosX() const override;
-	int basePosY() const override;
-	int basePosY(int x) const override;
+	int32 basePosX() const override;
+	int32 basePosY() const override;
+	int32 basePosY(int x) const override;
 
 private:
 	const Common::Point _baseLineStart, _baseLineEnd;

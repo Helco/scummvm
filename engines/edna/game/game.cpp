@@ -23,7 +23,7 @@
 #include "edna/db.h"
 #include "edna/game/game.h"
 #include "edna/sprite/animation.h"
-#include "edna/sprite/object.h"
+#include "edna/sprite/player.h"
 
 namespace Edna {
 
@@ -63,7 +63,7 @@ Game::Game(GameMode mode, RoomId roomId)
 	// TODO: Init walkableareamap
 	// TODO: Init font and cursor
 	// TODO: Init comment
-	// TODO: Init characterAnimationSet
+	initPlayer();
 	initObjects();
 	// TODO: Init CommandPrompt
 	// TODO: Init ScriptInterpreter
@@ -101,6 +101,12 @@ void Game::initGroups(Group *specialObjects, Group *specialGui) {
 	if (specialGui != nullptr)
 		add(specialGui);
 	// TODO: start menu
+}
+
+void Game::initPlayer() {
+	_player = new Player();
+	_player->immutable() = true;
+	_objects.add(_player, DisposeAfterUse::YES);
 }
 
 void Game::initObjects() {

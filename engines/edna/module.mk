@@ -16,6 +16,7 @@ MODULE_OBJS = \
 	sprite\animation.o \
 	sprite\group.o \
 	sprite\object.o \
+	sprite\player.o \
 	sprite\sprite.o \
 	util.o
 

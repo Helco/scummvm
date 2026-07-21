@@ -68,7 +68,10 @@ public:
 	inline Group &gui() { return _gui; }
 
 	void update() override;
+	void render() override;
 	Sprite *objectById(RoomObjectId id) const;
+
+	void fade(byte color, float target, uint32 duration);
 
 protected:
 	void initBackground(const char *background);
@@ -78,6 +81,7 @@ protected:
 	void initPlayer();
 	void initObjects();
 
+	void updateFade();
 	bool updateScript();
 
 private:
@@ -94,6 +98,12 @@ private:
 	bool _pendingTimerInvoke = false;
 	ScriptId _timerScript;
 	Timer _timer;
+
+	struct {
+		bool _active = false;
+		byte _color = 0; ///< there is only fades to black or white, so this is okay
+		float _current = 0, _speed = 0;
+	} _fade;
 };
 
 }

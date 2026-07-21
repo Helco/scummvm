@@ -153,9 +153,28 @@ void Game::initObjects() {
 }
 
 void Game::update() {
+	updateFade();
 	if (!updateScript())
 		return;
 	GameBase::update(); // updates sprite groups
+}
+
+void Game::render() {
+	GameBase::render();
+	if (_fade._current > 0.0f) {
+		g_engine->renderer().rect({ 0, 0, kScreenWidth, kScreenHeight }, // this might be the wrong blending
+			_fade._color, _fade._color, _fade._color, (uint8)CLIP(_fade._current * 255.0f, 0.0f, 255.0f));
+	}
+}
+
+void Game::updateFade() {
+	if (!_fade._active)
+		return;
+	_fade._current += _fade._speed * g_engine->getElapsedF();
+	if (_fade._current < 0.0f || _fade._current > 1.0f) {
+		_fade._current = CLIP(_fade._current, 0.0f, 1.0f);
+		_fade._active = false;
+	}
 }
 
 bool Game::updateScript() {
@@ -186,6 +205,12 @@ Sprite *Game::objectById(RoomObjectId id) const {
 	if (sprite == nullptr)
 		sprite = _bgObjects.byId(id);
 	return sprite;
+}
+
+void Game::fade(byte color, float target, uint32 duration) {
+	_fade._active = true;
+	_fade._color = color;
+	_fade._speed = (target - _fade._current) * 1000.0f / duration;
 }
 
 }

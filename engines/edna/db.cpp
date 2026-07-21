@@ -225,21 +225,21 @@ DB::DB(const Path &path)
 	: _path(path)
 	, _scripts("script")
 	, _charAnimSets("character animation set")
-	, _choices("choice set")
+	, _choices("choice set", syncChoice)
 	, _rooms("room")
-	, _roomObjects("room object")
+	, _roomObjects("room object", syncRoomObject)
 	, _roomObjectDisplays("room object display")
-	, _roomInteractions("room interaction")
-	, _roomItemInteractions("room item interaction")
+	, _roomInteractions("room interaction", syncRoomInteraction)
+	, _roomItemInteractions("room item interaction", syncScriptId)
 	, _roomExits("room exit")
-	, _items("item")
-	, _itemInteractions("item interaction")
-	, _topics("topic")
+	, _items("item", syncItem)
+	, _itemInteractions("item interaction", syncScriptId)
+	, _topics("topic", syncTopic)
 	, _animations("animation")
 	, _animationFrames("animation frame")
 	, _npcs("npc")
 	, _walkableAreas("walkable area")
-	, _timers("timer")
+	, _timers("timer", syncTimer)
 	, _roomObjectsByRoom("room object by room", _roomObjects) {
 	loadScripts();
 	loadAnimations();
@@ -260,10 +260,68 @@ DB::DB(const Path &path)
 	loadTimers();
 }
 
-DB::~DB() {}
+DB::DBString::DBString(const char *string, bool ownsString)
+	: _string(string), _ownsString(ownsString) {}
+
+DB::DBString DB::DBString::ownerOf(char *string) {
+	return DBString(string, true);
+}
+
+DB::DBString DB::DBString::copyOf(const char *string) {
+	return DBString(scumm_strdup(string), true);
+}
+
+DB::DBString DB::DBString::refTo(const char *string) {
+	return DBString(scumm_strdup(string), false);
+}
+
+DB::DBString::DBString(DBString &&other)
+	: _string(other._string), _ownsString(other._string) {
+	other._string = nullptr;
+	other._ownsString = false;
+}
+
+DB::DBString::DBString(const DBString &other)
+	: _string(other._string), _ownsString(false) {}
+
+DB::DBString &DB::DBString::operator=(DBString &&other) {
+	this->~DBString();
+	_string = other._string;
+	_ownsString = other._ownsString;
+	other._string = nullptr;
+	other._ownsString = false;
+	return *this;
+}
+
+DB::DBString &DB::DBString::operator=(const DBString &other) {
+	this->~DBString();
+	_string = other._string;
+	_ownsString = false;
+	return *this;
+}
+
+DB::DBString::~DBString() {
+	if (_string != nullptr && _ownsString)
+		free(const_cast<char *>(_string));
+	_string = nullptr;
+	_ownsString = false;
+}
+
+const char *DB::DBString::get() const {
+	return _string == nullptr ? "" : _string;
+}
+
+bool DB::DBString::operator==(const DBString &other) const {
+	return strcmp(get(), other.get()) == 0;
+}
+
+bool DB::DBString::operator!=(const DBString &other) const {
+	return strcmp(get(), other.get()) != 0;
+}
 
 template<class TValue>
-DB::SimpleDataSet<TValue>::SimpleDataSet(const char *typeName) : _typeName(typeName) { }
+DB::SimpleDataSet<TValue>::SimpleDataSet(const char *typeName, RecordSyncFn<TValue> sync)
+	: _typeName(typeName), _sync(sync) { }
 
 template<class TValue>
 void DB::SimpleDataSet<TValue>::set(uint32 key, const TValue &value) {
@@ -276,13 +334,14 @@ void DB::SimpleDataSet<TValue>::set(uint32 key, const TValue &value) {
 template<class TValue>
 TValue DB::SimpleDataSet<TValue>::get(uint32 key, bool required) const {
 	TValue value = {};
-	if (!_map.tryGetVal(key, value) && required)
+	if (!_overlay.tryGetVal(key, value) && !_map.tryGetVal(key, value) && required)
 		error("Missing %s: %u", _typeName, key);
 	return value;
 }
 
 template<class TValue>
-DB::TwoKeyDataSet<TValue>::TwoKeyDataSet(const char *typeName) : _typeName(typeName) { }
+DB::TwoKeyDataSet<TValue>::TwoKeyDataSet(const char *typeName, RecordSyncFn<TValue> sync)
+	: _typeName(typeName), _sync(sync) { }
 
 template<class TValue>
 void DB::TwoKeyDataSet<TValue>::set(uint32 key1, uint32 key2, const TValue &value) {
@@ -295,13 +354,14 @@ void DB::TwoKeyDataSet<TValue>::set(uint32 key1, uint32 key2, const TValue &valu
 template<class TValue>
 TValue DB::TwoKeyDataSet<TValue>::get(uint32 key1, uint32 key2, bool required) const {
 	TValue value = {};
-	if (!_map.tryGetVal({ key1, key2 }, value ) && required)
+	if (!_overlay.tryGetVal({ key1, key2 }, value) && !_map.tryGetVal({ key1, key2 }, value) && required)
 		error("Missing %s: %u %u", _typeName, key1, key2);
 	return value;
 }
 
 template<class TValue>
-DB::SequenceSet<TValue>::SequenceSet(const char *typeName) : _typeName(typeName) { }
+DB::SequenceSet<TValue>::SequenceSet(const char *typeName, RecordSyncFn<TValue> sync)
+	: _typeName(typeName), _sync(sync) { }
 
 template<class TValue>
 Span<const TValue> DB::SequenceSet<TValue>::get(uint32 key, bool required) const {
@@ -356,10 +416,6 @@ Span<const DB::ScriptLine> DB::script(ScriptId scriptId, bool required) const {
 	return _scripts.get(scriptId, required);
 }
 
-struct Incomplete {
-	int a, b, c;
-};
-
 void DB::loadScripts() {
 	char *full = loadFile(_scripts._data, _path, "skript.csv");
 	skipWhitespace(full);
@@ -406,7 +462,7 @@ void DB::loadChoices() {
 	skipWhitespace(full);
 	while (*full) {
 		Choice choice;
-		choice._set = nextUint(full);
+		choice._id = nextUint(full);
 		choice._line = nextUint(full);
 		choice._active = nextBool(full);
 		choice._text = nextString(full);
@@ -416,7 +472,7 @@ void DB::loadChoices() {
 
 	_choices.setupSequences(
 		[](const Choice &c) { return c._line; },
-		[](const Choice &c) { return c._set; });
+		[](const Choice &c) { return c._id; });
 }
 
 DB::Room DB::room(RoomId id, bool required) const {
@@ -512,7 +568,7 @@ void DB::loadItems() {
 		item._id = nextUint(full);
 		item._gameMode = nextGameMode(full);
 		item._name = nextString(full);
-		item._icon = nextString(full);
+		item._icon = DBString::refTo(nextString(full));
 		item._inventoryPos = nextUint(full);
 		item._defaultAction = nextPlayerAction(full);
 		item._lookScript = nextUint(full);

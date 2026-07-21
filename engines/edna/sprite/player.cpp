@@ -19,45 +19,41 @@
  *
  */
 
-#ifndef EDNA_OBJECT_H
-#define EDNA_OBJECT_H
-
-#include "edna/sprite/sprite.h"
+#include "edna/db.h"
+#include "edna/sprite/player.h"
 
 namespace Edna {
 
-class RoomObject : virtual public Sprite {
-public:
-	void toggle(bool isActive) override;
-};
+void Player::update() {
+	AnimatedSprite::update();
 
-class SpatialObject : virtual public RoomObject {
-public:
-	virtual int32 basePosX() const = 0;
-	virtual int32 basePosY() const = 0;
-	virtual int32 basePosY(int x) const = 0;
+	// TODO: Handle walking, talking, thinking states
 
-	void setBasePos(Common::Point pos);
-};
-
-class InteractableObject : virtual public RoomObject {
-public:
-
-};
-
-class VisualObject : public AnimatedSprite, public SpatialObject {
-public:
-	VisualObject(Common::Point baseLineStart, Common::Point baseLineEnd);
-
-	void debugPrint() override;
-	int32 basePosX() const override;
-	int32 basePosY() const override;
-	int32 basePosY(int x) const override;
-
-private:
-	const Common::Point _baseLineStart, _baseLineEnd;
-};
-
+	if (_stateTimer.update()) {
+		_stateTimer.toggle(false);
+		_state = State::Waiting;
+		// TODO: Reset animation
+	}
 }
 
-#endif // EDNA_OBJECT_H
+int Player::basePosX() const {
+	return pos().x + size().x / 2;
+}
+
+int Player::basePosY() const {
+	return pos().x + size().y;
+}
+
+int Player::basePosY(int x) const {
+	(void)x;
+	return pos().x + size().y;
+}
+
+void Player::wait(uint32 duration) {
+	assert(_state == State::Waiting); // this might not hold true
+	_state = State::Acting;
+	_stateTimer.delay() = duration;
+	_stateTimer.toggle(true);
+}
+
+}

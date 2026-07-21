@@ -53,15 +53,15 @@ void VisualObject::debugPrint() {
 	g_engine->getDebugger()->debugPrintf("Visual\n");
 }
 
-int VisualObject::basePosX() const {
+int32 VisualObject::basePosX() const {
 	return pos().x + size().x / 2;
 }
 
-int VisualObject::basePosY() const {
+int32 VisualObject::basePosY() const {
 	return pos().x + size().y;
 }
 
-int VisualObject::basePosY(int x) const {
+int32 VisualObject::basePosY(int x) const {
 	auto delta = _baseLineEnd - _baseLineStart;
 	float ratio = delta.y / (float)delta.x;
 	return (int)(_baseLineStart.y + ratio * (x - _baseLineStart.x));

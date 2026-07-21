@@ -19,45 +19,37 @@
  *
  */
 
-#ifndef EDNA_OBJECT_H
-#define EDNA_OBJECT_H
+#ifndef EDNA_PLAYER_H
+#define EDNA_PLAYER_H
 
-#include "edna/sprite/sprite.h"
+#include "edna/sprite/object.h"
 
 namespace Edna {
 
-class RoomObject : virtual public Sprite {
+class Player final : public AnimatedSprite, public SpatialObject {
 public:
-	void toggle(bool isActive) override;
-};
+	enum class State {
+		Walking,
+		Talking,
+		Thinking,
+		Waiting,
+		Acting
+	};
 
-class SpatialObject : virtual public RoomObject {
-public:
-	virtual int32 basePosX() const = 0;
-	virtual int32 basePosY() const = 0;
-	virtual int32 basePosY(int x) const = 0;
+	inline State state() const { return _state; }
 
-	void setBasePos(Common::Point pos);
-};
+	void update() override;
+	int basePosX() const override;
+	int basePosY() const override;
+	int basePosY(int x) const override;
 
-class InteractableObject : virtual public RoomObject {
-public:
-
-};
-
-class VisualObject : public AnimatedSprite, public SpatialObject {
-public:
-	VisualObject(Common::Point baseLineStart, Common::Point baseLineEnd);
-
-	void debugPrint() override;
-	int32 basePosX() const override;
-	int32 basePosY() const override;
-	int32 basePosY(int x) const override;
+	void wait(uint32 duration);
 
 private:
-	const Common::Point _baseLineStart, _baseLineEnd;
+	State _state = State::Waiting;
+	Timer _stateTimer;
 };
 
 }
 
-#endif // EDNA_OBJECT_H
+#endif // EDNA_PLAYER_H

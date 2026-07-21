@@ -58,6 +58,7 @@ public:
 	inline GameBase &game() { assert(_game != nullptr); return *_game; }
 
 	inline uint32 getElapsed() const { return _timeElapsed; }
+	inline float getElapsedF() const { return _timeElapsed / 1000.0f; }
 	uint32 getMillis() const;
 	void setMillis(uint32 newMillis);
 	Audio::SoundHandle playMusic(const char *fileName, bool loop = true);

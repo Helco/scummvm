@@ -3,6 +3,7 @@ MODULE := engines/edna
 MODULE_OBJS = \
 	console.o \
 	db.o \
+	db_overlay.o \
 	db_validation.o \
 	edna.o \
 	graphics.o \

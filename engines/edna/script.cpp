@@ -173,8 +173,10 @@ bool Script::opParamExit(const ScriptCommand &line) {
 }
 
 bool Script::opFade(const ScriptCommand &line) {
-	warning("STUB script op: Fade");
-	return true;
+	const auto &args = line._args._fade;
+	_game.fade(args._isWhite ? 255 : 0, args._isFadeIn ? 0.0f : 1.0f, args._duration);
+	_game.player().wait(args._duration);
+	return false;
 }
 
 bool Script::opTempoMorph(const ScriptCommand &line) {

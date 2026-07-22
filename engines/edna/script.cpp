@@ -19,11 +19,14 @@
  *
  */
 
+#include "edna/console.h"
 #include "edna/db.h"
 #include "edna/edna.h"
 #include "edna/game/game.h"
 #include "edna/scriptcommand.h"
 #include "edna/sprite/player.h"
+
+#include "gui/debugger.h"
 
 namespace Edna {
 
@@ -62,17 +65,29 @@ void Script::continueScript() {
 	// TODO: Exit handling
 
 	_isPerforming = true;
+	auto &console = g_engine->console();
+	ScriptId prevScriptId = _scriptId; // opScript can change the script, we have to handle this
 	bool shouldKeepRunning = true;
-	const auto scriptLines = g_engine->db().script(_scriptId);
+	auto scriptLines = g_engine->db().script(_scriptId);
 	while (shouldKeepRunning && _scriptLine <= scriptLines.size()) {
 		const auto &command = scriptLines[_scriptLine - 1]._command;
 		if (debugChannelSet(2, kDebugScript)) {
 			debugN(">%10d %3d ", _scriptId, _scriptLine);
 			command.debugPrintLog();
 		}
+		if (console.hasBreakpoint(_scriptId, _scriptLine)) {
+			console.attach();
+			console.onFrame(); // to start the GUI immediately
+		}
+
 		shouldKeepRunning = command._handler == nullptr ||
 			(this->*command._handler)(command);
-		_scriptLine++;
+
+		if (prevScriptId != _scriptId) {
+			prevScriptId = _scriptId;
+			scriptLines = g_engine->db().script(_scriptId);
+		} else
+			_scriptLine++;
 	}
 	_isScriptRunning = _scriptLine <= scriptLines.size();
 	if (!_isScriptRunning)
@@ -158,7 +173,8 @@ bool Script::opChangeChoiceScript(const ScriptCommand &line) {
 }
 
 bool Script::opScript(const ScriptCommand &line) {
-	warning("STUB script op: Script");
+	_scriptId = line._args._script;
+	_scriptLine = 1;
 	return true;
 }
 
@@ -278,8 +294,14 @@ bool Script::opToggleTimer(const ScriptCommand &line) {
 }
 
 bool Script::opAnimateObject(const ScriptCommand &line) {
-	warning("STUB script op: AnimateObject");
-	return true;
+	auto sprite = dynamic_cast<AnimatedSprite *>(_game.objectById(line._args._animateObject));
+	if (sprite == nullptr)
+		warning("Could not animated object %u", line._args._animateObject);
+	else {
+		sprite->toggle(true);
+		sprite->startAnimation();
+	}
+	return false; // only waits one frame
 }
 
 bool Script::opLookAt(const ScriptCommand &line) {

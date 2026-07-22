@@ -24,6 +24,7 @@
 
 #include "common/rect.h"
 #include "common/span.h"
+#include "common/hashmap.h"
 
 namespace Edna {
 
@@ -119,6 +120,22 @@ struct AnimationRange {
 
 using StringSpan = Common::Span<char>;
 using StringView = Common::Span<const char>;
+
+using TwoKey = Common::Pair<uint32, uint32>;
+struct TwoKeyHash {
+	inline uint operator()(const TwoKey &key) const {
+		return (uint)(key.first ^ key.second);
+	}
+};
+struct TwoKeyEqualTo {
+	inline bool operator()(const TwoKey &a, const TwoKey &b) const {
+		return a.first == b.first && a.second == b.second;
+	}
+};
+int compare(const TwoKey &a, const TwoKey &b);
+bool less(const TwoKey &a, const TwoKey &b);
+template<class TValue>
+using TwoKeyMap = Common::HashMap<TwoKey, TValue, TwoKeyHash, TwoKeyEqualTo>;
 
 }
 

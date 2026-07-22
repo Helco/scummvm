@@ -25,9 +25,16 @@
 #include "edna/sprite/animation.h"
 #include "edna/sprite/player.h"
 
+using namespace Common;
+
 namespace Edna {
 
-GameBase::GameBase(GameMode mode) : _gameMode(mode) { }
+GameBase::GameBase(ScopedPtr<GameBase> &myPtr, GameMode mode) : _gameMode(mode) {
+	// we set ourselves into the pointer, so the instance is registered very early
+	// that way if there is some error, the console can already access it and inspect
+	myPtr.reset(this);
+}
+
 GameBase::~GameBase() { }
 
 void GameBase::update() {
@@ -44,8 +51,8 @@ void GameBase::add(Group *group, DisposeAfterUse::Flag dispose) {
 	_groups.emplace_back(group, dispose);
 }
 
-Game::Game(GameMode mode, RoomId roomId)
-	: GameBase(mode)
+Game::Game(ScopedPtr<GameBase> &myPtr, GameMode mode, RoomId roomId)
+	: GameBase(myPtr, mode)
 	, _roomId(roomId)
 	, _script(*this)
 	, _background("background")
@@ -104,7 +111,7 @@ void Game::initGroups(Group *specialObjects, Group *specialGui) {
 }
 
 void Game::initPlayer() {
-	_player = new Player();
+	_player = new Player(g_engine->db().room(_roomId));
 	_player->immutable() = true;
 	_objects.add(_player, DisposeAfterUse::YES);
 }

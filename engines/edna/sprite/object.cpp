@@ -45,6 +45,9 @@ void SpatialObject::setBasePos(Point basePos) {
 	pos() = basePos - Point(size().x / 2, size().y);
 }
 
+InteractableObject::InteractableObject(RoomInteractionId interactionId)
+	: _interactionId(interactionId) {}
+
 VisualObject::VisualObject(Point baseLineStart, Point baseLineEnd)
 	: _baseLineStart(baseLineStart)
 	, _baseLineEnd(baseLineEnd) { }

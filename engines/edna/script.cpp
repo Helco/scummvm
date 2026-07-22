@@ -33,7 +33,7 @@ namespace Edna {
 Script::Script(Game &game) : _game(game) { }
 
 bool Script::isPerforming() {
-	const bool isPlayerDone = _game.player().state() == Player::State::Waiting;
+	const bool isPlayerDone = _game.player().state() == Character::kWaiting;
 	bool isNpcBusy = false;
 	if (isPlayerDone && (_parallelPerformance || !isNpcBusy)) {
 		// TODO: Check whether some sound is still playing
@@ -246,7 +246,7 @@ bool Script::opPutPlayer(const ScriptCommand &line) {
 }
 
 bool Script::opWait(const ScriptCommand &line) {
-	_game.player().wait(line._args._waitDuration);
+	_game.player().wait(line._args._waitDuration / g_engine->console().waitDivider());
 	return false;
 }
 

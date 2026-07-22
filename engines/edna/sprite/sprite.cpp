@@ -111,13 +111,18 @@ void AnimatedSprite::setAnimation(const Animation &animation) {
 }
 
 void AnimatedSprite::resetTextures() {
-	assert(_textures.size() > 0);
 	assert(find(_textures.begin(), _textures.end(), nullptr) == _textures.end());
-	stopAnimation();
-	_size = _textures.front()->size();
+	if (_textures.empty())
+		_size = {};
+	else {
+		stopAnimation();
+		_size = _textures.front()->size();
+	}
 }
 
 void AnimatedSprite::setAnimation(AnimationRange animation) {
+	if (_textures.empty() && animation._startFrame == 0 && animation._endFrame == 0)
+		return;
 	assert(animation._startFrame < _textures.size());
 	assert(animation._endFrame < _textures.size());
 	assert(animation._startFrame <= animation._endFrame);

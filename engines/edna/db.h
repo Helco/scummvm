@@ -153,6 +153,8 @@ public:
 
 		// associations
 		RoomExitId _toExit = 0;
+
+		ScriptId scriptFor(PlayerAction action) const;
 	};
 	RoomInteraction roomInteraction(RoomInteractionId id, bool required = true) const;
 
@@ -166,6 +168,8 @@ public:
 		ScriptId _lookScript = 0;
 		ScriptId _useScript = 0;
 		ScriptId _talkScript = 0;
+
+		ScriptId scriptFor(PlayerAction action) const;
 	};
 	Item item(ItemId id) const;
 

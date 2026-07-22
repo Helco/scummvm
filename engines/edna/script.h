@@ -87,7 +87,6 @@ private:
 	bool opNpcLookAt(const ScriptCommand &line);
 	// bool opEnd(const ScriptCommand &line); (unused)
 
-	// helper functions for ^
 	void toggleObject(RoomObjectId objectId, bool isActive);
 
 	Game &_game;

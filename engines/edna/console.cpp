@@ -25,15 +25,21 @@
 #include "edna/game/game.h"
 #include "edna/sprite/sprite.h"
 
+using namespace Common;
+
 namespace Edna {
 
-Console::Console() : GUI::Debugger() {
+Console::Console()
+	: GUI::Debugger()
+	, _breakpoints(compare) {
 	registerCmd("validate", WRAP_METHOD(Console, cmdValidate));
 	registerCmd("room", WRAP_METHOD(Console, cmdRoom));
 	registerCmd("sprites", WRAP_METHOD(Console, cmdSprites));
 	registerCmd("script", WRAP_METHOD(Console, cmdScript));
 	registerCmd("eval", WRAP_METHOD(Console, cmdEval));
 	registerCmd("e", WRAP_METHOD(Console, cmdEval));
+	registerCmd("br", WRAP_METHOD(Console, cmdBreakpoint));
+	registerCmd("delbr", WRAP_METHOD(Console, cmdDelBreakpoint));
 }
 
 Console::~Console() {
@@ -191,6 +197,127 @@ bool Console::cmdEval(int argc, const char **argv) {
 	bool result = (script.*command._handler)(command);
 	free(commandStr);
 	return result;
+}
+
+bool Console::cmdRun(int argc, const char **argv) {
+	Game *game = getGame();
+	if (game == nullptr)
+		return true;
+	if (argc != 2 && argc != 3) {
+		debugPrintf("usage: run <script> [<line>]\n");
+		return true;
+	}
+	ScriptId scriptId = 0;
+	uint32 line = 1;
+	if (!tryParseUint(argv[1], scriptId, "script id"))
+		return true;
+	if (argc == 3 && !tryParseUint(argv[2], line, "script line"))
+		return true;
+
+	Script &script = game->script();
+	if (script.isScriptRunning() || script.isPerforming()) {
+		debugPrintf("Cannot evaluate script command, another script is running or performing\n");
+		return true;
+	}
+	script.runNewScript(scriptId, line);
+	return false;
+}
+
+bool Console::cmdBreakpoint(int argc, const char **argv) {
+	if (argc < 1 || argc > 3) {
+		debugPrintf("usage: br [<script> [<line>]]\n");
+		return true;
+	}
+	if (argc == 1) {
+		printBreakpointList();
+		return true;
+	}
+
+	ScriptId script = 0;
+	uint32 line = 1;
+	if (!tryParseUint(argv[1], script, "script id"))
+		return true;
+	if (argc == 3 && !tryParseUint(argv[2], line, "script line"))
+		return true;
+	const auto scriptLines = g_engine->db().script(script, false);
+	const auto itLine = find_if(scriptLines.begin(), scriptLines.end(),
+		[line](const DB::ScriptLine &l) { return l._line == line; });
+	if (itLine == scriptLines.end()) {
+		debugPrintf("Invalid script line: %u %u\n", script, line);
+		return true;
+	}
+	const auto itBreakpoint = getBreakpoint(script, line);
+	if (itBreakpoint != _breakpoints.end()) {
+		debugPrintf("Breakpoint already set\n");
+		return true;
+	}
+
+	_breakpoints.insert({ script, line });
+	debugPrintf("Breakpoint #%u set at %u %u\n", _breakpoints.size() - 1, script, line);
+	return true;
+}
+
+bool Console::cmdDelBreakpoint(int argc, const char **argv) {
+	if (argc < 1 || argc > 3) {
+		debugPrintf("usages:\n  delbr [*]\n  delbr #<breakpoint-index>\n  delbr <script> [<line>]\n");
+		return true;
+	}
+	if (argc == 1) {
+		printBreakpointList();
+		return true;
+	}
+	if (argv[1][0] == '*') {
+		debugPrintf("All %u breakpoints deleted\n", _breakpoints.size());
+		_breakpoints.clear();
+		return true;
+	}
+	if (argv[1][0] == '#') {
+		uint32 idx = 0;
+		if (!tryParseUint(argv[1] + 1, idx, "breakpoint index"))
+			return true;
+		if (idx >= _breakpoints.size()) {
+			debugPrintf("Invalid breakpoint index %u\n", idx);
+			return true;
+		}
+		_breakpoints.remove_at(idx);
+		return true;
+	}
+
+	ScriptId script = 0;
+	uint32 line = 1;
+	if (!tryParseUint(argv[1], script, "script id"))
+		return true;
+	if (argc == 3 && !tryParseUint(argv[2], line, "script line"))
+		return true;
+	auto it = getBreakpoint(script, line);
+	if (it == _breakpoints.end())
+		debugPrintf("No breakpoint set at %u %u\n", script, line);
+	else
+		_breakpoints.remove_at(it - _breakpoints.begin());
+	return true;
+}
+
+Console::BreakpointList::const_iterator Console::getBreakpoint(ScriptId scriptId, uint32 line) const {
+	auto it = lowerBound(_breakpoints.begin(), _breakpoints.end(), TwoKey(scriptId, line), less);
+	if (it != _breakpoints.end() && (it->first != scriptId || it->second != line))
+		it = _breakpoints.end();
+	return it;
+}
+
+void Console::printBreakpointList() {
+	if (_breakpoints.empty()) {
+		debugPrintf("No breakpoints set\n");
+		return;
+	}
+	debugPrintf("%u breakpoints:\n", _breakpoints.size());
+	for (uint32 i = 0; i < _breakpoints.size(); i++) {
+		const TwoKey &point = *(_breakpoints.begin() + i);
+		debugPrintf("  #%-3u: %10u %3u\n", i, point.first, point.second);
+	}
+}
+
+bool Console::hasBreakpoint(ScriptId scriptId, uint32 line) const {
+	return getBreakpoint(scriptId, line) != _breakpoints.end();
 }
 
 } // End of namespace Edna

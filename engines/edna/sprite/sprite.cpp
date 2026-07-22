@@ -128,6 +128,10 @@ void AnimatedSprite::setAnimation(AnimationRange animation) {
 	_timer.toggle(true);
 }
 
+void AnimatedSprite::startAnimation() {
+	_timer.toggle(true);
+}
+
 void AnimatedSprite::stopAnimation() {
 	_animation = {};
 	_timer.toggle(false);

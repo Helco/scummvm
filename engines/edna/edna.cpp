@@ -77,7 +77,7 @@ Error EdnaEngine::run() {
 	// If a savegame was selected from the launcher, load it
 	int saveSlot = ConfMan.getInt("save_slot");
 	if (saveSlot == -1)
-		_game.reset(new Intro(true));
+		new Intro(_game, true);
 	else
 		(void)loadGameState(saveSlot);
 
@@ -93,7 +93,7 @@ Error EdnaEngine::run() {
 
 		// change room before handling events as we publish events to be processed by the next room
 		if (_nextRoom != 0) {
-			_game.reset(createRoom(_nextRoom));
+			createRoom(_nextRoom);
 			_nextRoom = 0;
 		}
 
@@ -111,11 +111,12 @@ Error EdnaEngine::run() {
 	return Common::kNoError;
 }
 
-GameBase *EdnaEngine::createRoom(RoomId roomId) {
+void EdnaEngine::createRoom(RoomId roomId) {
 	DB::Room room = db().room(roomId);
 	switch (room._gameMode) {
 	case GameMode::ScriptOnClick:
-		return new ScriptOnClick(roomId);
+		new ScriptOnClick(_game, roomId);
+		break;
 	default:
 		error("Unimplemented game mode: %s", gameModeToString(room._gameMode));
 	}

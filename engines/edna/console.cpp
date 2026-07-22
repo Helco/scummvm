@@ -40,6 +40,8 @@ Console::Console()
 	registerCmd("e", WRAP_METHOD(Console, cmdEval));
 	registerCmd("br", WRAP_METHOD(Console, cmdBreakpoint));
 	registerCmd("delbr", WRAP_METHOD(Console, cmdDelBreakpoint));
+
+	registerVar("waitDiv", &_waitDivider);
 }
 
 Console::~Console() {

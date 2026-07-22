@@ -29,8 +29,8 @@ using namespace Common;
 
 namespace Edna {
 
-Intro::Intro(bool withHarvey)
-	: GameBase(GameMode::Intro)
+Intro::Intro(ScopedPtr<GameBase> &myPtr, bool withHarvey)
+	: GameBase(myPtr, GameMode::Intro)
 	, _withHarvey(withHarvey)
 	, _group("intro") {
 

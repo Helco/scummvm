@@ -22,32 +22,18 @@
 #ifndef EDNA_PLAYER_H
 #define EDNA_PLAYER_H
 
-#include "edna/sprite/object.h"
+#include "edna/db.h"
+#include "edna/sprite/character.h"
 
 namespace Edna {
 
-class Player final : public AnimatedSprite, public SpatialObject {
+class Player final : public Character {
 public:
-	enum class State {
-		Walking,
-		Talking,
-		Thinking,
-		Waiting,
-		Acting
-	};
+	Player(const DB::Room &game);
 
-	inline State state() const { return _state; }
-
-	void update() override;
 	int basePosX() const override;
 	int basePosY() const override;
 	int basePosY(int x) const override;
-
-	void wait(uint32 duration);
-
-private:
-	State _state = State::Waiting;
-	Timer _stateTimer;
 };
 
 }

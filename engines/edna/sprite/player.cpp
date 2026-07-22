@@ -24,16 +24,8 @@
 
 namespace Edna {
 
-void Player::update() {
-	AnimatedSprite::update();
-
-	// TODO: Handle walking, talking, thinking states
-
-	if (_stateTimer.update()) {
-		_stateTimer.toggle(false);
-		_state = State::Waiting;
-		// TODO: Reset animation
-	}
+Player::Player(const DB::Room &room)
+	: Character(room._charAnimSet, room._hspeed, room._vspeed, room._baseYAtZeroScale, room._baseYAtFullScale) {
 }
 
 int Player::basePosX() const {
@@ -47,13 +39,6 @@ int Player::basePosY() const {
 int Player::basePosY(int x) const {
 	(void)x;
 	return pos().x + size().y;
-}
-
-void Player::wait(uint32 duration) {
-	assert(_state == State::Waiting); // this might not hold true
-	_state = State::Acting;
-	_stateTimer.delay() = duration;
-	_stateTimer.toggle(true);
 }
 
 }

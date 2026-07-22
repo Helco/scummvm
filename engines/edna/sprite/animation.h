@@ -33,9 +33,12 @@ class Animation {
 public:
     Animation(AnimationId id);
 
+	inline bool isValid() const { return _range.isValid(); }
     inline const char *name() const { return _name; }
     inline AnimationRange range() const { return _range; }
     inline TextureSpan textures() const {
+		if (!isValid())
+			return TextureSpan();
         assert(_textures != nullptr);
         return {
             _textures->data() + _range._startFrame,
@@ -57,20 +60,25 @@ private:
 
 class CharacterAnimationSet {
 public:
-    CharacterAnimationSet(CharAnimSetId charAnimSetId, ActionModeId actionModeId);
+    CharacterAnimationSet(CharAnimSetId charAnimSetId);
 
+	inline CharAnimSetId id() const { return _id; }
     inline const char *name() const { return _name; }
-    inline const AnimationRange &left() const { return _left.range(); }
-    inline const AnimationRange &right() const { return _right.range(); }
-    inline const AnimationRange &forward() const { return _forward.range(); }
-    inline const AnimationRange &back() const { return _back.range(); }
+	AnimationRange get(ActionModeId actionMode, Direction direction);
     inline TextureSpan textures() {
 		return { _textures.data(), _textures.size() };
     }
 
 private:
+	static constexpr uint32 kMaxActionMode = 8;
+	const CharAnimSetId _id;
     TextureArray _textures;
-    Animation _left, _right, _forward, _back;
+	bool _hasActionMode[kMaxActionMode] = { false };
+    Animation
+		_left[kMaxActionMode],
+		_right[kMaxActionMode],
+		_forward[kMaxActionMode],
+		_back[kMaxActionMode];
     const char *_name = nullptr;
 };
 

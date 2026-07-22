@@ -31,7 +31,7 @@ namespace Edna {
 
 class Intro final : public GameBase {
 public:
-	Intro(bool withHarvey);
+	Intro(Common::ScopedPtr<GameBase> &myPtr, bool withHarvey);
 	virtual ~Intro();
 
 	void update() override;

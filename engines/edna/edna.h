@@ -96,7 +96,7 @@ public:
 	}
 
 private:
-	GameBase *createRoom(RoomId roomId);
+	void createRoom(RoomId roomId);
 
 	const ADGameDescription *_gameDescription;
 	Common::RandomSource _randomSource;

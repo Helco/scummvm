@@ -31,7 +31,7 @@ public:
 	void toggle(bool isActive) override;
 };
 
-class SpatialObject : virtual public RoomObject {
+class SpatialObject : virtual public Sprite { // e.g. a Player is not a RoomObject
 public:
 	virtual int32 basePosX() const = 0;
 	virtual int32 basePosY() const = 0;
@@ -42,10 +42,15 @@ public:
 
 class InteractableObject : virtual public RoomObject {
 public:
+	InteractableObject(RoomInteractionId interactionId);
 
+	inline RoomInteractionId interactionId() const { return _interactionId; }
+
+private:
+	const RoomInteractionId _interactionId;
 };
 
-class VisualObject : public AnimatedSprite, public SpatialObject {
+class VisualObject : public AnimatedSprite, public virtual SpatialObject {
 public:
 	VisualObject(Common::Point baseLineStart, Common::Point baseLineEnd);
 

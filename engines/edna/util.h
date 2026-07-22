@@ -34,6 +34,7 @@ static constexpr const int kScreenHeight = 600;
 static constexpr const Common::Point kInvalidPoint = { -1, -1 };
 
 enum class Direction {
+	None = -1,
 	Up = 0,
 	Down,
 	Left,
@@ -116,6 +117,8 @@ public:
 struct AnimationRange {
 	uint32 _startFrame = 0, _endFrame = 0, _delay = 0;
 	bool _loop = false;
+
+	bool isValid() const { return _startFrame < _endFrame; }
 };
 
 using StringSpan = Common::Span<char>;

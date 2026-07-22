@@ -33,6 +33,11 @@ Animation::Animation(AnimationId id)  {
 
 void Animation::loadTextures(AnimationId id, TextureArray &targetTextures) {
     _textures = &targetTextures;
+	if (id == 0) {
+		_name = "";
+		return;
+	}
+
     const auto dbAnim = g_engine->db().animation(id);   
     _name = dbAnim._name;
     _range._delay = dbAnim._duration;
@@ -56,13 +61,51 @@ void Animation::loadTextures(AnimationId id, TextureArray &targetTextures) {
 	// ^ animationFrames errors if there are no frame so this cannot underflow
 }
 
-CharacterAnimationSet::CharacterAnimationSet(CharAnimSetId charAnimSetId, ActionModeId actionModeId) {
-    const auto dbSet = g_engine->db().characterAnimationSet(charAnimSetId, actionModeId);
-    _name = dbSet._name;
-    _left.loadTextures(dbSet._left, _textures);
-    _right.loadTextures(dbSet._right, _textures);
-    _forward.loadTextures(dbSet._forward, _textures);
-    _back.loadTextures(dbSet._back, _textures);
+CharacterAnimationSet::CharacterAnimationSet(CharAnimSetId charAnimSetId) : _id(charAnimSetId) {
+	if (charAnimSetId == 0) {
+		_name = "empty";
+		return;
+	}
+
+	get(3, Direction::Left); // at least "waiting" has to exist
+	get(0, Direction::Left); // but we load the normal other ones as well already
+	get(1, Direction::Left);
+	get(2, Direction::Left);
+	if (_textures.empty())
+		error("Could not load character animation set %u", charAnimSetId);
+	if (_name == nullptr)
+		_name = "empty";
+}
+
+AnimationRange CharacterAnimationSet::get(ActionModeId actionMode, Direction dir) {
+	assert(actionMode < kMaxActionMode);
+	if (!_hasActionMode[actionMode]) {
+		_hasActionMode[actionMode];
+		const auto dbSet = g_engine->db().characterAnimationSet(_id, actionMode, false);
+		if (dbSet._id != _id || dbSet._actionMode != actionMode)
+			return AnimationRange();
+		if (_name != nullptr)
+			_name = dbSet._name;
+
+		_left[actionMode].loadTextures(dbSet._left, _textures);
+		_right[actionMode].loadTextures(dbSet._right, _textures);
+		_forward[actionMode].loadTextures(dbSet._forward, _textures);
+		_back[actionMode].loadTextures(dbSet._back, _textures);
+	}
+	
+	switch (dir) {
+	case Direction::Left:
+		return _left[actionMode].range();
+	case Direction::Right:
+		return _right[actionMode].range();
+	case Direction::Up:
+		return _forward[actionMode].range();
+	case Direction::Down:
+		return _back[actionMode].range();
+	default:
+		assert("Invalid direction for character animation set");
+		return AnimationRange();
+	}
 }
  
 }

@@ -21,10 +21,12 @@
 
 #include "edna/game/scriptonclick.h"
 
+using namespace Common;
+
 namespace Edna {
 
-ScriptOnClick::ScriptOnClick(RoomId roomId)
-	: Game(GameMode::ScriptOnClick, roomId) { }
+ScriptOnClick::ScriptOnClick(ScopedPtr<GameBase> &myPtr, RoomId roomId)
+	: Game(myPtr, GameMode::ScriptOnClick, roomId) { }
 
 void ScriptOnClick::update() {
 	Game::update();

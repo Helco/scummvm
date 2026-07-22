@@ -38,6 +38,7 @@ public:
 	inline bool &immutable() { return _immutable; } ///< An immutable sprite is not deleted if inactive
 	inline Common::Point &pos() { return _pos; }
 	inline Common::Point pos() const { return _pos; }
+	inline Common::Point &size() { return _size; }
 	inline Common::Point size() const { return _size; }
 	inline Common::Rect bounds() const { return { _pos, _pos + _size }; }
 

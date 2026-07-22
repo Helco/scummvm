@@ -35,7 +35,7 @@ class Player;
 
 class GameBase {
 public:
-	GameBase(GameMode mode);
+	GameBase(Common::ScopedPtr<GameBase> &myPtr, GameMode mode);
 	virtual ~GameBase();
 
 	inline GameMode gameMode() const { return _gameMode; }
@@ -56,7 +56,7 @@ private:
 
 class Game : public GameBase {
 public:
-	Game(GameMode mode, RoomId roomId);
+	Game(Common::ScopedPtr<GameBase> &myPtr, GameMode mode, RoomId roomId);
 
 	inline RoomId roomId() const { return _roomId; }
 	inline Script &script() { return _script; }

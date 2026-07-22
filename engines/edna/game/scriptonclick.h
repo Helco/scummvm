@@ -29,7 +29,7 @@ namespace Edna {
 
 class ScriptOnClick : public Game {
 public:
-	ScriptOnClick(RoomId roomId);
+	ScriptOnClick(Common::ScopedPtr<GameBase> &myPtr, RoomId roomId);
 
 	void update() override;
 

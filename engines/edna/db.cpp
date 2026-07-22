@@ -529,6 +529,24 @@ void DB::loadRoomObjects() {
 	_roomObjectsByRoom.build(&RoomObject::_room);
 }
 
+ScriptId DB::RoomInteraction::scriptFor(PlayerAction action) const {
+	switch (action) {
+	case PlayerAction::None:
+		return 0;
+	case PlayerAction::Look:
+		return _lookScript;
+	case PlayerAction::Use:
+		return _useScript;
+	case PlayerAction::Talk:
+		return _talkScript;
+	case PlayerAction::Take:
+		return _takeScript;
+	default:
+		assert(false && "Player action not implemented");
+		return 0;
+	}
+}
+
 DB::RoomInteraction DB::roomInteraction(RoomInteractionId id, bool required) const {
 	return _roomInteractions.get(id, required);
 }
@@ -553,6 +571,23 @@ void DB::loadRoomInteractions() {
 
 		if (_roomObjects._map.contains(interaction._object))
 			_roomObjects._map[interaction._object]._toInteraction = interaction._id;
+	}
+}
+
+ScriptId DB::Item::scriptFor(PlayerAction action) const {
+	switch (action) {
+	case PlayerAction::None:
+	case PlayerAction::Take:
+		return 0;
+	case PlayerAction::Look:
+		return _lookScript;
+	case PlayerAction::Use:
+		return _useScript;
+	case PlayerAction::Talk:
+		return _talkScript;
+	default:
+		assert(false && "Player action not implemented");
+		return 0;
 	}
 }
 

@@ -36,6 +36,7 @@ public:
 	~Console() override;
 
 	bool hasBreakpoint(ScriptId scriptId, uint32 line) const;
+	inline uint32 waitDivider() const { return _waitDivider; }
 private:
 	bool cmdValidate(int argc, const char **argv);
 	bool cmdRoom(int argc, const char **argv);
@@ -45,6 +46,7 @@ private:
 	bool cmdRun(int argc, const char **argv);
 	bool cmdBreakpoint(int argc, const char **argv);
 	bool cmdDelBreakpoint(int argc, const char **argv);
+	bool cmdWaitDivider(int argc, const char **argv);
 
 	Game *getGame();
 	bool tryParseUint(const char *arg, uint32 &value, const char *context);
@@ -53,6 +55,8 @@ private:
 	BreakpointList::const_iterator getBreakpoint(uint32 scriptId, uint32 line) const;
 	void printBreakpointList();
 	BreakpointList _breakpoints;
+
+	byte _waitDivider = 1;
 };
 
 } // End of namespace Edna

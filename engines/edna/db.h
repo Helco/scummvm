@@ -263,19 +263,6 @@ private:
 	};
 
 	// For singular data referenced by two integer keys
-	using TwoKey = Common::Pair<uint32, uint32>;
-	struct TwoKeyHash {
-		uint operator()(const TwoKey &key) const {
-			return (uint)(key.first ^ key.second);
-		}
-	};
-	struct TwoKeyEqualTo {
-		bool operator()(const TwoKey &a, const TwoKey &b) const {
-			return a.first == b.first && a.second == b.second;
-		}
-	};
-	template<class TValue>
-	using TwoKeyMap = Common::HashMap<TwoKey, TValue, TwoKeyHash, TwoKeyEqualTo>;
 	template<class TValue>
 	struct TwoKeyDataSet {
 		const char *const _typeName;

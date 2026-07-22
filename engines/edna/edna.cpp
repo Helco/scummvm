@@ -63,7 +63,7 @@ static void addArchive(const char *name) {
 }
 
 Error EdnaEngine::run() {
-	setDebugger(new Console());
+	setDebugger(_console = new Console());
 
 	addArchive("audio.jar");
 	addArchive("comments.jar");

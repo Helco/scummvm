@@ -43,6 +43,7 @@ struct EdnaGameDescription;
 class IRenderer;
 class DB;
 class GameBase;
+class Console;
 
 class EdnaEngine : public Engine {
 protected:
@@ -54,6 +55,7 @@ public:
 	inline RoomId &nextRoom() { return _nextRoom; }
 	inline const char *language() const { return getLanguageCode(_gameDescription->language); }
 	inline IRenderer &renderer() { assert(_renderer != nullptr); return *_renderer; }
+	inline Console &console() { assert(_console != nullptr); return *_console; }
 	inline DB &db() { assert(_db != nullptr); return *_db; }
 	inline GameBase &game() { assert(_game != nullptr); return *_game; }
 
@@ -99,6 +101,7 @@ private:
 	const ADGameDescription *_gameDescription;
 	Common::RandomSource _randomSource;
 	Common::ScopedPtr<IRenderer> _renderer;
+	Console *_console; // raw pointer because Engine deletes the console itself
 	Common::ScopedPtr<DB> _db;
 	Common::ScopedPtr<GameBase> _game;
 

@@ -23,25 +23,36 @@
 #ifndef EDNA_CONSOLE_H
 #define EDNA_CONSOLE_H
 
+#include "edna/util.h"
 #include "gui/debugger.h"
 
 namespace Edna {
 
 class Game;
 
-class Console : public GUI::Debugger {
+class Console final : public GUI::Debugger {
+public:
+	Console();
+	~Console() override;
+
+	bool hasBreakpoint(ScriptId scriptId, uint32 line) const;
+private:
 	bool cmdValidate(int argc, const char **argv);
 	bool cmdRoom(int argc, const char **argv);
 	bool cmdSprites(int argc, const char **argv);
 	bool cmdScript(int argc, const char **argv);
 	bool cmdEval(int argc, const char **argv);
+	bool cmdRun(int argc, const char **argv);
+	bool cmdBreakpoint(int argc, const char **argv);
+	bool cmdDelBreakpoint(int argc, const char **argv);
 
 	Game *getGame();
 	bool tryParseUint(const char *arg, uint32 &value, const char *context);
 
-public:
-	Console();
-	~Console() override;
+	using BreakpointList = Common::SortedArray<TwoKey, const TwoKey &>;
+	BreakpointList::const_iterator getBreakpoint(uint32 scriptId, uint32 line) const;
+	void printBreakpointList();
+	BreakpointList _breakpoints;
 };
 
 } // End of namespace Edna

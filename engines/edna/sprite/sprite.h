@@ -72,6 +72,7 @@ public:
 	void setTextures(TextureArray &&textures);
 	void setAnimation(AnimationRange animation);
 	void setAnimation(const Animation& animation);
+	void startAnimation();
 	void stopAnimation();
 	void setFrame(uint32 index);
 

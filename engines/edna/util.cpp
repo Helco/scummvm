@@ -117,4 +117,16 @@ bool parsePlayerAction(const char *text, PlayerAction &value) {
 	return text[1] == '\0';
 }
 
+int compare(const TwoKey &a, const TwoKey &b) {
+	if (a.first == b.first) {
+		return a.second == b.second ? 0
+			: a.second < b.second ? -1 : 1;
+	} else
+		return a.first < b.first ? -1 : 1;
+}
+
+bool less(const TwoKey &a, const TwoKey &b) {
+	return a.first < b.first || (a.first == b.first && a.second < b.second);
+}
+
 }

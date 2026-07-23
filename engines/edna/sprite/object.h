@@ -50,7 +50,7 @@ private:
 	const RoomInteractionId _interactionId;
 };
 
-class VisualObject : public AnimatedSprite, public virtual SpatialObject {
+class VisualObject : public virtual AnimatedSprite, public virtual SpatialObject {
 public:
 	VisualObject(Common::Point baseLineStart, Common::Point baseLineEnd);
 

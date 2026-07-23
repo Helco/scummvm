@@ -45,6 +45,25 @@ class DB;
 class GameBase;
 class Console;
 
+class Config {
+public:
+	inline bool &subtitles() { return _subtitles; }
+	inline bool &speech() { return _speech; }
+	inline bool &music() { return _music; }
+	inline uint8 &subtitleSpeed() { return _subtitleSpeed; }
+
+	static void registerDefaults();
+	void loadFromScummVM();
+	void saveToScummVM();
+
+private:
+	bool
+		_subtitles = true,
+		_speech = true,
+		_music = true;
+	uint8 _subtitleSpeed = 255 - 74;
+};
+
 class EdnaEngine : public Engine {
 protected:
 	Common::Error run() override;
@@ -54,6 +73,7 @@ public:
 
 	inline RoomId &nextRoom() { return _nextRoom; }
 	inline const char *language() const { return getLanguageCode(_gameDescription->language); }
+	inline Config &config() { return _config; }
 	inline IRenderer &renderer() { assert(_renderer != nullptr); return *_renderer; }
 	inline Console &console() { assert(_console != nullptr); return *_console; }
 	inline DB &db() { assert(_db != nullptr); return *_db; }
@@ -104,6 +124,7 @@ private:
 	Console *_console; // raw pointer because Engine deletes the console itself
 	Common::ScopedPtr<DB> _db;
 	Common::ScopedPtr<GameBase> _game;
+	Config _config;
 
 	uint32 _timeNegOffset = 0, _timePosOffset = 0;
 	uint32 _timeBeforePause = 0;

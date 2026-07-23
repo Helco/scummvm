@@ -121,7 +121,7 @@ void AnimatedSprite::resetTextures() {
 }
 
 void AnimatedSprite::setAnimation(AnimationRange animation) {
-	if (_textures.empty() && animation._startFrame == 0 && animation._endFrame == 0)
+	if (animation._startFrame == animation._endFrame)
 		return;
 	assert(animation._startFrame < _textures.size());
 	assert(animation._endFrame < _textures.size());

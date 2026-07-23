@@ -22,10 +22,18 @@
 #include "edna/db.h"
 #include "edna/sprite/player.h"
 
+#include "gui/debugger.h"
+
+using namespace Common;
+
 namespace Edna {
 
-Player::Player(const DB::Room &room)
-	: Character(room._charAnimSet, room._hspeed, room._vspeed, room._baseYAtZeroScale, room._baseYAtFullScale) {
+Player::Player(Point startPos, const DB::Room &room)
+	: Character(startPos, room._charAnimSet, room._hspeed, room._vspeed, room._baseYAtZeroScale, room._baseYAtFullScale) {
+}
+
+void Player::debugPrint() {
+	g_engine->getDebugger()->debugPrintf("Player (%s)\n", stateToString());
 }
 
 int Player::basePosX() const {

@@ -70,6 +70,8 @@ Error EdnaEngine::run() {
 	addArchive("visual.jar");
 	addArchive((String("speech_") + language() + ".jar").c_str());
 
+	Config::registerDefaults();
+	_config.loadFromScummVM();
 	_db.reset(new DB(Path("script/").appendInPlace(language())));
 	_renderer.reset(createSoftwareRenderer());
 
@@ -170,6 +172,29 @@ Audio::SoundHandle EdnaEngine::playMusic(const char *fileName, bool loop) {
 	Audio::SoundHandle handle;
 	g_system->getMixer()->playStream(Audio::Mixer::kMusicSoundType, &handle, playStream);
 	return handle;
+}
+
+void Config::registerDefaults() {
+	Config c;
+	ConfMan.registerDefault("subtitles", c._subtitles);
+	ConfMan.registerDefault("speech_mute", !c._speech);
+	ConfMan.registerDefault("music_mute", !c._music);
+	ConfMan.registerDefault("talkspeed", c._subtitleSpeed);
+}
+
+void Config::loadFromScummVM() {
+	_subtitles = ConfMan.getBool("subtitles");
+	_speech = !ConfMan.getBool("speech_mute");
+	_music = !ConfMan.getBool("music_mute");
+	_subtitleSpeed = (byte)CLIP(ConfMan.getInt("talkspeed"), 0, 255);
+}
+
+void Config::saveToScummVM() {
+	ConfMan.setBool("subtitles", _subtitles);
+	ConfMan.setBool("speech_mute", !_speech);
+	ConfMan.setBool("music_mute", !_music);
+	ConfMan.setInt("talkspeed", _subtitleSpeed);
+	ConfMan.flushToDisk();
 }
 
 } // End of namespace Edna

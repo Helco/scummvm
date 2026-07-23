@@ -29,8 +29,9 @@ namespace Edna {
 
 class Player final : public Character {
 public:
-	Player(const DB::Room &game);
+	Player(Common::Point startPos, const DB::Room &game);
 
+	void debugPrint() override;
 	int basePosX() const override;
 	int basePosY() const override;
 	int basePosY(int x) const override;

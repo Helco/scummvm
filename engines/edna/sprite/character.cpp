@@ -19,6 +19,7 @@
  *
  */
 
+#include "edna/edna.h"
 #include "edna/sprite/character.h"
 
 using namespace Common;
@@ -26,13 +27,15 @@ using namespace Common;
 namespace Edna {
 
 Character::Character(
+	Point startPos,
 	CharAnimSetId charAnimSetId,
 	float hSpeed, float vSpeed,
 	float baseYAtZeroScale, float baseYAtFullScale)
 	: _charAnimSet(charAnimSetId)
 	, _hSpeed(hSpeed), _vSpeed(vSpeed)
 	, _baseYAtZeroScale(baseYAtZeroScale), _baseYAtFullScale(baseYAtFullScale) {
-	
+
+	pos() = startPos;
 	setTextures(_charAnimSet.textures());
 	initScaling();
 }
@@ -40,10 +43,11 @@ Character::Character(
 void Character::update() {
 	AnimatedSprite::update();
 
+	updateTalking();
+
 	if (_stateTimer.update()) {
 		_stateTimer.toggle(false);
-		_state = kWaiting;
-		setAnimation(kWaiting);
+		setState(kWaiting);
 	}
 
 	updateScaling();
@@ -57,9 +61,62 @@ void Character::wait(uint32 duration) {
 }
 
 void Character::lookIn(Direction direction) {
+	assert(_state == kWaiting);
 	_direction = direction;
-	_state = kWaiting;
-	setAnimation(kWaiting);
+	setState(kWaiting);
+}
+
+void Character::say(const char *text, const char *soundFile) {
+	sayOrThink(text, soundFile, kTalking);
+}
+
+void Character::think(const char *text, const char *soundFile) {
+	sayOrThink(text, soundFile, kThinking);
+}
+
+void Character::sayOrThink(const char *text, const char *soundFile, State newState) {
+	assert(text != nullptr);
+	setState(newState);
+
+	auto &config = g_engine->config();
+	if (soundFile != nullptr && *soundFile && config.speech()) {
+		// TODO: Play speech sound
+	}
+
+	if (config.subtitles() || !config.speech()) {
+		// TODO: Show speech text
+	}
+
+	if (_talkSound == Audio::SoundHandle()) {
+		uint32 duration = strlen(text);
+		duration = ((duration < 15) ? 2 : 1) * duration * (255 - config.subtitleSpeed());
+		_talkEndTime = g_engine->getMillis() + duration;
+	}
+}
+
+void Character::updateTalking() {
+	if ((_state != kTalking && _state != kThinking) || // not talking at all
+		(_talkSound != Audio::SoundHandle() && g_system->getMixer()->isSoundHandleActive(_talkSound)) || // still speaking
+		_talkEndTime > g_engine->getMillis()) // still whispering
+		return;
+	shutUp();
+}
+
+void Character::shutUp() {
+	if (_state != kActing && _state != kTalking && _state != kThinking)
+		return;
+
+	if (_talkText != nullptr)
+		_talkText->toggle(false);
+	_talkText = nullptr;
+	g_system->getMixer()->stopHandle(_talkSound);
+	_talkSound = {};
+	setState(kWaiting);
+}
+
+void Character::setState(State state) {
+	_state = state;
+	setAnimation(state);
 }
 
 void Character::setAnimation() {
@@ -68,7 +125,10 @@ void Character::setAnimation() {
 
 void Character::setAnimation(ActionModeId actionMode) {
 	_actionMode = actionMode;
-	setAnimation(_charAnimSet.get(actionMode, _direction));
+	auto animation = _charAnimSet.get(actionMode, _direction);
+	if (textureCount() != _charAnimSet.textures().size())
+		setTextures(_charAnimSet.textures()); // we loaded an animation on-demand
+	setAnimation(animation);
 }
 
 void Character::initScaling() {
@@ -89,6 +149,23 @@ void Character::updateScaling() {
 	if (_baseYAtZeroScale != _baseYAtFullScale)
 		scale = MAX(0.001f, ABS(pos().y - _baseYAtZeroScale) * _scaleFactor);
 	size() = _baseSize * scale;
+}
+
+const char *Character::stateToString() const {
+	switch (_state) {
+	case kWalking:
+		return "walking";
+	case kTalking:
+		return "talking";
+	case kThinking:
+		return "thinking";
+	case kWaiting:
+		return "waiting";
+	case kActing:
+		return "acting";
+	default:
+		return "unknown";
+	}
 }
 
 }

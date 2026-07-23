@@ -25,6 +25,8 @@
 #include "edna/sprite/animation.h"
 #include "edna/sprite/object.h"
 
+#include "audio/mixer.h"
+
 namespace Edna {
 
 class Character : public virtual SpatialObject, public virtual AnimatedSprite {
@@ -38,6 +40,7 @@ public:
 	};
 
 	Character(
+		Common::Point startPos,
 		CharAnimSetId charAnimSetId,
 		float hSpeed, float vSpeed,
 		float baseYAtZeroScale, float baseYAtFullScale);
@@ -51,13 +54,20 @@ public:
 
 	void wait(uint32 duration);
 	void lookIn(Direction direction);
+	void say(const char *text, const char *soundFile);
+	void think(const char *text, const char *soundFile);
+	void shutUp(); ///< original method name and it fits...
 
 protected:
+	void sayOrThink(const char *text, const char *soundFile, State newState);
 	using AnimatedSprite::setAnimation;
+	void setState(State state);
 	void setAnimation();
 	void setAnimation(ActionModeId actionMode);
 	void initScaling();
 	void updateScaling();
+	void updateTalking();
+	const char *stateToString() const; ///< for debugging
 
 	static constexpr const uint32 kStateCount = 5;
 	Timer _stateTimer;
@@ -65,6 +75,10 @@ protected:
 	ActionModeId _actionMode = kWaiting; ///< actionMode is usually state but can differ for special animations
 	Direction _direction = Direction::Left;
 	CharacterAnimationSet _charAnimSet;
+
+	Audio::SoundHandle _talkSound;
+	uint32 _talkEndTime = 0; ///< only used if speech is off
+	Sprite *_talkText = nullptr;
 
 	const float _hSpeed = 0, _vSpeed = 0;
 	const float _baseYAtZeroScale = 0, _baseYAtFullScale = 1;

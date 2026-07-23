@@ -19,40 +19,21 @@
  *
  */
 
-#ifndef EDNA_OBJECT_H
-#define EDNA_OBJECT_H
+#ifndef EDNA_NPC_H
+#define EDNA_NPC_H
 
-#include "edna/sprite/sprite.h"
+#include "edna/db.h"
+#include "edna/sprite/character.h"
 
 namespace Edna {
 
-class RoomObject : virtual public Sprite {
+class Npc final : public Character, public InteractableObject {
 public:
-	void toggle(bool isActive) override;
-};
-
-class SpatialObject : virtual public Sprite { // e.g. a Player is not a RoomObject
-public:
-	virtual int32 basePosX() const = 0;
-	virtual int32 basePosY() const = 0;
-	virtual int32 basePosY(int x) const = 0;
-
-	void setBasePos(Common::Point pos);
-};
-
-class InteractableObject : virtual public RoomObject {
-public:
-	InteractableObject(RoomInteractionId interactionId);
-
-	inline RoomInteractionId interactionId() const { return _interactionId; }
-
-private:
-	const RoomInteractionId _interactionId;
-};
-
-class VisualObject : public virtual AnimatedSprite, public virtual SpatialObject {
-public:
-	VisualObject(Common::Point baseLineStart, Common::Point baseLineEnd);
+	Npc(const DB::NPC &dbNpc,
+		RoomInteractionId interactionId,
+		Common::Point startPos,
+		Common::Point baseLineStart,
+		Common::Point baseLineEnd);
 
 	void debugPrint() override;
 	int32 basePosX() const override;
@@ -60,9 +41,11 @@ public:
 	int32 basePosY(int x) const override;
 
 private:
+	const char *const _name;
 	const Common::Point _baseLineStart, _baseLineEnd;
+
 };
 
 }
 
-#endif // EDNA_OBJECT_H
+#endif // EDNA_NPC_H

@@ -19,24 +19,45 @@
  *
  */
 
-#ifndef EDNA_PLAYER_H
-#define EDNA_PLAYER_H
+#include "edna/sprite/npc.h"
 
-#include "edna/db.h"
-#include "edna/sprite/character.h"
+#include "gui/debugger.h"
+
+using namespace Common;
 
 namespace Edna {
 
-class Player final : public Character {
-public:
-	Player(Common::Point startPos, const DB::Room &game);
-
-	void debugPrint() override;
-	int basePosX() const override;
-	int basePosY() const override;
-	int basePosY(int x) const override;
-};
-
+Npc::Npc(
+	const DB::NPC &npc,
+	RoomInteractionId interactionId,
+	Point startPos,
+	Point baseLineStart,
+	Point baseLineEnd)
+	: Character(startPos, npc._charAnimSet, npc._hspeed, npc._vspeed, npc._baseYAtZeroScale, npc._baseYAtFullScale)
+	, InteractableObject(interactionId)
+	, _name(npc._name)
+	, _baseLineStart(baseLineStart)
+	, _baseLineEnd(baseLineEnd) {
+	_direction = Direction::Left;
 }
 
-#endif // EDNA_PLAYER_H
+void Npc::debugPrint() {
+	g_engine->getDebugger()->debugPrintf("NPC \"%s\" (%s)\n", _name, stateToString());
+}
+
+int32 Npc::basePosX() const {
+	return pos().x + size().x / 2;
+}
+
+int32 Npc::basePosY() const {
+	return pos().x + size().y;
+}
+
+int32 Npc::basePosY(int x) const {
+	auto delta = _baseLineEnd - _baseLineStart;
+	float ratio = delta.y / (float)delta.x;
+	return (int)(_baseLineStart.y + ratio * (x - _baseLineStart.x));
+}
+
+
+}

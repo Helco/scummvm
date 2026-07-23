@@ -28,6 +28,8 @@
 
 #include "gui/debugger.h"
 
+using namespace Common;
+
 namespace Edna {
 
 Script::Script(Game &game) : _game(game) { }
@@ -112,19 +114,27 @@ bool Script::opIfItemActive(const ScriptCommand &line) {
 	return true;
 }
 
+String Script::speechPath() {
+	return String::format("speech_%s/%u-%u.ogg", g_engine->language(), _scriptId, _scriptLine);
+}
+
 bool Script::opSay(const ScriptCommand &line) {
-	warning("STUB script op: Say");
-	return true;
+	_game.player().say(line._args._say._text, speechPath().c_str());
+	return false;
 }
 
 bool Script::opThink(const ScriptCommand &line) {
-	warning("STUB script op: Think");
-	return true;
+	_game.player().think(line._args._say._text, speechPath().c_str());
+	return false;
 }
 
 bool Script::opSayNpc(const ScriptCommand &line) {
-	warning("STUB script op: SayNpc");
-	return true;
+	auto *npc = dynamic_cast<Character *>(_game.objectById(line._args._say._npc));
+	if (npc == nullptr)
+		warning("@ %10u %3u: Invalid NPC id: %u", _scriptId, _scriptLine, line._args._say._npc);
+	else
+		npc->say(line._args._say._text, speechPath().c_str());
+	return npc == nullptr;
 }
 
 bool Script::opSaySound(const ScriptCommand &line) {

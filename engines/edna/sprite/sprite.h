@@ -62,6 +62,7 @@ private:
 class AnimatedSprite : public virtual Sprite {
 public:
 	inline uint32 &curFrame() { return _curFrame; }
+	inline uint32 textureCount() const { return _textures.size(); }
 	inline bool isAnimating() const { return _timer.active(); }
 
 	void update() override;

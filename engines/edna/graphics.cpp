@@ -19,15 +19,16 @@
  *
  */
 
+#include "edna/util.h"
+#include "edna/graphics.h"
+
 #include "common/system.h"
 #include "engines/util.h"
 #include "graphics/blit.h"
+#include "graphics/font.h"
 #include "graphics/managed_surface.h"
 #include "graphics/screen.h"
 #include "image/png.h"
-
-#include "edna/util.h"
-#include "edna/graphics.h"
 
 using namespace Common;
 
@@ -90,13 +91,18 @@ public:
 
 class SoftwareRenderedText final : public IRenderedText {
 public:
-	Graphics::Font *_font;
-	uint8 _r, _g, _b;
+	static constexpr uint kBorderRadius = 3;
+
+	Graphics::Font *_bgFont, *_fgFont;
+	uint32 _fgColor, _bgColor;
 	Graphics::ManagedSurface _surface;
 	U32String _text;
 
-	SoftwareRenderedText(Graphics::Font *font, uint8 r, uint8 g, uint8 b)
-		: _font(font), _r(r), _g(g), _b(b) {}
+	SoftwareRenderedText(const FontInfo &fontInfo)
+		: _bgFont(fontInfo._bgFont)
+		, _fgFont(fontInfo._fgFont)
+		, _fgColor(fontInfo._fgColor)
+		, _bgColor(fontInfo._bgColor) {}
 
 	virtual Common::Point size() const {
 		return Point(_surface.w, _surface.h);
@@ -112,11 +118,21 @@ public:
 			return;
 		}
 
-		Rect rect = _font->getBoundingBox(_text);
-		if (_surface.w != rect.width() || _surface.h != rect.height())
+		// The original code would draw 5x5 times in bg color, then once again in fg color (26 string draws...)
+		// Unfortunately I found no alternative that would achieve the same look
+		Rect rect = _bgFont->getBoundingBox(_text);
+		rect.grow(kBorderRadius * 2);
+		Graphics::ManagedSurface tmpSurface(rect.width(), rect.height(), g_system->getScreenFormat());
+		if (_surface.w == rect.width() && _surface.h == rect.height())
+			_surface.clear();
+		else
 			_surface.create(rect.width(), rect.height(), g_system->getScreenFormat());
-		uint32 color = _surface.format.RGBToColor(_r, _g, _b);
-		_font->drawAlphaString(&_surface, _text, 0, 0, _surface.w, color);
+		
+		for (int i = 1; i < 6; i++) {
+			for (int j = 1; j < 6; j++)
+				_bgFont->drawString(&_surface, _text, i, j, _surface.w, _bgColor, Graphics::kTextAlignLeft);
+		}
+		_fgFont->drawString(&_surface, _text, kBorderRadius, kBorderRadius, _surface.w - 2 * kBorderRadius, _fgColor, Graphics::kTextAlignLeft);
 	}
 };
 
@@ -135,8 +151,8 @@ public:
 		return TexturePtr(new SoftwareTexture(Common::move(converted)));
 	}
 
-	IRenderedText *createText(Graphics::Font *font, uint8 r, uint8 g, uint8 b) override {
-		return new SoftwareRenderedText(font, r, g, b);
+	IRenderedText *createText(const FontInfo &fontInfo) override {
+		return new SoftwareRenderedText(fontInfo);
 	}
 
 	void begin() override { }
@@ -167,17 +183,15 @@ public:
 		auto text = dynamic_cast<SoftwareRenderedText *>(textRaw);
 		assert(text != nullptr);
 
-		uint32 color = text->_surface.format.ARGBToColor(
-			255, text->_r, text->_g, text->_b);
 		text->_surface.blendBlitTo(
 			*_screen,
 			pos.x, pos.y,
 			Graphics::FLIP_NONE,
 			nullptr,
-			color,
+			0xffffffff, // colormod
 			-1, -1, // destination size
 			Graphics::BLEND_NORMAL,
-			Graphics::ALPHA_FULL); // TODO: Check if we can reduce to ALPHA_BINARY
+			Graphics::ALPHA_FULL);
 	}
 
 	void rect(Rect rect, uint8 r, uint8 g, uint8 b, uint8 a) override {

@@ -19,7 +19,10 @@
  *
  */
 
+#include "edna/assetcache.h"
+#include "edna/console.h"
 #include "edna/edna.h"
+#include "edna/detection.h"
 #include "edna/db.h"
 #include "edna/graphics.h"
 #include "edna/game/intro.h"
@@ -27,17 +30,14 @@
 
 #include "audio/decoders/vorbis.h"
 #include "audio/audiostream.h"
-#include "engines/util.h"
+#include "graphics/font.h"
 #include "graphics/framelimiter.h"
-#include "edna/detection.h"
-#include "edna/console.h"
 #include "common/scummsys.h"
 #include "common/config-manager.h"
 #include "common/debug-channels.h"
 #include "common/events.h"
 #include "common/system.h"
 #include "common/compression/unzip.h"
-#include "engines/util.h"
 
 using namespace Common;
 
@@ -74,7 +74,7 @@ Error EdnaEngine::run() {
 	_config.loadFromScummVM();
 	_db.reset(new DB(Path("script/").appendInPlace(language())));
 	_renderer.reset(createSoftwareRenderer());
-
+	_assets.reset(new AssetCache());
 
 	// If a savegame was selected from the launcher, load it
 	int saveSlot = ConfMan.getInt("save_slot");

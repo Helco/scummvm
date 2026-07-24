@@ -19,6 +19,7 @@
  *
  */
 
+#include "edna/assetcache.h"
 #include "edna/edna.h"
 #include "edna/db.h"
 #include "edna/game/game.h"

@@ -26,6 +26,10 @@
 #include "common/span.h"
 #include "common/hashmap.h"
 
+namespace Graphics {
+	class Font;
+}
+
 namespace Edna {
 
 static constexpr const int kScreenWidth = 800;
@@ -65,7 +69,7 @@ enum PlayerAction {
 };
 bool parsePlayerAction(const char *text, PlayerAction &value);
 
-enum class Font {
+enum class FontKind {
 	EdnaFont = 0,
 	HarveyFont,
 	NscFontRot,
@@ -83,6 +87,15 @@ enum class Font {
 	InactiveFont,
 	MenuFont,
 	MenuFont2
+};
+
+struct FontInfo {
+	Graphics::Font
+		*_fgFont = nullptr,
+		*_bgFont = nullptr; ///< background font is without antialising
+	uint32_t // colors are in BlendBlit format
+		_fgColor = 0,
+		_bgColor = 0;
 };
 
 using ScriptId = uint32;

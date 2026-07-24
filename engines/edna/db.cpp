@@ -182,42 +182,42 @@ static PlayerAction nextPlayerAction(char *&full, bool isLastColumn = false) {
 	error("Could not extract player action from data file: %s", cell.data());
 }
 
-static Font nextFont(char *&full, bool isLastColumn = false) {
+static FontKind nextFont(char *&full, bool isLastColumn = false) {
 	auto cell = nextCell(full, isLastColumn);
 	if (strncmp("EdnaFont", cell.data(), cell.size()) == 0)
-		return Font::EdnaFont;
+		return FontKind::EdnaFont;
 	else if (strncmp("HarveyFont", cell.data(), cell.size()) == 0)
-		return Font::HarveyFont;
+		return FontKind::HarveyFont;
 	else if (strncmp("NscFontRot", cell.data(), cell.size()) == 0)
-		return Font::NscFontRot;
+		return FontKind::NscFontRot;
 	else if (strncmp("NscFontGelb", cell.data(), cell.size()) == 0)
-		return Font::NscFontGelb;
+		return FontKind::NscFontGelb;
 	else if (strncmp("NscFontOrange", cell.data(), cell.size()) == 0)
-		return Font::NscFontOrange;
+		return FontKind::NscFontOrange;
 	else if (strncmp("NscFontGreygreen", cell.data(), cell.size()) == 0)
-		return Font::NscFontGreygreen;
+		return FontKind::NscFontGreygreen;
 	else if (strncmp("NscFontBlau", cell.data(), cell.size()) == 0)
-		return Font::NscFontBlau;
+		return FontKind::NscFontBlau;
 	else if (strncmp("NscFontGrau", cell.data(), cell.size()) == 0)
-		return Font::NscFontGrau;
+		return FontKind::NscFontGrau;
 	else if (strncmp("NscFontHellgelb", cell.data(), cell.size()) == 0)
-		return Font::NscFontHellgelb;
+		return FontKind::NscFontHellgelb;
 	else if (strncmp("NscFontLind", cell.data(), cell.size()) == 0)
-		return Font::NscFontLind;
+		return FontKind::NscFontLind;
 	else if (strncmp("NscFontStahlblau", cell.data(), cell.size()) == 0)
-		return Font::NscFontStahlblau;
+		return FontKind::NscFontStahlblau;
 	else if (strncmp("NscFontWeiss", cell.data(), cell.size()) == 0)
-		return Font::NscFontWeiss;
+		return FontKind::NscFontWeiss;
 	else if (strncmp("TestFont", cell.data(), cell.size()) == 0)
-		return Font::TestFont;
+		return FontKind::TestFont;
 	else if (strncmp("ActiveFont", cell.data(), cell.size()) == 0)
-		return Font::ActiveFont;
+		return FontKind::ActiveFont;
 	else if (strncmp("InactiveFont", cell.data(), cell.size()) == 0)
-		return Font::InactiveFont;
+		return FontKind::InactiveFont;
 	else if (strncmp("MenuFont", cell.data(), cell.size()) == 0)
-		return Font::MenuFont;
+		return FontKind::MenuFont;
 	else if (strncmp("MenuFont2", cell.data(), cell.size()) == 0)
-		return Font::MenuFont2;
+		return FontKind::MenuFont2;
 	error("Could not extract font from data file: %s", cell.data());
 }
 

@@ -1,6 +1,7 @@
 MODULE := engines/edna
 
 MODULE_OBJS = \
+	assetcache.o \
 	console.o \
 	db.o \
 	db_overlay.o \

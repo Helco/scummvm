@@ -24,7 +24,7 @@
 
 #include "common/rect.h"
 #include "common/span.h"
-#include "graphics/font.h"
+#include "graphics/surface.h"
 
 namespace Edna {
 
@@ -54,7 +54,7 @@ public:
 
 	TexturePtr loadTexture(const char *fileName);
 	virtual TexturePtr loadTexture(const Graphics::Surface &surface) = 0;
-	virtual IRenderedText *createText(Graphics::Font *font, uint8 r, uint8 g, uint8 b) = 0;
+	virtual IRenderedText *createText(const FontInfo &fontInfo) = 0;
 
 	virtual void begin() = 0;
 	virtual void sprite(ITexture *texture, Common::Point pos, Common::Point size = {}) = 0;

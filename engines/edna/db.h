@@ -219,7 +219,7 @@ public:
 		RoomObjectId _object = 0;
 		CharAnimSetId _charAnimSet = 0;
 		const char *_name = "";
-		Font _font = {};
+		FontKind _font = {};
 		float _vspeed = 0;
 		float _hspeed = 0;
 		float _baseYAtZeroScale = 0;

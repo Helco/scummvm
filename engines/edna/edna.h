@@ -44,6 +44,7 @@ class IRenderer;
 class DB;
 class GameBase;
 class Console;
+class AssetCache;
 
 class Config {
 public:
@@ -75,6 +76,7 @@ public:
 	inline const char *language() const { return getLanguageCode(_gameDescription->language); }
 	inline Config &config() { return _config; }
 	inline IRenderer &renderer() { assert(_renderer != nullptr); return *_renderer; }
+	inline AssetCache &assets() { assert(_assets != nullptr); return *_assets; }
 	inline Console &console() { assert(_console != nullptr); return *_console; }
 	inline DB &db() { assert(_db != nullptr); return *_db; }
 	inline GameBase &game() { assert(_game != nullptr); return *_game; }
@@ -121,6 +123,7 @@ private:
 	const ADGameDescription *_gameDescription;
 	Common::RandomSource _randomSource;
 	Common::ScopedPtr<IRenderer> _renderer;
+	Common::ScopedPtr<AssetCache> _assets;
 	Console *_console; // raw pointer because Engine deletes the console itself
 	Common::ScopedPtr<DB> _db;
 	Common::ScopedPtr<GameBase> _game;

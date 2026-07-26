@@ -24,9 +24,12 @@
 
 #include "edna/util.h"
 
+#include "audio/mixer.h"
+
 namespace Edna {
 
 class Game;
+class Sprite;
 struct ScriptCommand;
 struct GameTransition;
 
@@ -93,12 +96,15 @@ private:
 	void toggleObject(RoomObjectId objectId, bool isActive);
 
 	Game &_game;
+	ScriptId _scriptId = 0;
+	uint32 _scriptLine = 0;
 	bool _isScriptRunning = false,
 		_isPerforming = false,
 		_parallelPerformance = false;
-	ScriptId _scriptId = 0;
-	uint32 _scriptLine = 0;
 	RoomObjectId _currentNpc = 0; ///< we use an ID because the object might get freed
+	Audio::SoundHandle _currentSound = {};
+	uint32 _currentSoundDuration = 0; ///< only used if no sound is played
+	Sprite *_soundText = nullptr;
 };
 
 }

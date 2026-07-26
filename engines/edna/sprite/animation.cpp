@@ -67,10 +67,12 @@ CharacterAnimationSet::CharacterAnimationSet(CharAnimSetId charAnimSetId) : _id(
 		return;
 	}
 
-	get(3, Direction::Left); // at least "waiting" has to exist
-	get(0, Direction::Left); // but we load the normal other ones as well already
+	// at least "waiting" has to exist, but we load the normal other ones as well already
+	// "walking" has to be loaded first so the first texture for left is the base size of the character
+	get(0, Direction::Left);
 	get(1, Direction::Left);
 	get(2, Direction::Left);
+	get(3, Direction::Left); 
 	if (_textures.empty())
 		error("Could not load character animation set %u", charAnimSetId);
 	if (_name == nullptr)

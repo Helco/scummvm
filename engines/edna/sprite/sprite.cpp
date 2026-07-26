@@ -42,6 +42,15 @@ void Sprite::render() {
 		g_engine->renderer().sprite(_texture.get(), _pos, _size);
 }
 
+void Sprite::debugRender() {
+	if (!_active)
+		return;
+	g_engine->renderer().debugRect(bounds(), 255, 255, 255);
+	char buffer[32];
+	snprintf(buffer, 32, "%u", id());
+	g_engine->renderer().debugText(pos(), buffer, 0, 0, 0);
+}
+
 void Sprite::debugPrint() {
 	if (_texture == nullptr || !*_texture->debugName())
 		g_engine->getDebugger()->debugPrintf("Sprite\n");

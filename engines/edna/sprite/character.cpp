@@ -87,7 +87,7 @@ void Character::sayOrThink(const char *text, const char *soundFile, State newSta
 	if (soundFile != nullptr && *soundFile && config.speech())
 		_talkSound = g_engine->playSpeech(soundFile);
 
-	if (config.subtitles() || !config.speech()) {
+	if (*text && (config.subtitles() || !config.speech())) {
 		_talkText = new Text(
 			Point(basePosX(), pos().y),
 			newState == State::kTalking ? _talkFont : _thinkFont,

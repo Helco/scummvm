@@ -159,7 +159,31 @@ void EdnaEngine::pauseEngineIntern(bool pause) {
 		setMillis(_timeBeforePause);
 }
 
+Audio::SoundHandle EdnaEngine::playSpeech(const char *fileName) {
+	assert(fileName != nullptr);
+	File *file = new File();
+	if (!file->open(fileName) && !file->open(Path(String(fileName) + ".ogg"))) {
+		delete file;
+		return {};
+	}
+	auto *fileStream = Audio::makeVorbisStream(file, DisposeAfterUse::YES);
+	if (fileStream == nullptr) {
+		warning("Could not decode speech: %s", fileName);
+		return {};
+	}
+	Audio::SoundHandle handle;
+	_mixer->playStream(Audio::Mixer::kSpeechSoundType, &handle, fileStream);
+	return handle;
+}
+
 Audio::SoundHandle EdnaEngine::playMusic(const char *fileName, bool loop) {
+	assert(fileName != nullptr);
+	if (_mixer->isSoundHandleActive(_musicHandle)) {
+		if (_lastMusic == fileName)
+			return _musicHandle; // the same music is already playing
+		_mixer->stopHandle(_musicHandle);
+	}
+
 	File *file = new File();
 	if (!file->open(Path(String(fileName) + ".ogg"))) {
 		delete file;
@@ -169,9 +193,14 @@ Audio::SoundHandle EdnaEngine::playMusic(const char *fileName, bool loop) {
 	Audio::AudioStream *playStream = fileStream;
 	if (loop)
 		playStream = Audio::makeLoopingAudioStream(fileStream, 0);
-	Audio::SoundHandle handle;
-	g_system->getMixer()->playStream(Audio::Mixer::kMusicSoundType, &handle, playStream);
-	return handle;
+	g_system->getMixer()->playStream(Audio::Mixer::kMusicSoundType, &_musicHandle, playStream);
+	return _musicHandle;
+}
+
+void EdnaEngine::stopMusic() {
+	_mixer->stopHandle(_musicHandle);
+	_musicHandle = {};
+	_lastMusic.clear();
 }
 
 void Config::registerDefaults() {

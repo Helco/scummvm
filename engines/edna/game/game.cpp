@@ -76,7 +76,7 @@ Game::Game(ScopedPtr<GameBase> &myPtr, GameMode mode, RoomId roomId)
 	initObjects();
 	// TODO: Init CommandPrompt
 	// TODO: Init ScriptInterpreter
-	// TODO: Init music
+	g_engine->playMusic(room._music);
 }
 
 void Game::initBackground(const char *background) {

@@ -25,6 +25,7 @@
 #include "edna/game/game.h"
 #include "edna/scriptcommand.h"
 #include "edna/sprite/player.h"
+#include "edna/sprite/text.h"
 
 #include "gui/debugger.h"
 
@@ -41,14 +42,32 @@ Script::Script(Game &game, const GameTransition &transition) : _game(game) {
 }
 
 bool Script::isPerforming() {
+	const bool isPlayerDone = _game.player().state() == Character::kWaiting;
+
+	bool isNpcDone = true;
 	Character *npc = _currentNpc == 0 ? nullptr : dynamic_cast<Character *>(_game.objectById(_currentNpc));
 	if (npc == nullptr)
 		_currentNpc = 0; ///< stop searching for a destroyed object
+	else
+		isNpcDone = npc->state() == Character::kWaiting;
 
-	const bool isNpcDone = npc == nullptr || npc->state() == Character::kWaiting;
-	const bool isPlayerDone = _game.player().state() == Character::kWaiting;
-	if (isPlayerDone && (isNpcDone || _parallelPerformance)) {
-		// TODO: Check whether some sound is still playing
+	bool isSoundDone = false;
+	if (_currentSound != Audio::SoundHandle()) {
+		isSoundDone = !g_system->getMixer()->isSoundHandleActive(_currentSound);
+	} else if (_currentSoundDuration > 0) {
+		if (_currentSoundDuration > g_engine->getElapsed())
+			_currentSoundDuration -= g_engine->getElapsed();
+		else
+			isSoundDone = true;
+	} else
+		isSoundDone = true;
+
+	if (isPlayerDone && (isNpcDone || _parallelPerformance) && isSoundDone) {
+		if (_soundText != nullptr)
+			_soundText->toggle(false);
+		_soundText = nullptr;
+		_currentSound = {};
+		_currentSoundDuration = 0;
 		_isPerforming = false;
 
 		// TODO: Check if this logic sill works for parallel performance by player
@@ -158,8 +177,26 @@ bool Script::opSayNpc(const ScriptCommand &line) {
 }
 
 bool Script::opSaySound(const ScriptCommand &line) {
-	warning("STUB script op: SaySound");
-	return true;
+	String audioPath;
+	uint32 duration = strlen(line._args._saySound._text);
+	if (line._args._saySound._sound == nullptr) {
+		audioPath = speechPath();
+		duration *= 40; // TODO: Add SaySoundProblemData handling
+	} else {
+		audioPath = String::format("soundfx/%s.ogg", line._args._saySound._sound);
+		duration *= duration < 15 ? 150 : 75;
+	}
+	_currentSound = g_engine->playSpeech(audioPath.c_str());
+	if (_currentSound == Audio::SoundHandle())
+		_currentSoundDuration = duration;
+
+	Point pos = line._args._saySound._pos;
+	if (pos == kInvalidPoint)
+		pos = { (int16)(_game.player().basePosX()) , (int16)(_game.player().pos().y - 10) };
+	_soundText = new Text(pos, FontKind::InactiveFont, line._args._saySound._text, (TextFlags)(kTextWrapLines | kTextMoveIntoScreen));
+	_game.texts().add(_soundText, DisposeAfterUse::YES);
+
+	return false;
 }
 
 bool Script::opChoice(const ScriptCommand &line) {

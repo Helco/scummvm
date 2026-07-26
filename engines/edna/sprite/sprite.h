@@ -78,6 +78,9 @@ public:
 	void stopAnimation();
 	void setFrame(uint32 index);
 
+protected:
+	void debugPrint(const char *typeName) const;
+
 private:
 	void resetTextures();
 

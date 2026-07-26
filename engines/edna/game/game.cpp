@@ -113,7 +113,7 @@ void Game::initGroups(Group *specialObjects, Group *specialGui) {
 }
 
 void Game::initPlayer() {
-	_player = new Player(Point(), g_engine->db().room(_roomId));
+	_player = new Player(*this, Point(), g_engine->db().room(_roomId));
 	_player->immutable() = true;
 	_objects.add(_player, DisposeAfterUse::YES);
 }
@@ -130,6 +130,7 @@ void Game::initObjects() {
 			const auto dbNpc = g_engine->db().npc(dbObject._toNPC);
 			const auto dbDisplay = g_engine->db().roomObjectDisplay(dbObject._toDisplay, false);
 			auto *npc = new Npc(
+				*this,
 				dbNpc,
 				dbObject._toInteraction,
 				{ (int16)dbObject._posX, (int16)dbObject._posY },
@@ -201,14 +202,14 @@ bool Game::updateScript() {
 
 	if (_script.isScriptRunning()) {
 		if (!_script.isPerforming())
-			_script.continueScript();
+			_script.resume();
 	} else {
 		// TODO: Enable cursor
 		if (_pendingTimerInvoke) {
 			debugC(0, kDebugScript, "Invoke timer script %u", _timerScript);
 			_pendingTimerInvoke = false;
 			_timer.toggle(false);
-			_script.runNewScript(_timerScript);
+			_script.runNew(_timerScript);
 		}
 	}
 

@@ -37,8 +37,9 @@ public:
 	inline ScriptId scriptId() const { return _scriptId; }
 	inline uint32 scriptLine() const { return _scriptLine; }
 
-	void continueScript();
-	void runNewScript(ScriptId scriptId, uint32 firstLine = 1);
+	void resume();
+	void runNew(ScriptId scriptId, uint32 firstLine = 1);
+	void stop(); ///< currently only used for debugging
 	bool isPerforming(); ///< this function has side-effects...
 
 private:
@@ -96,6 +97,7 @@ private:
 		_parallelPerformance = false;
 	ScriptId _scriptId = 0;
 	uint32 _scriptLine = 0;
+	RoomObjectId _currentNpc = 0; ///< we use an ID because the object might get freed
 };
 
 }

@@ -36,6 +36,7 @@ Console::Console()
 	registerCmd("room", WRAP_METHOD(Console, cmdRoom));
 	registerCmd("sprites", WRAP_METHOD(Console, cmdSprites));
 	registerCmd("script", WRAP_METHOD(Console, cmdScript));
+	registerCmd("stop", WRAP_METHOD(Console, cmdStop));
 	registerCmd("eval", WRAP_METHOD(Console, cmdEval));
 	registerCmd("e", WRAP_METHOD(Console, cmdEval));
 	registerCmd("br", WRAP_METHOD(Console, cmdBreakpoint));
@@ -174,6 +175,18 @@ bool Console::cmdScript(int argc, const char **argv) {
 	return true;
 }
 
+bool Console::cmdStop(int argc, const char **argv) {
+	Game *game = getGame();
+	if (game == nullptr)
+		return true;
+	if (!game->script().isScriptRunning()) {
+		debugPrintf("No script is currently running\n");
+		return true;
+	}
+	game->script().stop();
+	return true;
+}
+
 bool Console::cmdEval(int argc, const char **argv) {
 	Game *game = getGame();
 	if (game == nullptr)
@@ -221,7 +234,7 @@ bool Console::cmdRun(int argc, const char **argv) {
 		debugPrintf("Cannot evaluate script command, another script is running or performing\n");
 		return true;
 	}
-	script.runNewScript(scriptId, line);
+	script.runNew(scriptId, line);
 	return false;
 }
 

@@ -29,6 +29,8 @@
 
 namespace Edna {
 
+class Game;
+
 class Character : public virtual SpatialObject, public virtual AnimatedSprite {
 public:
 	enum State : ActionModeId { // not using an enum class as we need the constants as integers often
@@ -40,6 +42,7 @@ public:
 	};
 
 	Character(
+		Game &game,
 		Common::Point startPos,
 		CharAnimSetId charAnimSetId,
 		float hSpeed, float vSpeed,
@@ -70,6 +73,7 @@ protected:
 	const char *stateToString() const; ///< for debugging
 
 	static constexpr const uint32 kStateCount = 5;
+	Game &_game;
 	Timer _stateTimer;
 	State _state = kWaiting;	
 	ActionModeId _actionMode = kWaiting; ///< actionMode is usually state but can differ for special animations
@@ -77,8 +81,10 @@ protected:
 	CharacterAnimationSet _charAnimSet;
 
 	Audio::SoundHandle _talkSound;
-	uint32 _talkEndTime = 0; ///< only used if speech is off
+	uint32 _talkTimeLeft = 0; ///< only used if speech is off
 	Sprite *_talkText = nullptr;
+	FontKind _talkFont = {};
+	FontKind _thinkFont = {};
 
 	const float _hSpeed = 0, _vSpeed = 0;
 	const float _baseYAtZeroScale = 0, _baseYAtFullScale = 1;

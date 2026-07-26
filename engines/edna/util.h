@@ -93,9 +93,7 @@ struct FontInfo {
 	Graphics::Font
 		*_fgFont = nullptr,
 		*_bgFont = nullptr; ///< background font is without antialising
-	uint32_t // colors are in BlendBlit format
-		_fgColor = 0,
-		_bgColor = 0;
+	uint32_t _color = 0; //< in BlendBlit format
 };
 
 using ScriptId = uint32;

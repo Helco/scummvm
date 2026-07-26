@@ -20,18 +20,22 @@
  */
 
 #include "edna/edna.h"
+#include "edna/game/game.h"
 #include "edna/sprite/character.h"
+#include "edna/sprite/text.h"
 
 using namespace Common;
 
 namespace Edna {
 
 Character::Character(
+	Game &game,
 	Point startPos,
 	CharAnimSetId charAnimSetId,
 	float hSpeed, float vSpeed,
 	float baseYAtZeroScale, float baseYAtFullScale)
-	: _charAnimSet(charAnimSetId)
+	: _game(game)
+	, _charAnimSet(charAnimSetId)
 	, _hSpeed(hSpeed), _vSpeed(vSpeed)
 	, _baseYAtZeroScale(baseYAtZeroScale), _baseYAtFullScale(baseYAtFullScale) {
 
@@ -84,21 +88,31 @@ void Character::sayOrThink(const char *text, const char *soundFile, State newSta
 	}
 
 	if (config.subtitles() || !config.speech()) {
-		// TODO: Show speech text
+		_talkText = new Text(
+			Point(basePosX(), pos().y),
+			newState == State::kTalking ? _talkFont : _thinkFont,
+			text,
+			(TextFlags)(kTextWrapLines | kTextMoveIntoScreen));
+		_game.texts().add(_talkText, DisposeAfterUse::YES);
 	}
 
 	if (_talkSound == Audio::SoundHandle()) {
 		uint32 duration = strlen(text);
-		duration = ((duration < 15) ? 2 : 1) * duration * (255 - config.subtitleSpeed());
-		_talkEndTime = g_engine->getMillis() + duration;
+		_talkTimeLeft = ((duration < 15) ? 2 : 1) * duration * (255 - config.subtitleSpeed());
 	}
 }
 
 void Character::updateTalking() {
 	if ((_state != kTalking && _state != kThinking) || // not talking at all
-		(_talkSound != Audio::SoundHandle() && g_system->getMixer()->isSoundHandleActive(_talkSound)) || // still speaking
-		_talkEndTime > g_engine->getMillis()) // still whispering
+		(_talkSound != Audio::SoundHandle() && g_system->getMixer()->isSoundHandleActive(_talkSound))) // still speaking
 		return;
+	if (_talkTimeLeft > 0) { // still speaking without sound
+		if (_talkTimeLeft > g_engine->getElapsed()) {
+			_talkTimeLeft -= g_engine->getElapsed();
+			return;
+		}
+		_talkTimeLeft = 0;
+	}
 	shutUp();
 }
 

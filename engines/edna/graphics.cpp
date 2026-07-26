@@ -35,6 +35,15 @@ using namespace Common;
 namespace Edna {
 
 ITexture::~ITexture() { }
+
+void ITexture::setDebugName(const char *name) {
+	_debugName = name;
+}
+
+const char *ITexture::debugName() const {
+	return _debugName.c_str();
+}
+
 IRenderedText::~IRenderedText() { }
 IRenderer::~IRenderer() { }
 
@@ -45,7 +54,10 @@ TexturePtr IRenderer::loadTexture(const char *fileName) {
 	Image::PNGDecoder decoder;
 	if (!decoder.loadStream(file))
 		return nullptr;
-	return loadTexture(*decoder.getSurface());
+	auto texture = loadTexture(*decoder.getSurface());
+	if (texture != nullptr)
+		texture->setDebugName(lastPathComponent(fileName, '/').c_str());
+	return texture;
 }
 
 static Graphics::AlphaType getAlphaType(const Graphics::ManagedSurface &surface) {

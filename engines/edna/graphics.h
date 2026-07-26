@@ -29,11 +29,15 @@
 namespace Edna {
 
 class ITexture {
+	Common::String _debugName;
 public:
 	virtual ~ITexture();
 
 	virtual Common::Point size() const = 0;
 	virtual bool alphaCheck(Common::Point pos) const = 0;
+
+	void setDebugName(const char *name);
+	const char *debugName() const;
 };
 
 using TexturePtr = Common::SharedPtr<ITexture>;

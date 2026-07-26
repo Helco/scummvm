@@ -42,6 +42,7 @@ Character::Character(
 	pos() = startPos;
 	setTextures(_charAnimSet.textures());
 	initScaling();
+	setState(kWaiting); // also sets the animation
 }
 
 void Character::update() {
@@ -146,22 +147,22 @@ void Character::setAnimation(ActionModeId actionMode) {
 
 void Character::initScaling() {
 	// TODO: This might differ between NPCs and Player -_-
-	const Point size = this->size();
-	_scaleFactor = 1.0f / (_baseYAtFullScale - _baseYAtZeroScale - size.y);
+	_baseSize = this->size();
+	_scaleFactor = 1.0f / (_baseYAtFullScale - _baseYAtZeroScale - _baseSize.y);
 
-	const Point baseOffset(size.x / 2, size.y);
+	const Point baseOffset(_baseSize.x / 2, _baseSize.y);
 	float initScale = 1.0f;
 	if (_baseYAtZeroScale != _baseYAtFullScale)
-		initScale = (pos().y - _baseYAtZeroScale) / (_baseYAtFullScale - _baseYAtZeroScale);
-	pos() -= Point(size.x / 2, size.y) * initScale;
+		initScale = ABS(pos().y - _baseYAtZeroScale) / (_baseYAtFullScale - _baseYAtZeroScale);
+	pos() -= baseOffset * initScale;
 	updateScaling();
 }
 
 void Character::updateScaling() {
 	float scale = 1.0f;
 	if (_baseYAtZeroScale != _baseYAtFullScale)
-		scale = MAX(0.001f, ABS(pos().y - _baseYAtZeroScale) * _scaleFactor);
-	size() = _baseSize * scale;
+		scale = MAX(0.001f, ABS((pos().y - _baseYAtZeroScale) * _scaleFactor));
+	size() = curFrameSize() * scale;
 }
 
 const char *Character::stateToString() const {

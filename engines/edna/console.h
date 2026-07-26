@@ -42,6 +42,7 @@ private:
 	bool cmdRoom(int argc, const char **argv);
 	bool cmdSprites(int argc, const char **argv);
 	bool cmdScript(int argc, const char **argv);
+	bool cmdStop(int argc, const char **argv);
 	bool cmdEval(int argc, const char **argv);
 	bool cmdRun(int argc, const char **argv);
 	bool cmdBreakpoint(int argc, const char **argv);

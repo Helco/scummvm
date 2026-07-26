@@ -45,7 +45,8 @@ public:
 	virtual ~IRenderedText();
 
 	virtual Common::Point size() const = 0;
-	virtual void setText(const char *text) = 0;
+	virtual void setColor(const FontInfo &fontInfo) = 0; ///< font is not touched, ideally no rerendering should be done
+	virtual void setText(const char *textBegin, const char *textEnd = nullptr) = 0;
 };
 
 class IRenderer {
@@ -54,7 +55,7 @@ public:
 
 	TexturePtr loadTexture(const char *fileName);
 	virtual TexturePtr loadTexture(const Graphics::Surface &surface) = 0;
-	virtual IRenderedText *createText(const FontInfo &fontInfo) = 0;
+	virtual IRenderedText *createText(const FontInfo &fontInfo, const char *textBegin = nullptr, const char *textEnd = nullptr) = 0;
 
 	virtual void begin() = 0;
 	virtual void sprite(ITexture *texture, Common::Point pos, Common::Point size = {}) = 0;

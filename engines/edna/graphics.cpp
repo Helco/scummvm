@@ -94,22 +94,33 @@ public:
 	static constexpr uint kBorderRadius = 3;
 
 	Graphics::Font *_bgFont, *_fgFont;
-	uint32 _fgColor, _bgColor;
+	uint32 _color;
 	Graphics::ManagedSurface _surface;
 	U32String _text;
 
-	SoftwareRenderedText(const FontInfo &fontInfo)
+	SoftwareRenderedText(const FontInfo &fontInfo, const char *textBegin, const char *textEnd)
 		: _bgFont(fontInfo._bgFont)
 		, _fgFont(fontInfo._fgFont)
-		, _fgColor(fontInfo._fgColor)
-		, _bgColor(fontInfo._bgColor) {}
+		, _color(fontInfo._color) {
+		if (textBegin != nullptr)
+			setText(textBegin, textEnd);
+	}
 
-	virtual Common::Point size() const {
+	Common::Point size() const override {
 		return Point(_surface.w, _surface.h);
 	}
 
-	virtual void setText(const char *text) {
-		U32String newText(text, kUtf8);
+	void setColor(const FontInfo &info) override {
+		assert(info._bgFont == _bgFont && info._fgFont == _fgFont);
+		_color = info._color;
+	}
+
+	void setText(const char *textBegin, const char *textEnd) override {
+		assert(textBegin != nullptr);
+		assert(textEnd == nullptr || textBegin <= textEnd);
+		if (textEnd == nullptr)
+			textEnd = textBegin + strlen(textBegin);
+		U32String newText(textBegin, textEnd, kUtf8);
 		if (_text == newText)
 			return;
 		_text = newText;
@@ -127,12 +138,15 @@ public:
 			_surface.clear();
 		else
 			_surface.create(rect.width(), rect.height(), g_system->getScreenFormat());
-		
+
+		const uint32 black = _surface.format.RGBToColor(0, 0, 0);
 		for (int i = 1; i < 6; i++) {
 			for (int j = 1; j < 6; j++)
-				_bgFont->drawString(&_surface, _text, i, j, _surface.w, _bgColor, Graphics::kTextAlignLeft);
+				_bgFont->drawString(&_surface, _text, i, j, _surface.w - 2 * kBorderRadius, black, Graphics::kTextAlignCenter);
 		}
-		_fgFont->drawString(&_surface, _text, kBorderRadius, kBorderRadius, _surface.w - 2 * kBorderRadius, _fgColor, Graphics::kTextAlignLeft);
+		_fgFont->drawString(&_surface, _text, kBorderRadius, kBorderRadius, _surface.w - 2 * kBorderRadius, 0xffffffff, Graphics::kTextAlignCenter);
+		// we render the string in white so we can multiply with a color without rerendering the text
+		// the border is always black so is not affected by it
 	}
 };
 
@@ -151,8 +165,8 @@ public:
 		return TexturePtr(new SoftwareTexture(Common::move(converted)));
 	}
 
-	IRenderedText *createText(const FontInfo &fontInfo) override {
-		return new SoftwareRenderedText(fontInfo);
+	IRenderedText *createText(const FontInfo &fontInfo, const char *textBegin, const char *textEnd) override {
+		return new SoftwareRenderedText(fontInfo, textBegin, textEnd);
 	}
 
 	void begin() override { }
@@ -188,7 +202,7 @@ public:
 			pos.x, pos.y,
 			Graphics::FLIP_NONE,
 			nullptr,
-			0xffffffff, // colormod
+			text->_color,
 			-1, -1, // destination size
 			Graphics::BLEND_NORMAL,
 			Graphics::ALPHA_FULL);

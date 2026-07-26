@@ -28,12 +28,13 @@ using namespace Common;
 namespace Edna {
 
 Npc::Npc(
+	Game &game,
 	const DB::NPC &npc,
 	RoomInteractionId interactionId,
 	Point startPos,
 	Point baseLineStart,
 	Point baseLineEnd)
-	: Character(startPos, npc._charAnimSet, npc._hspeed, npc._vspeed, npc._baseYAtZeroScale, npc._baseYAtFullScale)
+	: Character(game, startPos, npc._charAnimSet, npc._hspeed, npc._vspeed, npc._baseYAtZeroScale, npc._baseYAtFullScale)
 	, InteractableObject(interactionId)
 	, _name(npc._name)
 	, _baseLineStart(baseLineStart)

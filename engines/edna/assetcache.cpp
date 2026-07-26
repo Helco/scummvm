@@ -84,8 +84,7 @@ const FontInfo AssetCache::font(FontKind kind) const {
 
     auto format = Graphics::BlendBlit::getSupportedPixelFormat();
     FontInfo info;
-    info._bgColor = format.ARGBToColor(255, 0, 0, 0);
-    info._fgColor = format.ARGBToColor(255, staticInfo._r, staticInfo._g, staticInfo._b);
+    info._color = format.ARGBToColor(255, staticInfo._r, staticInfo._g, staticInfo._b);
     switch (staticInfo._size) {
     case 14:
         info._fgFont = _fgFont14.get();

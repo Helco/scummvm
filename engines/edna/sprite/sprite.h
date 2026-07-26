@@ -45,6 +45,7 @@ public:
 	virtual void toggle(bool isActive);
 	virtual void update();
 	virtual void render();
+	virtual void debugRender();
 	virtual void debugPrint();
 
 	void setTexture(const char *fileName); ///< shortcut for loading textures

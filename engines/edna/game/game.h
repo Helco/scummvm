@@ -45,6 +45,7 @@ public:
 
 	virtual void update();
 	virtual void render();
+	virtual void debugRender();
 
 protected:
 	void add(Group *group, DisposeAfterUse::Flag dispose = DisposeAfterUse::NO);

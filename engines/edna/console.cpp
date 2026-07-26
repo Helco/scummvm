@@ -43,6 +43,7 @@ Console::Console()
 	registerCmd("delbr", WRAP_METHOD(Console, cmdDelBreakpoint));
 
 	registerVar("waitDiv", &_waitDivider);
+	registerVar("debugSprites", &_debugSprites);
 }
 
 Console::~Console() {

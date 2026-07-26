@@ -54,7 +54,8 @@ static const char *skipNonSpace(const char *text) {
 Text::Text(Point pos, FontKind font, const char *text, TextFlags flags) {
 	assert(text != nullptr);
 	const FontInfo fontInfo = g_engine->assets().font(font);
-	*strncpy(_debugText, text, kDebugTextSize - 1) = 0;
+	strncpy(_debugText, text, kDebugTextSize - 1);
+	_debugText[Common::strnlen(_debugText, kDebugTextSize - 1)] = 0;
 
 	if (flags & kTextWrapLines) {
 		text = skipSpace(text);
@@ -88,7 +89,7 @@ Text::Text(Point pos, FontKind font, const char *text, TextFlags flags) {
 	} else
 		_lines.emplace_back(g_engine->renderer().createText(fontInfo, text));
 
-	Point size(0, _lines.size() * fontInfo._fgFont->getFontLeading());
+	Point size(0, _lines.size() * kTextLineHeight);
 	for (const auto &line : _lines)
 		size.x = MAX(size.x, line->size().x);
 	this->size() = size;
@@ -99,6 +100,7 @@ Text::Text(Point pos, FontKind font, const char *text, TextFlags flags) {
 		if (pos.x - size.x / 2 < kTextMargin)
 			pos.x = kTextMargin;
 	}
+	pos.x -= size.x / 2;
 	pos.y -= kTextOffsetY + (fontInfo._fgFont->getFontHeight() - kTextLineHeight) * _lines.size();
 	this->pos() = pos;
 }
@@ -108,9 +110,10 @@ void Text::debugPrint() {
 }
 
 void Text::render() {
+	const int baseX = pos().x + size().x / 2;
 	int cursorY = pos().y;
 	for (auto &line : _lines) {
-		int cursorX = pos().x - line->size().x / 2;
+		int cursorX = baseX - line->size().x / 2;
 		g_engine->renderer().text(line.get(), Point(cursorX, cursorY));
 		cursorY += kTextLineHeight;
 	}

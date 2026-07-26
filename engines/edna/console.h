@@ -37,6 +37,7 @@ public:
 
 	bool hasBreakpoint(ScriptId scriptId, uint32 line) const;
 	inline uint32 waitDivider() const { return _waitDivider; }
+	inline bool debugSprites() const { return _debugSprites; }
 private:
 	bool cmdValidate(int argc, const char **argv);
 	bool cmdRoom(int argc, const char **argv);
@@ -58,6 +59,7 @@ private:
 	BreakpointList _breakpoints;
 
 	byte _waitDivider = 1;
+	bool _debugSprites = false;
 };
 
 } // End of namespace Edna

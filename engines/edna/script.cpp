@@ -35,9 +35,13 @@ namespace Edna {
 Script::Script(Game &game) : _game(game) { }
 
 bool Script::isPerforming() {
+	Character *npc = _currentNpc == 0 ? nullptr : dynamic_cast<Character *>(_game.objectById(_currentNpc));
+	if (npc == nullptr)
+		_currentNpc = 0; ///< stop searching for a destroyed object
+
+	const bool isNpcDone = npc == nullptr || npc->state() == Character::kWaiting;
 	const bool isPlayerDone = _game.player().state() == Character::kWaiting;
-	bool isNpcBusy = false;
-	if (isPlayerDone && (_parallelPerformance || !isNpcBusy)) {
+	if (isPlayerDone && (isNpcDone || _parallelPerformance)) {
 		// TODO: Check whether some sound is still playing
 		_isPerforming = false;
 
@@ -49,17 +53,17 @@ bool Script::isPerforming() {
 	return _isPerforming;
 }
 
-void Script::runNewScript(ScriptId scriptId, uint32 firstLine) {
+void Script::runNew(ScriptId scriptId, uint32 firstLine) {
 	assert(!_isPerforming);
 	assert(firstLine > 0);
 	assert(firstLine <= g_engine->db().script(scriptId).size());
 	_scriptId = scriptId;
 	_scriptLine = firstLine;
 	_isScriptRunning = true;
-	continueScript();
+	resume();
 }
 
-void Script::continueScript() {
+void Script::resume() {
 	assert(_isScriptRunning && !_isPerforming);
 	if (!_isScriptRunning)
 		return;
@@ -94,6 +98,14 @@ void Script::continueScript() {
 	_isScriptRunning = _scriptLine <= scriptLines.size();
 	if (!_isScriptRunning)
 		debugC(2, kDebugScript, "Finished script %u at %u", _scriptId, _scriptLine);
+}
+
+void Script::stop() {
+	if (!_isScriptRunning)
+		return;
+	_isScriptRunning = 0;
+	_isPerforming = 0;
+	_parallelPerformance = 0;
 }
 
 bool Script::opAchievement(const ScriptCommand &line) {
@@ -132,8 +144,10 @@ bool Script::opSayNpc(const ScriptCommand &line) {
 	auto *npc = dynamic_cast<Character *>(_game.objectById(line._args._say._npc));
 	if (npc == nullptr)
 		warning("@ %10u %3u: Invalid NPC id: %u", _scriptId, _scriptLine, line._args._say._npc);
-	else
+	else {
+		_currentNpc = npc->id();
 		npc->say(line._args._say._text, speechPath().c_str());
+	}
 	return npc == nullptr;
 }
 

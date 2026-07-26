@@ -29,7 +29,8 @@ namespace Edna {
 
 class Npc final : public Character, public InteractableObject {
 public:
-	Npc(const DB::NPC &dbNpc,
+	Npc(Game &game,
+		const DB::NPC &dbNpc,
 		RoomInteractionId interactionId,
 		Common::Point startPos,
 		Common::Point baseLineStart,

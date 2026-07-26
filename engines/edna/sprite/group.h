@@ -45,6 +45,7 @@ public:
 
 	virtual void update();
 	virtual void render();
+	virtual void debugRender();
 
 	void add(Sprite *sprite, DisposeAfterUse::Flag dispose = DisposeAfterUse::YES);
 	Sprite *byId(uint32 id) const;

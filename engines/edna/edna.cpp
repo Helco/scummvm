@@ -106,6 +106,7 @@ Error EdnaEngine::run() {
 
 		_renderer->begin();
 		_game->render();
+		_game->debugRender();
 		limiter.delayBeforeSwap();
 		_renderer->end();
 		limiter.startFrame();

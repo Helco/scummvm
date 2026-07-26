@@ -24,6 +24,7 @@
 
 #include "common/rect.h"
 #include "common/span.h"
+#include "graphics/font.h"
 #include "graphics/surface.h"
 
 namespace Edna {
@@ -68,6 +69,10 @@ public:
 	virtual void end() = 0;
 
 	virtual void debugPoints(Common::Span<const Common::Point> points, uint8 r, uint8 g, uint8 b) = 0;
+	virtual void debugRect(Common::Rect rect, uint8 r, uint8 g, uint8 b) = 0;
+	virtual void debugLine(Common::Point pos1, Common::Point pos2, uint8 r, uint8 g, uint8 b) = 0;
+	virtual void debugText(Common::Point pos, const Common::String &text, uint8 r, uint8 g, uint8 b,
+		Graphics::TextAlign align = Graphics::kTextAlignCenter) = 0;
 };
 
 IRenderer *createSoftwareRenderer();

@@ -83,7 +83,8 @@ Error EdnaEngine::run() {
 	else
 		(void)loadGameState(saveSlot);
 
-	_nextRoom = 2;
+	_transition = {};
+	_transition._room = 2;
 
 	_timeLastFrame = getMillis();
 	Common::Event e;
@@ -94,9 +95,9 @@ Error EdnaEngine::run() {
 		_timeLastFrame = now;
 
 		// change room before handling events as we publish events to be processed by the next room
-		if (_nextRoom != 0) {
-			createRoom(_nextRoom);
-			_nextRoom = 0;
+		if (_transition.isPending()) {
+			createRoom(_transition);
+			_transition = {};
 		}
 
 		while (g_system->getEventManager()->pollEvent(e)) {
@@ -113,11 +114,11 @@ Error EdnaEngine::run() {
 	return Common::kNoError;
 }
 
-void EdnaEngine::createRoom(RoomId roomId) {
-	DB::Room room = db().room(roomId);
+void EdnaEngine::createRoom(const GameTransition &transition) {
+	DB::Room room = db().room(transition._room);
 	switch (room._gameMode) {
 	case GameMode::ScriptOnClick:
-		new ScriptOnClick(_game, roomId);
+		new ScriptOnClick(_game, transition);
 		break;
 	default:
 		error("Unimplemented game mode: %s", gameModeToString(room._gameMode));
@@ -194,6 +195,7 @@ Audio::SoundHandle EdnaEngine::playMusic(const char *fileName, bool loop) {
 	if (loop)
 		playStream = Audio::makeLoopingAudioStream(fileStream, 0);
 	g_system->getMixer()->playStream(Audio::Mixer::kMusicSoundType, &_musicHandle, playStream);
+	_lastMusic = fileName;
 	return _musicHandle;
 }
 

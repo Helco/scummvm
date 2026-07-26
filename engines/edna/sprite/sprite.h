@@ -62,6 +62,9 @@ private:
 class AnimatedSprite : public virtual Sprite {
 public:
 	inline uint32 &curFrame() { return _curFrame; }
+	inline Common::Point curFrameSize() const {
+		return _textures.empty() ? Common::Point() : _textures[_curFrame]->size();
+	}
 	inline uint32 textureCount() const { return _textures.size(); }
 	inline bool isAnimating() const { return _timer.active(); }
 

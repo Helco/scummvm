@@ -72,7 +72,7 @@ public:
 	EdnaEngine(OSystem *syst, const ADGameDescription *gameDesc);
 	~EdnaEngine() override;
 
-	inline RoomId &nextRoom() { return _nextRoom; }
+	inline GameTransition &next() { return _transition; }
 	inline const char *language() const { return getLanguageCode(_gameDescription->language); }
 	inline Config &config() { return _config; }
 	inline IRenderer &renderer() { assert(_renderer != nullptr); return *_renderer; }
@@ -120,7 +120,7 @@ public:
 	}
 
 private:
-	void createRoom(RoomId roomId);
+	void createRoom(const GameTransition &transition);
 
 	const ADGameDescription *_gameDescription;
 	Common::RandomSource _randomSource;
@@ -134,7 +134,7 @@ private:
 	uint32 _timeNegOffset = 0, _timePosOffset = 0;
 	uint32 _timeBeforePause = 0;
 	uint32 _timeLastFrame = 0, _timeElapsed = 0;
-	RoomId _nextRoom = 0;
+	GameTransition _transition;
 
 	Common::String _lastMusic;
 	Audio::SoundHandle _musicHandle;

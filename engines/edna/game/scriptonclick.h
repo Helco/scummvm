@@ -23,13 +23,12 @@
 #define EDNA_SCRIPTONCLICK_H
 
 #include "edna/game/game.h"
-#include "edna/sprite/sprite.h"
 
 namespace Edna {
 
 class ScriptOnClick : public Game {
 public:
-	ScriptOnClick(Common::ScopedPtr<GameBase> &myPtr, RoomId roomId);
+	ScriptOnClick(Common::ScopedPtr<GameBase> &myPtr, const GameTransition &transition);
 
 	void update() override;
 

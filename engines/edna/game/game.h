@@ -56,7 +56,7 @@ private:
 
 class Game : public GameBase {
 public:
-	Game(Common::ScopedPtr<GameBase> &myPtr, GameMode mode, RoomId roomId);
+	Game(Common::ScopedPtr<GameBase> &myPtr, GameMode mode, const GameTransition &transition);
 
 	inline RoomId roomId() const { return _roomId; }
 	inline Script &script() { return _script; }
@@ -78,7 +78,7 @@ protected:
 	void initTimer(TimerId timerId);
 	virtual void initGroups();
 	void initGroups(Group *specialObjects, Group *specialGui);
-	void initPlayer();
+	void initPlayer(const GameTransition &transition);
 	void initObjects();
 
 	void updateFade();

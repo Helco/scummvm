@@ -151,6 +151,16 @@ bool less(const TwoKey &a, const TwoKey &b);
 template<class TValue>
 using TwoKeyMap = Common::HashMap<TwoKey, TValue, TwoKeyHash, TwoKeyEqualTo>;
 
+struct GameTransition {
+	RoomId _room = 0;
+	Common::Point _walkIn;
+	Direction _walkInDir = Direction::None;
+	ScriptId _script = 0;
+	uint32 _scriptLine = 0;
+
+	inline bool isPending() const { return _room != 0; }
+};
+
 }
 
 #endif // EDNA_UTIL_H

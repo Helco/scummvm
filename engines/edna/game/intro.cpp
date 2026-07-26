@@ -96,7 +96,7 @@ void Intro::update() {
 				_harvey.toggle(true);
 			}
 			else
-				g_engine->nextRoom() = 1; // startmenu
+				g_engine->next()._room = 1; // startmenu
 		}
 		break;
 	case Stage::Harvey:

@@ -25,8 +25,8 @@ using namespace Common;
 
 namespace Edna {
 
-ScriptOnClick::ScriptOnClick(ScopedPtr<GameBase> &myPtr, RoomId roomId)
-	: Game(myPtr, GameMode::ScriptOnClick, roomId) { }
+ScriptOnClick::ScriptOnClick(ScopedPtr<GameBase> &myPtr, const GameTransition &transition)
+	: Game(myPtr, GameMode::ScriptOnClick, transition) { }
 
 void ScriptOnClick::update() {
 	Game::update();

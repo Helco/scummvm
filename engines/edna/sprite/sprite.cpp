@@ -43,7 +43,10 @@ void Sprite::render() {
 }
 
 void Sprite::debugPrint() {
-	g_engine->getDebugger()->debugPrintf("Sprite\n");
+	if (_texture == nullptr || !*_texture->debugName())
+		g_engine->getDebugger()->debugPrintf("Sprite\n");
+	else
+		g_engine->getDebugger()->debugPrintf("Sprite (%s)\n", _texture->debugName());
 }
 
 void Sprite::setTexture(const char *fileName) {
@@ -77,9 +80,22 @@ void AnimatedSprite::update() {
 }
 
 void AnimatedSprite::debugPrint() {
-	g_engine->getDebugger()->debugPrintf("AnimatedSprite %u->%u (%u) %ums %s%s\n",
-		_animation._startFrame, _animation._endFrame, _curFrame, _animation._delay,
-		(_animation._loop ? "LOOP " : ""), (_timer.active() ? "RUNNING" : ""));
+	debugPrint("AnimatedSprite");
+}
+
+void AnimatedSprite::debugPrint(const char *typeName) const {
+	const auto &texture = _textures.empty() ? nullptr : _textures.front();
+	const char *textureName = texture == nullptr ? "<none>" : texture->debugName();
+
+	if (_animation._startFrame == _animation._endFrame) {
+		g_engine->getDebugger()->debugPrintf("%s (%s)\n", typeName, textureName);
+	} else {
+		g_engine->getDebugger()->debugPrintf("%s %u->%u (%u) %ums %s%s (%s)\n",
+			typeName,
+			_animation._startFrame, _animation._endFrame, _curFrame, _animation._delay,
+			(_animation._loop ? "LOOP " : ""), (_timer.active() ? "RUNNING" : ""),
+			textureName);
+	}
 }
 
 void AnimatedSprite::setTexture(TexturePtr texture) {

@@ -23,8 +23,6 @@
 #include "edna/edna.h"
 #include "edna/sprite/object.h"
 
-#include "gui/debugger.h"
-
 using namespace Common;
 
 namespace Edna {
@@ -53,7 +51,7 @@ VisualObject::VisualObject(Point baseLineStart, Point baseLineEnd)
 	, _baseLineEnd(baseLineEnd) { }
 
 void VisualObject::debugPrint() {
-	g_engine->getDebugger()->debugPrintf("Visual\n");
+	AnimatedSprite::debugPrint("Visual");
 }
 
 int32 VisualObject::basePosX() const {

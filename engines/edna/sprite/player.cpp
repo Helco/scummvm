@@ -28,8 +28,13 @@ using namespace Common;
 
 namespace Edna {
 
-Player::Player(Point startPos, const DB::Room &room)
-	: Character(startPos, room._charAnimSet, room._hspeed, room._vspeed, room._baseYAtZeroScale, room._baseYAtFullScale) {
+Player::Player(Game &game, Point startPos, const DB::Room &room)
+	: Character(game, startPos, room._charAnimSet, room._hspeed, room._vspeed, room._baseYAtZeroScale, room._baseYAtFullScale) {
+
+	_talkFont = FontKind::EdnaFont;
+	_thinkFont = FontKind::HarveyFont;
+	if (room._gameMode == GameMode::Harvey)
+		SWAP(_talkFont, _thinkFont);
 }
 
 void Player::debugPrint() {

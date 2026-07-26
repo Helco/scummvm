@@ -19,34 +19,32 @@
  *
  */
 
-#ifndef EDNA_NPC_H
-#define EDNA_NPC_H
+#ifndef EDNA_TEXT_H
+#define EDNA_TEXT_H
 
-#include "edna/db.h"
-#include "edna/sprite/character.h"
+#include "edna/sprite/sprite.h"
 
 namespace Edna {
 
-class Npc final : public Character, public InteractableObject {
-public:
-	Npc(Game &game,
-		const DB::NPC &dbNpc,
-		RoomInteractionId interactionId,
-		Common::Point startPos,
-		Common::Point baseLineStart,
-		Common::Point baseLineEnd);
+enum TextFlags {
+	kTextWrapLines = 1 << 0,
+	kTextMoveIntoScreen = 1 << 1
+};
 
+class Text final : public Sprite {
+public:
+	Text(Common::Point pos, FontKind font, const char *text, TextFlags flags);
+
+	void render() override;
 	void debugPrint() override;
-	int32 basePosX() const override;
-	int32 basePosY() const override;
-	int32 basePosY(int x) const override;
+	void setColor(FontKind font);
 
 private:
-	const char *const _name;
-	const Common::Point _baseLineStart, _baseLineEnd;
-
+	static constexpr uint kDebugTextSize = 32;
+	Common::Array<Common::ScopedPtr<IRenderedText>> _lines;
+	char _debugText[kDebugTextSize] = { };
 };
 
 }
 
-#endif // EDNA_NPC_H
+#endif // EDNA_TEXT_H

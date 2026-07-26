@@ -83,9 +83,8 @@ void Character::sayOrThink(const char *text, const char *soundFile, State newSta
 	setState(newState);
 
 	auto &config = g_engine->config();
-	if (soundFile != nullptr && *soundFile && config.speech()) {
-		// TODO: Play speech sound
-	}
+	if (soundFile != nullptr && *soundFile && config.speech())
+		_talkSound = g_engine->playSpeech(soundFile);
 
 	if (config.subtitles() || !config.speech()) {
 		_talkText = new Text(

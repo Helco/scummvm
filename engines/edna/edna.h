@@ -85,7 +85,9 @@ public:
 	inline float getElapsedF() const { return _timeElapsed / 1000.0f; }
 	uint32 getMillis() const;
 	void setMillis(uint32 newMillis);
+	Audio::SoundHandle playSpeech(const char *fileName);
 	Audio::SoundHandle playMusic(const char *fileName, bool loop = true);
+	void stopMusic();
 	void pauseEngineIntern(bool pause) override;
 
 	bool hasFeature(EngineFeature f) const override {
@@ -133,6 +135,9 @@ private:
 	uint32 _timeBeforePause = 0;
 	uint32 _timeLastFrame = 0, _timeElapsed = 0;
 	RoomId _nextRoom = 0;
+
+	Common::String _lastMusic;
+	Audio::SoundHandle _musicHandle;
 };
 
 extern EdnaEngine *g_engine;

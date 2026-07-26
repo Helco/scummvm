@@ -40,6 +40,7 @@ Npc::Npc(
 	, _baseLineStart(baseLineStart)
 	, _baseLineEnd(baseLineEnd) {
 	_direction = Direction::Left;
+	_talkFont = _thinkFont = npc._font;
 }
 
 void Npc::debugPrint() {

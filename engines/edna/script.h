@@ -28,10 +28,11 @@ namespace Edna {
 
 class Game;
 struct ScriptCommand;
+struct GameTransition;
 
 class Script {
 public:
-	Script(Game &game);
+	Script(Game &game, const GameTransition &transition);
 
 	inline bool isScriptRunning() const { return _isScriptRunning; }
 	inline ScriptId scriptId() const { return _scriptId; }

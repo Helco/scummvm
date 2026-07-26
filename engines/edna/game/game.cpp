@@ -53,17 +53,17 @@ void GameBase::add(Group *group, DisposeAfterUse::Flag dispose) {
 	_groups.emplace_back(group, dispose);
 }
 
-Game::Game(ScopedPtr<GameBase> &myPtr, GameMode mode, RoomId roomId)
+Game::Game(ScopedPtr<GameBase> &myPtr, GameMode mode, const GameTransition &transition)
 	: GameBase(myPtr, mode)
-	, _roomId(roomId)
-	, _script(*this)
+	, _roomId(transition._room)
+	, _script(*this, transition)
 	, _background("background")
 	, _bgObjects("bgObjects")
 	, _objects("objects")
 	, _texts("texts")
 	, _gui("gui") {
 	assert(mode != GameMode::Intro);
-	DB::Room room = g_engine->db().room(roomId);
+	DB::Room room = g_engine->db().room(_roomId);
 	assert(room._gameMode == mode);
 
 	initBackground(room._background);
@@ -72,10 +72,9 @@ Game::Game(ScopedPtr<GameBase> &myPtr, GameMode mode, RoomId roomId)
 	// TODO: Init walkableareamap
 	// TODO: Init font and cursor
 	// TODO: Init comment
-	initPlayer();
+	initPlayer(transition);
 	initObjects();
 	// TODO: Init CommandPrompt
-	// TODO: Init ScriptInterpreter
 	g_engine->playMusic(room._music);
 }
 
@@ -112,9 +111,11 @@ void Game::initGroups(Group *specialObjects, Group *specialGui) {
 	// TODO: start menu
 }
 
-void Game::initPlayer() {
-	_player = new Player(*this, Point(), g_engine->db().room(_roomId));
+void Game::initPlayer(const GameTransition &transition) {
+	_player = new Player(*this, transition._walkIn, g_engine->db().room(_roomId));
 	_player->immutable() = true;
+	if (transition._walkInDir != Direction::None)
+		_player->direction() = transition._walkInDir;
 	_objects.add(_player, DisposeAfterUse::YES);
 }
 

@@ -53,6 +53,11 @@ void Group::render() {
 		sprite->render();
 }
 
+void Group::debugRender() {
+	for (const auto &sprite : _sprites)
+		sprite->debugRender();
+}
+
 void Group::add(Sprite *sprite, DisposeAfterUse::Flag dispose) {
 	assert(sprite != nullptr);
 	assert(find_if(_sprites.begin(), _sprites.end(),

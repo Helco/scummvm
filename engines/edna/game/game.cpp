@@ -20,6 +20,7 @@
  */
 
 #include "edna/assetcache.h"
+#include "edna/console.h"
 #include "edna/edna.h"
 #include "edna/db.h"
 #include "edna/game/game.h"
@@ -47,6 +48,13 @@ void GameBase::update() {
 void GameBase::render() {
 	for (auto &group : _groups)
 		group->render();
+}
+
+void GameBase::debugRender() {
+	if (!g_engine->console().debugSprites())
+		return;
+	for (auto &group : _groups)
+		group->debugRender();
 }
 
 void GameBase::add(Group *group, DisposeAfterUse::Flag dispose) {

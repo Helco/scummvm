@@ -26,6 +26,7 @@
 #include "engines/util.h"
 #include "graphics/blit.h"
 #include "graphics/font.h"
+#include "graphics/fontman.h"
 #include "graphics/managed_surface.h"
 #include "graphics/screen.h"
 #include "image/png.h"
@@ -164,6 +165,7 @@ public:
 
 class SoftwareRenderer final : public IRenderer {
 	ScopedPtr<Graphics::Screen> _screen;
+	const Graphics::Font *_debugFont = nullptr;
 public:
 	SoftwareRenderer() {
 		const auto format = Graphics::BlendBlit::getSupportedPixelFormat();
@@ -241,6 +243,27 @@ public:
 			if (bounds.contains(point))
 				_screen->setPixel(point.x, point.y, color);
 		}
+	}
+
+	void debugRect(Rect rect, uint8 r, uint8 g, uint8 b) override {
+		uint32 color = _screen->format.RGBToColor(r, g, b);
+		_screen->frameRect(rect, color);
+	}
+
+	void debugLine(Point pos1, Point pos2, uint8 r, uint8 g, uint8 b) override {
+		uint32 color = _screen->format.RGBToColor(r, g, b);
+		_screen->drawLine(pos1.x, pos1.y, pos2.x, pos2.y, color);
+	}
+
+	void debugText(Point pos, const String &text, uint8 r, uint8 g, uint8 b, Graphics::TextAlign align) override {
+		if (text.empty())
+			return;
+		if (_debugFont == nullptr)
+			_debugFont = FontMan.getFontByUsage(Graphics::FontManager::kConsoleFont);
+		if (_debugFont == nullptr)
+			return;
+		uint32 color = _screen->format.RGBToColor(r, g, b);
+		_debugFont->drawString(_screen.get(), text, pos.x, pos.y, _debugFont->getStringWidth(text), color, align);
 	}
 };
 

@@ -405,8 +405,25 @@ uint32 DB::validateScriptCommand(const ScriptLine &line) const {
 	if (!scumm_stricmp(function, "skript"))
 		return _scripts.validateRef(args._script, "script", line._script);
 	if (!scumm_stricmp(function, "exit")) {
-		return _roomObjects.validateRef(args._exit._object, "script", line._script) +
+		uint32 errors = _roomObjects.validateRef(args._exit._object, "script", line._script) +
 			_rooms.validateRef(args._exit._target, "script", line._script);
+		if (errors > 0)
+			return errors;
+
+		// the target room from the command *should* match the target room from the exit object
+		const auto dbObject = roomObject(args._exit._object, false);
+		const auto dbInteraction = roomInteraction(dbObject._toInteraction, false);
+		const auto dbExit = roomExit(dbInteraction._toExit, false);
+		if (dbObject._toInteraction == 0 || dbExit._interaction != dbObject._toInteraction) {
+			debug("In script %u %u: Referenced object %u does not have an exit",
+				line._script, line._line, args._exit._object);
+			return 1;
+		}
+		if (dbExit._target != args._exit._target) {
+			debug("In script %u %u: Target room from command (%u) does not match exit object (%u)",
+				line._script, line._line, args._exit._target, dbExit._target);
+			return 1;
+		}
 	}
 	if (!scumm_stricmp(function, "paramExit"))
 		return _rooms.validateRef(args._paramExit._target, "script", line._script);

@@ -32,7 +32,13 @@ using namespace Common;
 
 namespace Edna {
 
-Script::Script(Game &game) : _game(game) { }
+Script::Script(Game &game, const GameTransition &transition) : _game(game) {
+	if (transition._script != 0) {
+		_isScriptRunning = true;
+		_scriptId = transition._script;
+		_scriptLine = transition._scriptLine;
+	}
+}
 
 bool Script::isPerforming() {
 	Character *npc = _currentNpc == 0 ? nullptr : dynamic_cast<Character *>(_game.objectById(_currentNpc));
@@ -203,13 +209,28 @@ bool Script::opScript(const ScriptCommand &line) {
 }
 
 bool Script::opExit(const ScriptCommand &line) {
-	warning("STUB script op: Exit");
-	return true;
+	// TODO: Check validation error: In script 10090312 6: Referenced object 10090301 does not have an exit
+	// originally this should throw a SQL exception, so we are fine to expect all objects?
+	const auto dbObject = g_engine->db().roomObject(line._args._exit._object);
+	const auto dbInteraction = g_engine->db().roomInteraction(dbObject._toInteraction);
+	const auto dbExit = g_engine->db().roomExit(dbInteraction._toExit);
+	auto &next = g_engine->next();
+	next._room = dbExit._target;
+	next._walkIn = { (int16)dbExit._walkToX, (int16)dbExit._walkToY };
+	next._walkInDir = dbExit._lookDirection;
+	next._script = _scriptId;
+	next._scriptLine = _scriptLine + 1;
+	return false;
 }
 
 bool Script::opParamExit(const ScriptCommand &line) {
-	warning("STUB script op: ParamExit");
-	return true;
+	auto &next = g_engine->next();
+	next._room = line._args._paramExit._target;
+	next._walkIn = line._args._paramExit._walkIn;
+	next._walkInDir = line._args._paramExit._direction;
+	next._script = _scriptId;
+	next._scriptLine = _scriptLine + 1;
+	return false;
 }
 
 bool Script::opFade(const ScriptCommand &line) {

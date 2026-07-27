@@ -19,7 +19,9 @@
  *
  */
 
-#include "assetcache.h"
+#include "edna/assetcache.h"
+#include "edna/edna.h"
+#include "edna/graphics.h"
 
 #include "graphics/blit.h"
 #include "graphics/font.h"
@@ -30,6 +32,8 @@ using namespace Common;
 namespace Edna {
 
 struct StaticFontInfo {
+    constexpr StaticFontInfo(uint8 size, uint8 r, uint8 g, uint8 b)
+        : _size(size), _r(r), _g(g), _b(b) {}
     uint8 _size = 0, _r = 0, _g = 0, _b = 0;
 };
 static constexpr const StaticFontInfo kStaticFonts[] = {
@@ -102,6 +106,23 @@ const FontInfo AssetCache::font(FontKind kind) const {
         error("Unimplemented font size");
     }
     return info;
+}
+
+SharedPtr<ITexture> AssetCache::texture(const String &fileName) {
+    SharedPtr<ITexture> texture;
+    if (_textureCaches[0].tryGetVal(fileName, texture) ||
+        _textureCaches[1].tryGetVal(fileName, texture))
+        return texture;
+
+    texture = g_engine->renderer().loadTexture(fileName.c_str());
+    if (texture != nullptr)
+        _textureCaches[_nextTextureCache][fileName] = texture;
+    return texture;
+}
+
+void AssetCache::finishNextLoad() {
+    _nextTextureCache = !_nextTextureCache;
+    _textureCaches[_nextTextureCache].clear();
 }
 
 }

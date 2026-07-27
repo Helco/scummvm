@@ -30,6 +30,8 @@ namespace Common {
 
 namespace Edna {
 
+class ITexture;
+
 // there are some assets (like fonts or normal player textures) that are used 
 // so much that we want to keep them in memory, at least across room changes
 
@@ -39,6 +41,12 @@ public:
 
     const FontInfo font(FontKind kind) const;
 
+    // We delay freeing textures until the room is loaded by keeping another
+    // shared pointer to them. After loading everything that was only used
+    // in the last is freed.
+    Common::SharedPtr<ITexture> texture(const Common::String &filename);
+    void finishNextLoad();
+
 private:
 	static Graphics::Font *loadFont(int size, bool forBackground);
 
@@ -46,6 +54,9 @@ private:
 		_fgFont14, _bgFont14,
 		_fgFont16, _bgFont16,
 		_fgFont18, _bgFont18;
+
+    Common::HashMap<Common::String, Common::SharedPtr<ITexture>> _textureCaches[2];
+    int _nextTextureCache = 0;
 };
 
 }

@@ -60,6 +60,7 @@ public:
 	void say(const char *text, const char *soundFile);
 	void think(const char *text, const char *soundFile);
 	void shutUp(); ///< original method name and it fits...
+	void walkTo(Common::Point walkTo, Direction standbyDirection = Direction::None);
 
 protected:
 	void sayOrThink(const char *text, const char *soundFile, State newState);
@@ -69,7 +70,10 @@ protected:
 	void setAnimation(ActionModeId actionMode);
 	void initScaling();
 	void updateScaling();
+	Common::Point scaleBasePosToSpritePos(Common::Point basePos) const;
 	void updateTalking();
+	void updateWalking();
+	void nextWalkPoint();
 	const char *stateToString() const; ///< for debugging
 
 	static constexpr const uint32 kStateCount = 5;
@@ -86,11 +90,15 @@ protected:
 	FontKind _talkFont = {};
 	FontKind _thinkFont = {};
 
-	const float _hSpeed = 0, _vSpeed = 0;
 	const float _baseYAtZeroScale = 0, _baseYAtFullScale = 1;
-	Common::Point _baseSize;
+	Common::Point _baseOffset;
 	float _scaleFactor = 0;
+
+	const float _hSpeed = 0, _vSpeed = 0;
 	float _cSpeed = 0;
+	Direction _standbyDirection = Direction::None;
+	Common::Array<Common::Point> _walkPoints; ///< as unscaled base positions
+	Common::Point _walkTarget; ///< as sprite position
 };
 
 }

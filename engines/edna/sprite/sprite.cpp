@@ -171,7 +171,10 @@ void AnimatedSprite::stopAnimation() {
 
 void AnimatedSprite::setFrame(uint32 index) {
 	assert(index <= _textures.size());
-	setAnimation(AnimationRange { index, index, 0, true });
+	AnimationRange range;
+	range._startFrame = range._endFrame = index;
+	range._loop = true;
+	setAnimation(range);
 	_timer.toggle(false);
 }
 

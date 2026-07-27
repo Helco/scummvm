@@ -97,6 +97,7 @@ Error EdnaEngine::run() {
 		// change room before handling events as we publish events to be processed by the next room
 		if (_transition.isPending()) {
 			createRoom(_transition);
+			assets().finishNextLoad();
 			_transition = {};
 		}
 

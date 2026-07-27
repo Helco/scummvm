@@ -359,6 +359,9 @@ TValue DB::TwoKeyDataSet<TValue>::get(uint32 key1, uint32 key2, bool required) c
 	return value;
 }
 
+constexpr DB::Range::Range(uint32 begin, uint32 count)
+	: _begin(begin), _count(count) {}
+
 template<class TValue>
 DB::SequenceSet<TValue>::SequenceSet(const char *typeName, RecordSyncFn<TValue> sync)
 	: _typeName(typeName), _sync(sync) { }
@@ -387,11 +390,11 @@ void DB::SequenceSet<TValue>::setupSequences(GetMe getMe, GetParent getParent) {
 	uint32 begin = 0;
 	for (uint32 i = 1; i < _items.size(); i++) {
 		if (getParent(_items[begin]) != getParent(_items[i])) {
-			_map[getParent(_items[begin])] = Range { begin, i - begin };
+			_map[getParent(_items[begin])] = Range(begin, i - begin);
 			begin = i;
 		}
 	}
-	_map[getParent(_items[begin])] = Range { begin, _items.size() - begin };
+	_map[getParent(_items[begin])] = Range(begin, _items.size() - begin);
 }
 
 template<class TValue>

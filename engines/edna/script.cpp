@@ -315,13 +315,19 @@ bool Script::opWalkNpcP(const ScriptCommand &line) {
 }
 
 bool Script::opFreeWalk(const ScriptCommand &line) {
-	warning("STUB script op: FreeWalk");
-	return true;
+	_game.player().walkTo(line._args._walk._target);
+	return false;
 }
 
 bool Script::opFreeWalkNpc(const ScriptCommand &line) {
-	warning("STUB script op: FreeWalkNpc");
-	return true;
+	auto *npc = dynamic_cast<Character *>(_game.objectById(line._args._walk._npc));
+	if (npc == nullptr)
+		warning("@ %10u %3u: Invalid NPC id: %u", _scriptId, _scriptLine, line._args._walk._npc);
+	else {
+		_currentNpc = npc->id();
+		npc->walkTo(line._args._walk._target);
+	}
+	return npc == nullptr;
 }
 
 bool Script::opPutPlayer(const ScriptCommand &line) {

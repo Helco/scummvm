@@ -19,6 +19,7 @@
  *
  */
 
+#include "edna/assetcache.h"
 #include "edna/edna.h"
 #include "edna/db.h"
 #include "edna/sprite/animation.h"
@@ -50,7 +51,7 @@ void Animation::loadTextures(AnimationId id, TextureArray &targetTextures) {
         totalFrames += dbFrame._altDuration;
     _textures->reserve(_textures->size() + totalFrames);
     for (const auto &dbFrame : dbFrames) {
-        auto texture = TexturePtr(g_engine->renderer().loadTexture(dbFrame._image));
+        auto texture = TexturePtr(g_engine->assets().texture(dbFrame._image));
         if (texture == nullptr)
             error("Could not load texture: %s", dbFrame._image);
         for (uint32 i = 0; i < dbFrame._altDuration; i++)

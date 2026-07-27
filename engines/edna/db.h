@@ -286,6 +286,8 @@ private:
 
 	// For a sequence referenced by one key
 	struct Range {
+		Range() = default;
+		constexpr Range(uint32 begin, uint32 count);
 		uint32 _begin = 0;
 		uint32 _count = 0;
 	};

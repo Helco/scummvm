@@ -129,7 +129,14 @@ struct AnimationRange {
 	uint32 _startFrame = 0, _endFrame = 0, _delay = 0;
 	bool _loop = false;
 
-	bool isValid() const { return _startFrame < _endFrame; }
+	inline bool isValid() const { return _startFrame < _endFrame; }
+	inline bool operator==(const AnimationRange &o) const {
+		return _startFrame == o._startFrame && _endFrame == o._endFrame &&
+			_delay == o._delay && _loop == o._loop;
+	}
+	inline bool operator!=(const AnimationRange &o) const {
+		return !(*this == o);
+	}
 };
 
 using StringSpan = Common::Span<char>;

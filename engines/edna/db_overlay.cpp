@@ -214,8 +214,8 @@ void DB::syncDBString(DBString &value, Serializer &s) {
 			s.syncBytes((byte *)newString, length);
 			value = DBString::ownerOf(newString);
 		}
-		if (s.isSaving())
-			s.syncBytes((byte *)value.get(), length);
+		if (s.isSaving()) // double cast needed for compiler warning
+			s.syncBytes((byte *)(const byte *)value.get(), length);
 	}
 }
 

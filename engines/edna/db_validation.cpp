@@ -67,7 +67,7 @@ uint32 DB::SimpleDataSet<TValue>::validateRef(uint32 key, const char *sourceType
 
 template<typename TValue>
 uint32 DB::TwoKeyDataSet<TValue>::validateRef(uint32 key, const char *sourceType, uint32 sourceKey) const {
-	const auto it = find_if(_map.begin(), _map.end(), [&](const TwoKeyMap<TValue>::Node &pair) {
+	const auto it = find_if(_map.begin(), _map.end(), [&](const typename TwoKeyMap<TValue>::Node &pair) {
 		return pair._key.first == key;
 	});
 	if (it != _map.end())
@@ -276,7 +276,7 @@ uint32 DB::validateAnimationFrames() const {
 		if (frame._altDuration < 1)
 		{
 			errors++;
-			debug("In animation frame %u %u: invalid duration");
+			debug("In animation frame %u %u: invalid duration", frame._animation, frame._frame);
 		}
 		errors += _animations.validateRef(frame._animation, "animation frame", frame._animation);
 		errors += validatePath(frame._image, "animation frame", frame._animation);

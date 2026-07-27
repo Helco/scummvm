@@ -24,7 +24,10 @@
 #include "edna/sprite/character.h"
 #include "edna/sprite/text.h"
 
+#include "math/vector2d.h"
+
 using namespace Common;
+using namespace Math;
 
 namespace Edna {
 
@@ -49,6 +52,7 @@ void Character::update() {
 	AnimatedSprite::update();
 
 	updateTalking();
+	updateWalking();
 
 	if (_stateTimer.update()) {
 		_stateTimer.toggle(false);
@@ -128,6 +132,49 @@ void Character::shutUp() {
 	setState(kWaiting);
 }
 
+void Character::walkTo(Point walkTo, Direction standbyDirection) {
+	_standbyDirection = standbyDirection;
+	_walkPoints.clear();
+	_walkPoints.emplace_back(walkTo);
+	nextWalkPoint();
+}
+
+void Character::updateWalking() {
+	if (_state != kWalking)
+		return;
+
+	Point delta = _walkTarget - pos();
+	Vector2d move = Vector2d(delta.x, delta.y).getNormalized() * _cSpeed * g_engine->getElapsed();
+	const auto absmin = [](int16 delta, float move) -> int16 {
+		int16 moveI = (int16)(move + 0.5f);
+		return ABS(delta) < ABS(moveI) ? delta : moveI;
+	};
+	pos().x += absmin(delta.x, move.getX());
+	pos().y += absmin(delta.y, move.getY());
+
+	if (pos() == _walkTarget)
+		nextWalkPoint();
+}
+
+void Character::nextWalkPoint() {
+	if (_walkPoints.empty()) {
+		if (_standbyDirection != Direction::None)
+			_direction = _standbyDirection;
+		setState(kWaiting);
+		return;
+	}
+
+	_walkTarget = scaleBasePosToSpritePos(_walkPoints.back());
+	Point signedDelta = _walkPoints.back() - Point(basePosX(), basePosY());
+	Point delta(ABS(signedDelta.x), ABS(signedDelta.y));
+	_cSpeed = (_hSpeed * delta.x + _vSpeed * delta.y) / (delta.x + delta.y);
+	_direction = delta.x > delta.y
+		? (signedDelta.x < 0 ? Direction::Left : Direction::Right)
+		: (signedDelta.y < 0 ? Direction::Up : Direction::Down);
+	setState(kWalking);
+	_walkPoints.pop_back();
+}
+
 void Character::setState(State state) {
 	_state = state;
 	setAnimation(state);
@@ -147,14 +194,9 @@ void Character::setAnimation(ActionModeId actionMode) {
 
 void Character::initScaling() {
 	// TODO: This might differ between NPCs and Player -_-
-	_baseSize = this->size();
-	_scaleFactor = 1.0f / (_baseYAtFullScale - _baseYAtZeroScale - _baseSize.y);
-
-	const Point baseOffset(_baseSize.x / 2, _baseSize.y);
-	float initScale = 1.0f;
-	if (_baseYAtZeroScale != _baseYAtFullScale)
-		initScale = ABS(pos().y - _baseYAtZeroScale) / (_baseYAtFullScale - _baseYAtZeroScale);
-	pos() -= baseOffset * initScale;
+	_baseOffset = Point(size().x / 2, size().y);
+	_scaleFactor = 1.0f / (_baseYAtFullScale - _baseYAtZeroScale - size().y);
+	pos() = scaleBasePosToSpritePos(pos());
 	updateScaling();
 }
 
@@ -163,6 +205,13 @@ void Character::updateScaling() {
 	if (_baseYAtZeroScale != _baseYAtFullScale)
 		scale = MAX(0.001f, ABS((pos().y - _baseYAtZeroScale) * _scaleFactor));
 	size() = curFrameSize() * scale;
+}
+
+Point Character::scaleBasePosToSpritePos(Point basePos) const {
+	float scale = 1.0f;
+	if (_baseYAtZeroScale != _baseYAtFullScale)
+		scale = (basePos.y - _baseYAtZeroScale) / (_baseYAtFullScale - _baseYAtZeroScale);
+	return basePos - _baseOffset * scale;
 }
 
 const char *Character::stateToString() const {

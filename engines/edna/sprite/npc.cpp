@@ -52,7 +52,7 @@ int32 Npc::basePosX() const {
 }
 
 int32 Npc::basePosY() const {
-	return pos().x + size().y;
+	return pos().y + size().y;
 }
 
 int32 Npc::basePosY(int x) const {

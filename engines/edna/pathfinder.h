@@ -37,18 +37,29 @@ public:
 private:
     Common::Point nearestWalkablePoint(Common::Point pos) const;
     bool dijkstraDistances(Common::Point from, Common::Point to);
-    void dijkstraPath(Common::Point from, Common::Point to, Common::Array<Common::Point> &waypoints) const;
+    void dijkstraPath(Common::Point from, Common::Point to, Common::Array<Common::Point> &waypoints);
     void reduceWaypoints(Common::Array<Common::Point> &waypoints) const;
     bool isWalkable(Common::Point pos) const;
-    uint32 &distance(Common::Point pos) const;
-    void enqueue(Common::Point p);
-    bool tryDequeue(Common::Point &p);
+    uint32 &distance(Common::Point pos);
 
-    // these large, static data blocks is why we use a single instance of PathFinder for the engine
+	// a flat queue using a ring buffer
+	class PointQueue {
+	public:
+		~PointQueue();
+		void enqueue(Common::Point p);
+		bool tryDequeue(Common::Point &p);
+		void clear();
+		inline uint32 capacity() const { return _capacity; } ///< for debugging
 
+	private:
+		uint32 _first = 0, _count = 0, _capacity = 0;
+		Common::Point *_data = nullptr;
+	};
+
+	// these large, static data blocks is why we use a single instance of PathFinder for the engine
     byte _map[kScreenWidth * kScreenHeight]; ///< unfortunately this is column-major
     uint32 _distance[kScreenWidth * kScreenHeight];
-    Array<Point> _queue; ///< only used in dijkstraDistances but we keep it to reduce allocations
+    PointQueue _queue; ///< only used locally in dijkstraDistances but we keep it to reduce allocations
 };
 
 }

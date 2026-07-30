@@ -35,7 +35,7 @@ Npc::Npc(
 	Point baseLineStart,
 	Point baseLineEnd)
 	: Character(game, startPos, npc._charAnimSet, npc._hspeed, npc._vspeed, npc._baseYAtZeroScale, npc._baseYAtFullScale)
-	, InteractableObject(interactionId)
+	, InteractableRoomObject(interactionId)
 	, _name(npc._name)
 	, _baseLineStart(baseLineStart)
 	, _baseLineEnd(baseLineEnd) {

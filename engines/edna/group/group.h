@@ -30,7 +30,7 @@
 namespace Edna {
 
 class Sprite;
-class InteractableObject;
+class InteractableRoomObject;
 
 class Group {
 public:
@@ -62,7 +62,7 @@ class ObjectGroup : public Group {
 public:
 	using Group::Group;
 	void render() override;
-	InteractableObject *checkInteractableClick(Common::Point screenPos) const;
+	Sprite *checkInteractableClick(Common::Point screenPos) const;
 };
 
 }

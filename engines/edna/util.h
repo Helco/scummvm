@@ -64,8 +64,9 @@ enum PlayerAction {
 	None = 0,
 	Look,
 	Use,
-	Take,
-	Talk
+	Pick,
+	Talk,
+	Walk
 };
 bool parsePlayerAction(const char *text, PlayerAction &value);
 
@@ -166,6 +167,15 @@ struct GameTransition {
 	uint32 _scriptLine = 0;
 
 	inline bool isPending() const { return _room != 0; }
+};
+
+struct PlayerCommand {
+	PlayerAction _action = PlayerAction::None;
+	uint32 _target = 0; ///< This can be an object, an item, a topic or even a gui element (player action)
+	ItemId _item = 0; ///< Only for Use there can be a second target which is always an item
+	Common::Point _targetPos = kInvalidPoint;
+
+	bool _isComplete; ///< this cannot be determined by the members alone, e.g. an item can usually not be used as-is
 };
 
 }

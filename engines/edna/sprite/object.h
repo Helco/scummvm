@@ -40,11 +40,23 @@ public:
 	void setBasePos(Common::Point pos);
 };
 
-class InteractableObject : virtual public RoomObject {
+class IInteractableObject : virtual public RoomObject {
 public:
-	InteractableObject(RoomInteractionId interactionId);
+	virtual PlayerAction defaultAction() const = 0;
+	virtual ScriptId scriptFor(PlayerAction action) const = 0;
+	virtual Common::Point interactionPos() const = 0;
+	virtual Direction interactionDir() const = 0;
+};
+
+class InteractableRoomObject : virtual public IInteractableObject {
+public:
+	InteractableRoomObject(RoomInteractionId interactionId);
 
 	inline RoomInteractionId interactionId() const { return _interactionId; }
+	PlayerAction defaultAction() const override;
+	ScriptId scriptFor(PlayerAction action) const override;
+	Common::Point interactionPos() const override;
+	Direction interactionDir() const override;
 
 private:
 	const RoomInteractionId _interactionId;

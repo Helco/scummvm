@@ -19,34 +19,38 @@
  *
  */
 
-#ifndef EDNA_NPC_H
-#define EDNA_NPC_H
+#ifndef EDNA_EDNASTD_H
+#define EDNA_EDNASTD_H
 
-#include "edna/db.h"
-#include "edna/sprite/character.h"
+#include "edna/game/game.h"
 
 namespace Edna {
 
-class Npc final : public Character, public InteractableRoomObject {
-public:
-	Npc(Game &game,
-		const DB::NPC &dbNpc,
-		RoomInteractionId interactionId,
-		Common::Point startPos,
-		Common::Point baseLineStart,
-		Common::Point baseLineEnd);
+class IInteractableObject;
 
-	void debugPrint() override;
-	int32 basePosX() const override;
-	int32 basePosY() const override;
-	int32 basePosY(int x) const override;
+class EdnaStd : public Game {
+public:
+	EdnaStd(Common::ScopedPtr<GameBase> &myPtr, const GameTransition &transition);
+
+	void update() override;
 
 private:
-	const char *const _name;
-	const Common::Point _baseLineStart, _baseLineEnd;
+	bool isItem(Sprite *selection) const;
+	PlayerAction isPlayerActionButton(Sprite *selection) const;
 
+	Sprite *findSelection();
+	void updateCommandByHover(Sprite *selection);
+	void onMouseLeftPressed(Sprite *selection);
+	void onMouseLeftReleased(Sprite *selection);
+	void onMouseRightPressed(Sprite *selection);
+	void onMouseRightReleased(Sprite *selection);
+	void invokeRoomInteraction(IInteractableObject *object, PlayerAction action);
+	void invokeCommand();
+
+	PlayerCommand _command = {};
+	Group _inventory; ///< only temporary
 };
 
 }
 
-#endif // EDNA_NPC_H
+#endif // EDNA_EDNASTD_H

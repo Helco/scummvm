@@ -25,8 +25,10 @@
 #include "edna/detection.h"
 #include "edna/db.h"
 #include "edna/graphics.h"
+#include "edna/game/ednastd.h"
 #include "edna/game/intro.h"
 #include "edna/game/scriptonclick.h"
+#include "edna/input.h"
 #include "edna/pathfinder.h"
 
 #include "audio/decoders/vorbis.h"
@@ -75,6 +77,7 @@ Error EdnaEngine::run() {
 	_config.loadFromScummVM();
 	_db.reset(new DB(Path("script/").appendInPlace(language())));
 	_renderer.reset(createSoftwareRenderer());
+	_input.reset(new Input());
 	_assets.reset(new AssetCache());
 	_pathFinder.reset(new PathFinder());
 
@@ -86,7 +89,9 @@ Error EdnaEngine::run() {
 		(void)loadGameState(saveSlot);
 
 	_transition = {};
-	_transition._room = 2;
+	_transition._room = 100101;
+	_transition._walkIn = { 260, 520 };
+	_transition._walkInDir = Direction::Left;
 
 	_timeLastFrame = getMillis();
 	Common::Event e;
@@ -123,6 +128,9 @@ void EdnaEngine::createRoom(const GameTransition &transition) {
 	switch (room._gameMode) {
 	case GameMode::ScriptOnClick:
 		new ScriptOnClick(_game, transition);
+		break;
+	case GameMode::EdnaStd:
+		new EdnaStd(_game, transition);
 		break;
 	default:
 		error("Unimplemented game mode: %s", gameModeToString(room._gameMode));

@@ -19,34 +19,34 @@
  *
  */
 
-#ifndef EDNA_NPC_H
-#define EDNA_NPC_H
+#ifndef EDNA_INPUT_H
+#define EDNA_INPUT_H
 
-#include "edna/db.h"
-#include "edna/sprite/character.h"
+#include "edna/util.h"
+
+#include "common/events.h"
 
 namespace Edna {
 
-class Npc final : public Character, public InteractableRoomObject {
+class Input {
 public:
-	Npc(Game &game,
-		const DB::NPC &dbNpc,
-		RoomInteractionId interactionId,
-		Common::Point startPos,
-		Common::Point baseLineStart,
-		Common::Point baseLineEnd);
+	void nextFrame();
+	bool handleEvent(const Common::Event &event);
 
-	void debugPrint() override;
-	int32 basePosX() const override;
-	int32 basePosY() const override;
-	int32 basePosY(int x) const override;
+	inline Common::Point mousePos() const { return _mousePos; }
+	inline bool wasMouseLeftPressed() const { return _wasMouseLeftPressed; }
+	inline bool wasMouseRightPressed() const { return _wasMouseRightPressed; }
+	inline bool wasMouseLeftReleased() const { return _wasMouseLeftReleased; }
+	inline bool wasMouseRightReleased() const { return _wasMouseRightReleased; }
 
 private:
-	const char *const _name;
-	const Common::Point _baseLineStart, _baseLineEnd;
-
+	bool _wasMouseLeftPressed = false,
+		_wasMouseRightPressed = false,
+		_wasMouseLeftReleased = false,
+		_wasMouseRightReleased = false;
+	Common::Point _mousePos;
 };
 
 }
 
-#endif // EDNA_NPC_H
+#endif // EDNA_INPUT_H

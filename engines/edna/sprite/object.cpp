@@ -43,8 +43,25 @@ void SpatialObject::setBasePos(Point basePos) {
 	pos() = basePos - Point(size().x / 2, size().y);
 }
 
-InteractableObject::InteractableObject(RoomInteractionId interactionId)
+InteractableRoomObject::InteractableRoomObject(RoomInteractionId interactionId)
 	: _interactionId(interactionId) {}
+
+PlayerAction InteractableRoomObject::defaultAction() const {
+	return g_engine->db().roomInteraction(_interactionId)._defaultAction;
+}
+
+ScriptId InteractableRoomObject::scriptFor(PlayerAction action) const {
+	return g_engine->db().roomInteraction(_interactionId).scriptFor(action);
+}
+
+Point InteractableRoomObject::interactionPos() const {
+	const auto interaction = g_engine->db().roomInteraction(_interactionId);
+	return { (int16)interaction._walkToX, (int16)interaction._walkToY };
+}
+
+Direction InteractableRoomObject::interactionDir() const {
+	return g_engine->db().roomInteraction(_interactionId)._lookDirection;
+}
 
 VisualObject::VisualObject(Point baseLineStart, Point baseLineEnd)
 	: _baseLineStart(baseLineStart)

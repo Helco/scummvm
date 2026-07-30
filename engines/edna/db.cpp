@@ -535,6 +535,7 @@ void DB::loadRoomObjects() {
 ScriptId DB::RoomInteraction::scriptFor(PlayerAction action) const {
 	switch (action) {
 	case PlayerAction::None:
+	case PlayerAction::Walk:
 		return 0;
 	case PlayerAction::Look:
 		return _lookScript;
@@ -542,7 +543,7 @@ ScriptId DB::RoomInteraction::scriptFor(PlayerAction action) const {
 		return _useScript;
 	case PlayerAction::Talk:
 		return _talkScript;
-	case PlayerAction::Take:
+	case PlayerAction::Pick:
 		return _takeScript;
 	default:
 		assert(false && "Player action not implemented");
@@ -580,7 +581,7 @@ void DB::loadRoomInteractions() {
 ScriptId DB::Item::scriptFor(PlayerAction action) const {
 	switch (action) {
 	case PlayerAction::None:
-	case PlayerAction::Take:
+	case PlayerAction::Pick:
 		return 0;
 	case PlayerAction::Look:
 		return _lookScript;

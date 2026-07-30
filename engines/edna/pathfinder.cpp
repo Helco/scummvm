@@ -19,9 +19,9 @@
  *
  */
 
-#include "edna/db.h"
-#include "edna/edna.h"
+#include "edna/detection.h"
 #include "edna/pathfinder.h"
+#include "edna/util.h"
 
 #include "common/algorithm.h"
 #include "common/file.h"
@@ -84,8 +84,12 @@ bool PathFinder::findPath(Point from, Point to, Array<Point> &waypoints) {
         !dijkstraDistances(from, to))
         return false;
     dijkstraPath(from, to, waypoints);
+	uint beforeReduction = waypoints.size();
     reduceWaypoints(waypoints);
     reverse(waypoints.begin(), waypoints.end());
+
+	debugC(2, kDebugGameplay, "Path (%d,%d) -> (%d,%d), distance=%u, before=%u, after=%u, queueCap=%u",
+		from.x, from.y, to.x, to.y, distance(to), beforeReduction, waypoints.size(), _queue.capacity());
     return true;
 }
 
@@ -170,23 +174,24 @@ struct Neighbors {
 bool PathFinder::dijkstraDistances(Point from, Point to) {
     fill(_distance, _distance + kScreenWidth * kScreenHeight, UINT32_MAX);
     _queue.clear();
-    enqueue(from);
+	_queue.enqueue(from);
     distance(from) = 0;
     Point cur;
-    while (tryDequeue(cur)) {
+    while (_queue.tryDequeue(cur)) {
         if (cur == to)
             return true;
         auto newDist = distance(cur) + 1;
         for (const auto &neighbor : Neighbors(cur)) {
             if (isWalkable(neighbor) && newDist < distance(neighbor)) {
                 distance(neighbor) = newDist;
-                enqueue(neighbor);
+                _queue.enqueue(neighbor);
             }
         }
     }
+	return false;
 }
 
-void PathFinder::dijkstraPath(Point from, Point to, Array<Point> &waypoints) const {
+void PathFinder::dijkstraPath(Point from, Point to, Array<Point> &waypoints) {
     // we do not reserve the waypoints to distance(to) because we already reduce 
     // the waypoints quite a lot here, no need to always overallocate
 
@@ -239,6 +244,46 @@ bool PathFinder::isWalkable(Point pos) const {
     return pos.x < 0 || pos.y < 0 || pos.x >= kScreenWidth || pos.y >= kScreenHeight
         ? false
         : _map[pos.x * kScreenHeight + pos.y] != 0;
+}
+
+uint32 &PathFinder::distance(Point pos) {
+	assert(Rect(kScreenWidth, kScreenHeight).contains(pos));
+	return _distance[pos.x * kScreenHeight + pos.y];
+}
+
+PathFinder::PointQueue::~PointQueue() {
+	if (_data != nullptr) {
+		delete[] _data;
+		_data = nullptr;
+	}
+}
+
+void PathFinder::PointQueue::enqueue(Point p) {
+	if (_count == _capacity) {
+		if (_capacity == 0)
+			_capacity = 512; // for walking across the map, TODO: check usual capacities for large walks
+		Point *newData = new Point[_capacity *= 2];
+		copy(_data + _first, _data + _capacity - _first, newData); // reorder during copy
+		copy(_data, _data + _first, newData + _capacity - _first);
+		delete[] _data;
+		_first = 0;
+	}
+
+	_data[(_first + _count) % _capacity] = p;
+	_count++;
+}
+
+bool PathFinder::PointQueue::tryDequeue(Point &p) {
+	if (_count == 0)
+		return false;
+	p = _data[_first++];
+	_first %= _capacity;
+	_count--;
+	return true;
+}
+
+void PathFinder::PointQueue::clear() {
+	_first = _count = 0;
 }
 
 }

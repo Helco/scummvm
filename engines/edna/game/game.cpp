@@ -28,6 +28,8 @@
 #include "edna/sprite/npc.h"
 #include "edna/sprite/player.h"
 
+#include "graphics/cursorman.h"
+
 using namespace Common;
 
 namespace Edna {
@@ -78,7 +80,6 @@ Game::Game(ScopedPtr<GameBase> &myPtr, GameMode mode, const GameTransition &tran
 	initTimer(room._timer);
 	initGroups();
 	// TODO: Init walkableareamap
-	// TODO: Init font and cursor
 	// TODO: Init comment
 	initPlayer(transition);
 	initObjects();
@@ -183,6 +184,7 @@ void Game::update() {
 	updateFade();
 	if (!updateScript())
 		return;
+	CursorMan.showMouse(!script().isScriptRunning());
 	GameBase::update(); // updates sprite groups
 }
 

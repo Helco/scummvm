@@ -32,8 +32,8 @@ namespace Graphics {
 
 namespace Edna {
 
-static constexpr const int kScreenWidth = 800;
-static constexpr const int kScreenHeight = 600;
+static constexpr const int16 kScreenWidth = 800;
+static constexpr const int16 kScreenHeight = 600;
 
 static constexpr const Common::Point kInvalidPoint = { -1, -1 };
 

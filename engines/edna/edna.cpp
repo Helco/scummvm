@@ -27,6 +27,7 @@
 #include "edna/graphics.h"
 #include "edna/game/intro.h"
 #include "edna/game/scriptonclick.h"
+#include "edna/pathfinder.h"
 
 #include "audio/decoders/vorbis.h"
 #include "audio/audiostream.h"
@@ -75,6 +76,7 @@ Error EdnaEngine::run() {
 	_db.reset(new DB(Path("script/").appendInPlace(language())));
 	_renderer.reset(createSoftwareRenderer());
 	_assets.reset(new AssetCache());
+	_pathFinder.reset(new PathFinder());
 
 	// If a savegame was selected from the launcher, load it
 	int saveSlot = ConfMan.getInt("save_slot");

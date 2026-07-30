@@ -43,6 +43,7 @@ struct EdnaGameDescription;
 class IRenderer;
 class DB;
 class GameBase;
+class PathFinder;
 class Console;
 class AssetCache;
 
@@ -80,6 +81,7 @@ public:
 	inline Console &console() { assert(_console != nullptr); return *_console; }
 	inline DB &db() { assert(_db != nullptr); return *_db; }
 	inline GameBase &game() { assert(_game != nullptr); return *_game; }
+	inline PathFinder &pathFinder() { assert(_pathFinder != nullptr); return *_pathFinder; }
 
 	inline uint32 getElapsed() const { return _timeElapsed; }
 	inline float getElapsedF() const { return _timeElapsed / 1000.0f; }
@@ -129,6 +131,7 @@ private:
 	Console *_console; // raw pointer because Engine deletes the console itself
 	Common::ScopedPtr<DB> _db;
 	Common::ScopedPtr<GameBase> _game;
+	Common::ScopedPtr<PathFinder> _pathFinder;
 	Config _config;
 
 	uint32 _timeNegOffset = 0, _timePosOffset = 0;

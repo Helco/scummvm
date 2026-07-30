@@ -13,7 +13,9 @@ MODULE_OBJS = \
 	game/intro.o \
 	game/scriptonclick.o \
 	group/group.o \
+	input.o \
 	metaengine.o \
+	pathfinder.o \
 	script.o \
 	scriptcommand.o \
 	sprite/animation.o \

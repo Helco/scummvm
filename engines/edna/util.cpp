@@ -105,12 +105,13 @@ bool parsePlayerAction(const char *text, PlayerAction &value) {
 		break;
 	case 'n':
 	case 'p':
-		value = PlayerAction::Take;
+		value = PlayerAction::Pick;
 		break;
 	case 'r':
 	case 't':
 		value = PlayerAction::Talk;
 		break;
+	// Walk has no stored value
 	default:
 		return false;
 	}

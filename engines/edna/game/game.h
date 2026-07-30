@@ -22,10 +22,10 @@
 #ifndef EDNA_GAME_H
 #define EDNA_GAME_H
 
-#include "common/span.h"
-
+#include "edna/group/group.h"
 #include "edna/script.h"
-#include "edna/sprite/group.h"
+
+#include "common/span.h"
 
 namespace Edna {
 
@@ -64,7 +64,7 @@ public:
 	inline Player &player() { assert(_player != nullptr); return *_player; }
 	inline Group &background() { return _background; }
 	inline Group &bgObjects() { return _bgObjects; }
-	inline Group &objects() { return _objects; }
+	inline ObjectGroup &objects() { return _objects; }
 	inline Group &texts() { return _texts; }
 	inline Group &gui() { return _gui; }
 

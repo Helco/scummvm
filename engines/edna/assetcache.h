@@ -19,10 +19,12 @@
  *
  */
 
-#include "util.h"
-
 #ifndef EDNA_ASSETCACHE_H
 #define EDNA_ASSETCACHE_H
+
+#include "util.h"
+
+#include "graphics/managed_surface.h"
 
 namespace Common {
     class File;
@@ -39,6 +41,7 @@ class AssetCache {
 public:
     AssetCache();
 
+	void pushExitCursor() const;
     const FontInfo font(FontKind kind) const;
 
     // We delay freeing textures until the room is loaded by keeping another
@@ -48,7 +51,7 @@ public:
     void finishNextLoad();
 
 private:
-	static Graphics::Font *loadFont(int size, bool forBackground);
+	Graphics::ManagedSurface _standardCursor, _exitCursor;
 
 	Common::ScopedPtr<Graphics::Font>
 		_fgFont14, _bgFont14,

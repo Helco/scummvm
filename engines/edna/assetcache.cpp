@@ -23,9 +23,12 @@
 #include "edna/edna.h"
 #include "edna/graphics.h"
 
+#include "common/file.h"
 #include "graphics/blit.h"
+#include "graphics/cursorman.h"
 #include "graphics/font.h"
 #include "graphics/fonts/ttf.h"
+#include "image/png.h"
 
 using namespace Common;
 
@@ -56,16 +59,21 @@ static constexpr const StaticFontInfo kStaticFonts[] = {
     { 16, 255, 255, 255 } // MenuFont2
 };
 
-AssetCache::AssetCache() {
-	_fgFont14.reset(loadFont(14, false));
-	_bgFont14.reset(loadFont(14, true));
-	_fgFont16.reset(loadFont(16, false));
-	_bgFont16.reset(loadFont(16, true));
-	_fgFont18.reset(loadFont(18, false));
-	_bgFont18.reset(loadFont(18, true));
+static void pushCursor(const Graphics::ManagedSurface &surface) {
+	CursorMan.pushCursor(surface, surface.w / 2,surface.h / 2, 0);
 }
 
-Graphics::Font *AssetCache::loadFont(int size, bool forBackground) {
+static Graphics::ManagedSurface loadPNG(const char *path) {
+	File file;
+	Image::PNGDecoder decoder;
+	if (!file.open(path) || !decoder.loadStream(file))
+		error("Could not load image: %s", path);
+	Graphics::ManagedSurface surface;
+	surface.copyFrom(*decoder.getSurface());
+	return surface;
+}
+
+static Graphics::Font *loadFont(int size, bool forBackground) {
 	auto file = new File();
 	if (!file->open("data/DejaVuSans.ttf")) {
 		delete file;
@@ -79,6 +87,24 @@ Graphics::Font *AssetCache::loadFont(int size, bool forBackground) {
 	if (font == nullptr)
 		error("Could not load font: %d %s", size, forBackground ? "bg" : "fg");
 	return font;
+}
+
+AssetCache::AssetCache()
+	: _standardCursor(loadPNG("gui/edna/cursor.png"))
+	, _exitCursor(loadPNG("gui/edna/cursor_ausgang_hinten.png")) {
+	CursorMan.showMouse(false);
+	pushCursor(_standardCursor);
+
+	_fgFont14.reset(loadFont(14, false));
+	_bgFont14.reset(loadFont(14, true));
+	_fgFont16.reset(loadFont(16, false));
+	_bgFont16.reset(loadFont(16, true));
+	_fgFont18.reset(loadFont(18, false));
+	_bgFont18.reset(loadFont(18, true));
+}
+
+void AssetCache::pushExitCursor() const {
+	pushCursor(_exitCursor);
 }
 
 const FontInfo AssetCache::font(FontKind kind) const {

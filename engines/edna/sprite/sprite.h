@@ -28,6 +28,7 @@
 namespace Edna {
 
 class Animation;
+class Group;
 
 class Sprite {
 public:
@@ -36,6 +37,7 @@ public:
 	inline uint32 &id() { return _id; }
 	inline bool active() const { return _active; }
 	inline bool &immutable() { return _immutable; } ///< An immutable sprite is not deleted if inactive
+	inline Group &group() { assert(_parent != nullptr); return *_parent; }
 	inline Common::Point &pos() { return _pos; }
 	inline Common::Point pos() const { return _pos; }
 	inline Common::Point &size() { return _size; }
@@ -54,6 +56,8 @@ public:
 
 private:
 	friend class AnimatedSprite;
+	friend class Group;
+	Group *_parent = nullptr;
 	bool _active = true, _immutable = false;
 	Common::Point _pos, _size;
 	TexturePtr _texture;

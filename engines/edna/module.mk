@@ -8,17 +8,21 @@ MODULE_OBJS = \
 	db_validation.o \
 	edna.o \
 	graphics.o \
-	game\game.o \
-	game\intro.o \
-	game\scriptonclick.o \
+	game/ednastd.o \
+	game/game.o \
+	game/intro.o \
+	game/scriptonclick.o \
+	group/group.o \
 	metaengine.o \
 	script.o \
 	scriptcommand.o \
-	sprite\animation.o \
-	sprite\group.o \
-	sprite\object.o \
-	sprite\player.o \
-	sprite\sprite.o \
+	sprite/animation.o \
+	sprite/character.o \
+	sprite/npc.o \
+	sprite/object.o \
+	sprite/player.o \
+	sprite/sprite.o \
+	sprite/text.o \
 	util.o
 
 # This module can be built as a plugin

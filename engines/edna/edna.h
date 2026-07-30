@@ -41,6 +41,7 @@ namespace Edna {
 
 struct EdnaGameDescription;
 class IRenderer;
+class Input;
 class DB;
 class GameBase;
 class PathFinder;
@@ -77,6 +78,7 @@ public:
 	inline const char *language() const { return getLanguageCode(_gameDescription->language); }
 	inline Config &config() { return _config; }
 	inline IRenderer &renderer() { assert(_renderer != nullptr); return *_renderer; }
+	inline Input &input() { assert(_input != nullptr); return *_input; }
 	inline AssetCache &assets() { assert(_assets != nullptr); return *_assets; }
 	inline Console &console() { assert(_console != nullptr); return *_console; }
 	inline DB &db() { assert(_db != nullptr); return *_db; }
@@ -127,6 +129,7 @@ private:
 	const ADGameDescription *_gameDescription;
 	Common::RandomSource _randomSource;
 	Common::ScopedPtr<IRenderer> _renderer;
+	Common::ScopedPtr<Input> _input;
 	Common::ScopedPtr<AssetCache> _assets;
 	Console *_console; // raw pointer because Engine deletes the console itself
 	Common::ScopedPtr<DB> _db;

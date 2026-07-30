@@ -19,7 +19,7 @@
  *
  */
 
-#include "edna/sprite/group.h"
+#include "edna/group/group.h"
 #include "edna/sprite/object.h"
 
 using namespace Common;
@@ -60,8 +60,10 @@ void Group::debugRender() {
 
 void Group::add(Sprite *sprite, DisposeAfterUse::Flag dispose) {
 	assert(sprite != nullptr);
+	assert(sprite->_parent == nullptr);
 	assert(find_if(_sprites.begin(), _sprites.end(),
 		[sprite](const DisposablePtr<Sprite> &ptr) { return ptr.get() == sprite; }) == _sprites.end());
+	sprite->_parent = this;
 	_sprites.emplace_back(sprite, dispose);
 }
 
@@ -95,12 +97,12 @@ void ObjectGroup::render() {
 	Group::render();
 }
 
-InteractableObject *ObjectGroup::checkInteractableClick(Point screenPos) const {
+Sprite *ObjectGroup::checkInteractableClick(Point screenPos) const {
 	auto it = find_if(_sprites.begin(), _sprites.end(), [screenPos](const DisposablePtr<Sprite> &ptr) {
-		const auto *interactable = dynamic_cast<const InteractableObject *>(ptr.get());
+		const auto *interactable = dynamic_cast<const InteractableRoomObject *>(ptr.get());
 		return interactable != nullptr && interactable->checkClick(screenPos);
 	});
-	return it == _sprites.end() ? nullptr : dynamic_cast<InteractableObject *>(it->get());
+	return it == _sprites.end() ? nullptr : it->get();
 }
 
 }

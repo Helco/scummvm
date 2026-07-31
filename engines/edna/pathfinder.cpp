@@ -128,6 +128,7 @@ Point PathFinder::nearestWalkablePoint(Point pos) const {
     return kInvalidPoint;
 }
 
+// A range-for-compatible neighborhood that already filters out-of-screen points
 struct Neighbors {
     static constexpr const Point kOffsets[] = {
         Point(-1, -1),
@@ -148,16 +149,16 @@ struct Neighbors {
         }
 
         Iterator &operator++() {
-            assert(_step < 9);
+            assert(_step < 8);
             do
             {
                 _pos += kOffsets[++_step];
-            } while (_step < 9 && !Rect(kScreenWidth, kScreenHeight).contains(_pos));
+            } while (_step < 8 && !Rect(kScreenWidth, kScreenHeight).contains(_pos));
             return *this;
         }
 
         const Point &operator*() const {
-            assert(_step < 9);
+            assert(_step < 8);
             return _pos;
         }
 
@@ -168,7 +169,7 @@ struct Neighbors {
     Point _center;
     Neighbors(Point center) : _center(center) {}
     Iterator begin() const { return Iterator(_center, 0); }
-    Iterator end() const { return Iterator(_center, 9); }
+    Iterator end() const { return Iterator(_center, 8); }
 };
 
 bool PathFinder::dijkstraDistances(Point from, Point to) {

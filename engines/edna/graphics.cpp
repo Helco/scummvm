@@ -138,7 +138,7 @@ public:
 			return;
 		_text = newText;
 		if (_text.empty()) {
-			_surface.free();
+			_surface.free(); // TODO: We might want to keep a super surface and reduce allocations here
 			return;
 		}
 
@@ -195,6 +195,8 @@ public:
 		assert(texture != nullptr);
 		if (size == Point())
 			size = texture->size();
+		if (size.x <= 0 || size.y <= 0)
+			return;
 
 		texture->_surface.blendBlitTo(
 			*_screen,
@@ -210,6 +212,8 @@ public:
 	void text(IRenderedText *textRaw, Point pos) override {
 		auto text = dynamic_cast<SoftwareRenderedText *>(textRaw);
 		assert(text != nullptr);
+		if (text->_text.empty())
+			return;
 
 		text->_surface.blendBlitTo(
 			*_screen,

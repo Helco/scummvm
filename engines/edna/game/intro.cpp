@@ -61,7 +61,7 @@ Intro::Intro(ScopedPtr<GameBase> &myPtr, bool withHarvey)
 		}
 
 		_harvey.setTextures(TextureSpan(cells, CellCount));
-		_harvey.setAnimation(AnimationRange{ 0, CellCount - 1,  200, true });
+		_harvey.setAnimation(AnimationRange(0, CellCount - 1,  200, true));
 		_harvey.pos() = { 375, 300 };
 		_harvey.toggle(false);
 		_harvey.immutable() = true;

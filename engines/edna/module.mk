@@ -21,11 +21,13 @@ MODULE_OBJS = \
 	sprite/animation.o \
 	sprite/button.o \
 	sprite/character.o \
+	sprite/commandprompt.o \
 	sprite/npc.o \
 	sprite/object.o \
 	sprite/player.o \
 	sprite/sprite.o \
 	sprite/text.o \
+	translation.o \
 	util.o
 
 # This module can be built as a plugin

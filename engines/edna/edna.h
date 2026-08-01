@@ -47,6 +47,7 @@ class GameBase;
 class PathFinder;
 class Console;
 class AssetCache;
+class Translation;
 
 class Config {
 public:
@@ -80,6 +81,7 @@ public:
 	inline IRenderer &renderer() { assert(_renderer != nullptr); return *_renderer; }
 	inline Input &input() { assert(_input != nullptr); return *_input; }
 	inline AssetCache &assets() { assert(_assets != nullptr); return *_assets; }
+	inline Translation &translation() { assert(_translation != nullptr); return *_translation; }
 	inline Console &console() { assert(_console != nullptr); return *_console; }
 	inline DB &db() { assert(_db != nullptr); return *_db; }
 	inline GameBase &game() { assert(_game != nullptr); return *_game; }
@@ -131,6 +133,7 @@ private:
 	Common::ScopedPtr<IRenderer> _renderer;
 	Common::ScopedPtr<Input> _input;
 	Common::ScopedPtr<AssetCache> _assets;
+	Common::ScopedPtr<Translation> _translation;
 	Console *_console; // raw pointer because Engine deletes the console itself
 	Common::ScopedPtr<DB> _db;
 	Common::ScopedPtr<GameBase> _game;

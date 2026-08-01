@@ -29,11 +29,15 @@ namespace Edna {
 class Button : public Sprite {
 public:
 	Button(uint32 id, Common::Point pos, const Common::String &path);
+
 	void update() override;
+	const char *displayName() const override;
 	void setHovered();
 	void setPressed();
+	void setDisplayName(const char *name);
 
 private:
+	const char *_displayName = "";
 	TexturePtr _normal, _hovered, _pressed;
 };
 

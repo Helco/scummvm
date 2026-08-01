@@ -171,7 +171,7 @@ public:
 
 		ScriptId scriptFor(PlayerAction action) const;
 	};
-	Item item(ItemId id) const;
+	Item item(ItemId id, bool required = true) const;
 
 	// a topic is a kind of item only used for when controlling Harvey
 	struct Topic {
@@ -183,7 +183,7 @@ public:
 		uint32 _topicRowPos = 0;
 		ScriptId _script = 0;
 	};
-	Topic topic(TopicId id) const;
+	Topic topic(TopicId id, bool required = true) const;
 
 	ScriptId itemInteraction(ItemId item1, ItemId item2) const; ///< can return 0
 	ScriptId roomItemInteraction(ItemId item, RoomObjectId object) const; ///< can return 0

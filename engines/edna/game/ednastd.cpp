@@ -23,14 +23,14 @@
 #include "edna/input.h"
 #include "edna/game/ednastd.h"
 #include "edna/sprite/player.h"
+#include "edna/translation.h"
 
 using namespace Common;
 
 namespace Edna {
 
 static constexpr uint32 kButtonIdLook = 10;
-static constexpr uint32 kButtonIdPick
-= 11;
+static constexpr uint32 kButtonIdPick = 11;
 static constexpr uint32 kButtonIdTalk = 12;
 static constexpr uint32 kButtonIdUse = 13;
 
@@ -40,12 +40,19 @@ EdnaStd::EdnaStd(ScopedPtr<GameBase> &myPtr, const GameTransition &transition)
 	, _buttonPick(kButtonIdPick, Point(100, 565), String("gui/edna/") + g_engine->language() + "/b_nehmen")
 	, _buttonTalk(kButtonIdTalk, Point(200, 565), String("gui/edna/") + g_engine->language() + "/b_reden")
 	, _buttonUse(kButtonIdUse, Point(300, 565), String("gui/edna/") + g_engine->language() + "/b_benutzen")
+	, _commandPrompt(*this)
 	, _inventory("Inventory") {
 
+	const auto &translation = g_engine->translation();
+	_buttonLook.setDisplayName(translation.action(PlayerAction::Look));
+	_buttonPick.setDisplayName(translation.action(PlayerAction::Pick));
+	_buttonTalk.setDisplayName(translation.action(PlayerAction::Talk));
+	_buttonUse.setDisplayName(translation.action(PlayerAction::Use));
 	gui().add(&_buttonLook, DisposeAfterUse::NO);
 	gui().add(&_buttonPick, DisposeAfterUse::NO);
 	gui().add(&_buttonTalk, DisposeAfterUse::NO);
 	gui().add(&_buttonUse, DisposeAfterUse::NO);
+	texts().add(&_commandPrompt, DisposeAfterUse::NO);
 }
 
 bool EdnaStd::isItem(Sprite *selection) const {
@@ -91,7 +98,7 @@ void EdnaStd::update() {
 	if (input.wasMouseRightReleased())
 		onMouseRightReleased(selection);
 
-	// TODO: update command prompt with command and selection
+	_commandPrompt.setText(_command, selection);
 }
 
 Sprite *EdnaStd::findSelection() {
@@ -139,7 +146,7 @@ void EdnaStd::onMouseLeftPressed(Sprite *selection) {
 		case PlayerAction::Pick:
 		case PlayerAction::Use: {
 			ScriptId scriptId = interactable->scriptFor(PlayerAction::Use);
-			if (scriptId == 0) {
+			if (scriptId == 0) { // TODO: Recheck triggering of script 0 for interactions
 				_command._action = PlayerAction::Use;
 				_command._item = interactable->id();
 			} else {

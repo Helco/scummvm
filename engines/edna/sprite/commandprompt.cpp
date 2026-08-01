@@ -71,7 +71,10 @@ void CommandPrompt::setText(const PlayerCommand &command, Sprite *selection) {
 			_text += translation.actionWith();
 		}
 		if (command._target != 0) {
-			const char *targetName = db.roomObject(command._target, false)._name;
+			const auto dbObject = db.roomObject(command._target, false);
+			const char *targetName = dbObject._name;
+			if (dbObject._toInteraction != 0)
+				targetName = db.roomInteraction(dbObject._toInteraction)._name;
 			if (targetName == nullptr)
 				targetName = db.item(command._target, false)._name;
 			if (targetName == nullptr)

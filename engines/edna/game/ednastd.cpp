@@ -116,10 +116,25 @@ void EdnaStd::updateCommandByHover(Sprite *selection) {
 	auto *interactable = dynamic_cast<IInteractableObject *>(selection);
 
 	if (selection == nullptr) {
-		if (_command._action == PlayerAction::None || _command._action == PlayerAction::Walk)
-			_command._target = 0;
+		_command._target = 0;
 	} else if (_command._action == PlayerAction::None) {
-		// TODO: Select default action sprite for item, exit, object, player action button (or ignore?)
+		const auto defaultAction = interactable == nullptr ? PlayerAction::None : interactable->defaultAction();
+		switch (defaultAction) {
+		case PlayerAction::Look:
+			_buttonLook.setHovered();
+			break;
+		case PlayerAction::Pick:
+			_buttonPick.setHovered();
+			break;
+		case PlayerAction::Talk:
+			_buttonTalk.setHovered();
+			break;
+		case PlayerAction::Use:
+			_buttonUse.setHovered();
+			break;
+		}
+	} else if (interactable != nullptr) {
+		_command._target = interactable->id();
 	}
 	// The other cases 
 }

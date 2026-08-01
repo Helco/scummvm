@@ -19,40 +19,32 @@
  *
  */
 
-#ifndef EDNA_EDNASTD_H
-#define EDNA_EDNASTD_H
-
-#include "edna/game/game.h"
+#include "edna/edna.h"
 #include "edna/sprite/button.h"
+
+using namespace Common;
 
 namespace Edna {
 
-class IInteractableObject;
-
-class EdnaStd : public Game {
-public:
-	EdnaStd(Common::ScopedPtr<GameBase> &myPtr, const GameTransition &transition);
-
-	void update() override;
-
-private:
-	bool isItem(Sprite *selection) const;
-	PlayerAction isPlayerActionButton(Sprite *selection) const;
-
-	Sprite *findSelection();
-	void updateCommandByHover(Sprite *selection);
-	void onMouseLeftPressed(Sprite *selection);
-	void onMouseLeftReleased(Sprite *selection);
-	void onMouseRightPressed(Sprite *selection);
-	void onMouseRightReleased(Sprite *selection);
-	void invokeRoomInteraction(IInteractableObject *object, PlayerAction action);
-	void invokeCommand();
-
-	PlayerCommand _command = {};
-	Button _buttonLook, _buttonPick, _buttonTalk, _buttonUse;
-	Group _inventory; ///< only temporary
-};
-
+Button::Button(uint32 id, Point pos, const String &path) {
+	this->id() = id;
+	this->pos() = pos;
+	_normal = g_engine->renderer().loadTexture((path + ".png").c_str());
+	_hovered = g_engine->renderer().loadTexture((path + "_a.png").c_str());
+	_pressed = g_engine->renderer().loadTexture((path + "_p.png").c_str());
+	setTexture(_normal);
 }
 
-#endif // EDNA_EDNASTD_H
+void Button::update() {
+	setTexture(_normal);
+}
+
+void Button::setHovered() {
+	setTexture(_hovered);
+}
+
+void Button::setPressed() {
+	setTexture(_pressed);
+}
+
+}

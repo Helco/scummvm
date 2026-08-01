@@ -19,6 +19,7 @@ MODULE_OBJS = \
 	script.o \
 	scriptcommand.o \
 	sprite/animation.o \
+	sprite/button.o \
 	sprite/character.o \
 	sprite/npc.o \
 	sprite/object.o \

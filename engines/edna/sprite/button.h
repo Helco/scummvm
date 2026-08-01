@@ -19,40 +19,24 @@
  *
  */
 
-#ifndef EDNA_EDNASTD_H
-#define EDNA_EDNASTD_H
+#ifndef EDNA_BUTTON_H
+#define EDNA_BUTTON_H
 
-#include "edna/game/game.h"
-#include "edna/sprite/button.h"
+#include "edna/sprite/sprite.h"
 
 namespace Edna {
 
-class IInteractableObject;
-
-class EdnaStd : public Game {
+class Button : public Sprite {
 public:
-	EdnaStd(Common::ScopedPtr<GameBase> &myPtr, const GameTransition &transition);
-
+	Button(uint32 id, Common::Point pos, const Common::String &path);
 	void update() override;
+	void setHovered();
+	void setPressed();
 
 private:
-	bool isItem(Sprite *selection) const;
-	PlayerAction isPlayerActionButton(Sprite *selection) const;
-
-	Sprite *findSelection();
-	void updateCommandByHover(Sprite *selection);
-	void onMouseLeftPressed(Sprite *selection);
-	void onMouseLeftReleased(Sprite *selection);
-	void onMouseRightPressed(Sprite *selection);
-	void onMouseRightReleased(Sprite *selection);
-	void invokeRoomInteraction(IInteractableObject *object, PlayerAction action);
-	void invokeCommand();
-
-	PlayerCommand _command = {};
-	Button _buttonLook, _buttonPick, _buttonTalk, _buttonUse;
-	Group _inventory; ///< only temporary
+	TexturePtr _normal, _hovered, _pressed;
 };
 
 }
 
-#endif // EDNA_EDNASTD_H
+#endif // EDNA_BUTTON_H

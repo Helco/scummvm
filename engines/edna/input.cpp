@@ -36,15 +36,19 @@ bool Input::handleEvent(const Common::Event &event) {
 	switch (event.type) {
 	case EVENT_LBUTTONDOWN:
 		_wasMouseLeftPressed = true;
+		_isMouseLeftPressed = true;
 		return true;
 	case EVENT_LBUTTONUP:
 		_wasMouseLeftReleased = true;
+		_isMouseLeftPressed = false;
 		return true;
 	case EVENT_RBUTTONDOWN:
 		_wasMouseRightPressed = true;
+		_isMouseRightPressed = true;
 		return true;
 	case EVENT_RBUTTONUP:
 		_wasMouseRightReleased = true;
+		_isMouseRightPressed = false;
 		return true;
 	case EVENT_MOUSEMOVE:
 		_mousePos = event.mouse;

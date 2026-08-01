@@ -53,6 +53,7 @@ public:
 	InteractableRoomObject(RoomInteractionId interactionId);
 
 	inline RoomInteractionId interactionId() const { return _interactionId; }
+	const char *displayName() const override;
 	PlayerAction defaultAction() const override;
 	ScriptId scriptFor(PlayerAction action) const override;
 	Common::Point interactionPos() const override;
@@ -73,6 +74,16 @@ public:
 
 private:
 	const Common::Point _baseLineStart, _baseLineEnd;
+};
+
+class VisualInteractableRoomObject final : public virtual VisualObject, public virtual InteractableRoomObject {
+public:
+	VisualInteractableRoomObject(
+		RoomInteractionId interactionId,
+		Common::Point baseLineStart,
+		Common::Point baseLineEnd);
+
+	void debugPrint() override;
 };
 
 }

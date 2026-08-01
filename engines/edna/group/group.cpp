@@ -80,9 +80,11 @@ Sprite *Group::firstActive() const {
 }
 
 Sprite *Group::checkClick(Point screenPos) const {
-	auto it = find_if(_sprites.begin(), _sprites.end(),
-		[screenPos](const DisposablePtr<Sprite> &ptr) { return ptr->checkClick(screenPos); });
-	return it == _sprites.end() ? nullptr : it->get();
+	for (uint i = _sprites.size(); i > 0; i--) {
+		if (_sprites[i - 1]->checkClick(screenPos))
+			return _sprites[i - 1].get();
+	}
+	return nullptr;
 }
 
 void ObjectGroup::render() {
@@ -98,11 +100,12 @@ void ObjectGroup::render() {
 }
 
 Sprite *ObjectGroup::checkInteractableClick(Point screenPos) const {
-	auto it = find_if(_sprites.begin(), _sprites.end(), [screenPos](const DisposablePtr<Sprite> &ptr) {
-		const auto *interactable = dynamic_cast<const InteractableRoomObject *>(ptr.get());
-		return interactable != nullptr && interactable->checkClick(screenPos);
-	});
-	return it == _sprites.end() ? nullptr : it->get();
+	for (uint i = _sprites.size(); i > 0; i--) {
+		const auto *interactable = dynamic_cast<const IInteractableObject *>(_sprites[i - 1].get());
+		if (interactable != nullptr && interactable->checkClick(screenPos))
+			return _sprites[i - 1].get();
+	}
+	return nullptr;
 }
 
 }

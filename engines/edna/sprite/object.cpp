@@ -46,6 +46,10 @@ void SpatialObject::setBasePos(Point basePos) {
 InteractableRoomObject::InteractableRoomObject(RoomInteractionId interactionId)
 	: _interactionId(interactionId) {}
 
+const char *InteractableRoomObject::displayName() const {
+	return g_engine->db().roomInteraction(_interactionId)._name;
+}
+
 PlayerAction InteractableRoomObject::defaultAction() const {
 	return g_engine->db().roomInteraction(_interactionId)._defaultAction;
 }
@@ -83,6 +87,16 @@ int32 VisualObject::basePosY(int x) const {
 	auto delta = _baseLineEnd - _baseLineStart;
 	float ratio = delta.y / (float)delta.x;
 	return (int)(_baseLineStart.y + ratio * (x - _baseLineStart.x));
+}
+
+VisualInteractableRoomObject::VisualInteractableRoomObject(
+	RoomInteractionId interactionId,
+	Point baseLineStart, Point baseLineEnd)
+	: VisualObject(baseLineStart, baseLineEnd)
+	, InteractableRoomObject(interactionId) {}
+
+void VisualInteractableRoomObject::debugPrint() {
+	AnimatedSprite::debugPrint("VisualInteractable");
 }
 
 }

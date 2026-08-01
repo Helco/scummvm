@@ -35,6 +35,7 @@ public:
 	virtual ~Sprite();
 
 	inline uint32 &id() { return _id; }
+	inline uint32 id() const { return _id; }
 	inline bool active() const { return _active; }
 	inline bool &immutable() { return _immutable; } ///< An immutable sprite is not deleted if inactive
 	inline Group &group() { assert(_parent != nullptr); return *_parent; }

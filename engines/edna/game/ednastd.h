@@ -23,6 +23,7 @@
 #define EDNA_EDNASTD_H
 
 #include "edna/game/game.h"
+#include "edna/sprite/button.h"
 
 namespace Edna {
 
@@ -48,6 +49,7 @@ private:
 	void invokeCommand();
 
 	PlayerCommand _command = {};
+	Button _buttonLook, _buttonPick, _buttonTalk, _buttonUse;
 	Group _inventory; ///< only temporary
 };
 

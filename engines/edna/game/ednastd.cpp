@@ -28,9 +28,24 @@ using namespace Common;
 
 namespace Edna {
 
+static constexpr uint32 kButtonIdLook = 10;
+static constexpr uint32 kButtonIdPick
+= 11;
+static constexpr uint32 kButtonIdTalk = 12;
+static constexpr uint32 kButtonIdUse = 13;
+
 EdnaStd::EdnaStd(ScopedPtr<GameBase> &myPtr, const GameTransition &transition)
 	: Game(myPtr, GameMode::EdnaStd, transition)
+	, _buttonLook(kButtonIdLook, Point(0, 565), String("gui/edna/") + g_engine->language() + "/b_ansehen")
+	, _buttonPick(kButtonIdPick, Point(100, 565), String("gui/edna/") + g_engine->language() + "/b_nehmen")
+	, _buttonTalk(kButtonIdTalk, Point(200, 565), String("gui/edna/") + g_engine->language() + "/b_reden")
+	, _buttonUse(kButtonIdUse, Point(300, 565), String("gui/edna/") + g_engine->language() + "/b_benutzen")
 	, _inventory("Inventory") {
+
+	gui().add(&_buttonLook, DisposeAfterUse::NO);
+	gui().add(&_buttonPick, DisposeAfterUse::NO);
+	gui().add(&_buttonTalk, DisposeAfterUse::NO);
+	gui().add(&_buttonUse, DisposeAfterUse::NO);
 }
 
 bool EdnaStd::isItem(Sprite *selection) const {
@@ -38,13 +53,24 @@ bool EdnaStd::isItem(Sprite *selection) const {
 }
 
 PlayerAction EdnaStd::isPlayerActionButton(Sprite *selection) const {
-	return PlayerAction::None; // TODO: Implement properly
+	if (selection == &_buttonLook)
+		return PlayerAction::Look;
+	if (selection == &_buttonPick)
+		return PlayerAction::Pick;
+	if (selection == &_buttonTalk)
+		return PlayerAction::Talk;
+	if (selection == &_buttonUse)
+		return PlayerAction::Use;
+	return PlayerAction::None;
 }
 
 void EdnaStd::update() {
 	Game::update();
 
 	Sprite *selection = findSelection();
+	Button *selectedButton = dynamic_cast<Button *>(selection);
+	if (selectedButton != nullptr)
+		selectedButton->setHovered();
 
 	// TODO: Add inventory handling
 

@@ -100,6 +100,7 @@ Error EdnaEngine::run() {
 		uint32 now = getMillis();
 		_timeElapsed = now > _timeLastFrame ? now - _timeLastFrame : 1;
 		_timeLastFrame = now;
+		input().nextFrame();
 
 		// change room before handling events as we publish events to be processed by the next room
 		if (_transition.isPending()) {
@@ -109,6 +110,8 @@ Error EdnaEngine::run() {
 		}
 
 		while (g_system->getEventManager()->pollEvent(e)) {
+			if (input().handleEvent(e))
+				continue;
 		}
 		_game->update();
 

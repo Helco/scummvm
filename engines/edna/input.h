@@ -38,12 +38,16 @@ public:
 	inline bool wasMouseRightPressed() const { return _wasMouseRightPressed; }
 	inline bool wasMouseLeftReleased() const { return _wasMouseLeftReleased; }
 	inline bool wasMouseRightReleased() const { return _wasMouseRightReleased; }
+	inline bool isMosueLeftPressed() const { return _isMouseLeftPressed; }
+	inline bool isMouseRightPressed() const { return _isMouseRightPressed; }
 
 private:
 	bool _wasMouseLeftPressed = false,
 		_wasMouseRightPressed = false,
 		_wasMouseLeftReleased = false,
-		_wasMouseRightReleased = false;
+		_wasMouseRightReleased = false,
+		_isMouseLeftPressed = false,
+		_isMouseRightPressed = false;
 	Common::Point _mousePos;
 };
 

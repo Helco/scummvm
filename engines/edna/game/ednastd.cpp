@@ -22,7 +22,7 @@
 #include "edna/edna.h"
 #include "edna/input.h"
 #include "edna/game/ednastd.h"
-#include "edna/sprite/player.h"
+#include "edna/sprite/character.h"
 #include "edna/translation.h"
 
 using namespace Common;
@@ -113,7 +113,7 @@ Sprite *EdnaStd::findSelection() {
 }
 
 void EdnaStd::updateCommandByHover(Sprite *selection) {
-	auto *interactable = dynamic_cast<IInteractableObject *>(selection);
+	auto *interactable = dynamic_cast<IInteractable *>(selection);
 
 	if (selection == nullptr) {
 		_command._target = 0;
@@ -134,7 +134,7 @@ void EdnaStd::updateCommandByHover(Sprite *selection) {
 			break;
 		}
 	} else if (interactable != nullptr) {
-		_command._target = interactable->id();
+		_command._target = selection->id();
 	}
 	// The other cases 
 }
@@ -152,7 +152,7 @@ void EdnaStd::onMouseLeftPressed(Sprite *selection) {
 	}
 	// TODO: Filter interaction with comment or achievement close button
 
-	auto *interactable = dynamic_cast<IInteractableObject *>(selection);
+	auto *interactable = dynamic_cast<IInteractable *>(selection);
 	auto playerAction = isPlayerActionButton(selection);
 	if (isItem(selection)) {
 		assert(interactable != nullptr);
@@ -163,7 +163,7 @@ void EdnaStd::onMouseLeftPressed(Sprite *selection) {
 			ScriptId scriptId = interactable->scriptFor(PlayerAction::Use);
 			if (scriptId == 0) { // TODO: Recheck triggering of script 0 for interactions
 				_command._action = PlayerAction::Use;
-				_command._item = interactable->id();
+				_command._item = selection->id();
 			} else {
 				_command = {};
 				script().runNew(scriptId);
@@ -191,7 +191,7 @@ void EdnaStd::onMouseLeftPressed(Sprite *selection) {
 		if (_command._action == PlayerAction::None)
 			_command._action = PlayerAction::Walk;
 		// TODO: Add weird exit condition here
-		invokeRoomInteraction(interactable, _command._action);
+		invokeRoomInteraction(selection, _command._action);
 	}
 }
 
@@ -207,7 +207,7 @@ void EdnaStd::onMouseRightPressed(Sprite *selection) {
 }
 
 void EdnaStd::onMouseRightReleased(Sprite *selection) {
-	auto *interactable = dynamic_cast<IInteractableObject *>(selection);
+	auto *interactable = dynamic_cast<IInteractable *>(selection);
 
 	if (selection == nullptr)
 		_command = {};
@@ -229,19 +229,21 @@ void EdnaStd::onMouseRightReleased(Sprite *selection) {
 		if (_command._action != PlayerAction::None)
 			_command = {}; // or just cancel if we were building some other command
 		else if (defaultAction != PlayerAction::None)
-			invokeRoomInteraction(interactable, defaultAction);
+			invokeRoomInteraction(selection, defaultAction);
 	}
 }
 
-void EdnaStd::invokeRoomInteraction(IInteractableObject *object, PlayerAction action) {
+void EdnaStd::invokeRoomInteraction(Sprite *object, PlayerAction action) {
+	auto *interactable = dynamic_cast<IInteractable *>(object);
+	assert(object != nullptr && interactable != nullptr);
 	_command._action = action;
 	_command._target = object->id();
 	_command._isComplete = true;
-	_command._targetPos = object->interactionPos();
+	_command._targetPos = interactable->interactionPos();
 	if (_command._targetPos == kInvalidPoint)
 		_command._targetPos = object->pos();
 	// TODO: Use path finding
-	player().walkTo(_command._targetPos, object->interactionDir());
+	player().walkTo(_command._targetPos, interactable->interactionDir());
 }
 
 void EdnaStd::invokeCommand() {

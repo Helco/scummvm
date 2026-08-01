@@ -111,9 +111,8 @@ public:
 		RoomObjectId _id = 0;
 		const char *_name = "";
 		RoomId _room = 0;
-		int32 _posX = 0;
-		int32 _posY = 0;
-		int32 _posZ = 0;
+		Common::Point _pos;
+		int32 _posZ = 0; ///< unused
 		const char *_image = "";
 		bool _active = false;
 
@@ -131,10 +130,7 @@ public:
 		RoomObjectDisplayId _id = 0;
 		RoomObjectId _object = 0;
 		AnimationId _animation = 0;
-		int32 _startX = 0;
-		int32 _startY = 0;
-		int32 _endX = 0;
-		int32 _endY = 0;
+		Common::Point _baseLineStart, _baseLineEnd;
 	};
 	RoomObjectDisplay roomObjectDisplay(RoomObjectDisplayId id, bool required = true) const;
 
@@ -142,8 +138,7 @@ public:
 		RoomInteractionId _id = 0;
 		RoomObjectId _object = 0;
 		const char *_name = "";
-		int32 _walkToX = 0;
-		int32 _walkToY = 0;
+		Common::Point _walkTo;
 		Direction _lookDirection = {};
 		PlayerAction _defaultAction = {};
 		ScriptId _lookScript = 0;
@@ -192,8 +187,7 @@ public:
 		RoomExitId _id = 0;
 		RoomInteractionId _interaction = 0;
 		RoomId _target = 0;
-		int32 _walkToX = 0;
-		int32 _walkToY = 0;
+		Common::Point _walkIn;
 		Direction _lookDirection = {};
 	};
 	RoomExit roomExit(RoomExitId id, bool required = true) const;

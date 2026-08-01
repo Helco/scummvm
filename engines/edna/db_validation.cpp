@@ -50,10 +50,10 @@ uint32 DB::validate() {
 		validateTimers();
 }
 
-static uint32 validateScreenBounds(int32 x, int32 y, const char *sourceType, uint32 sourceKey) {
-	if (x >= 0 && y >= 0 && x < kScreenWidth && y < kScreenHeight)
+static uint32 validateScreenBounds(Point pos, const char *sourceType, uint32 sourceKey) {
+	if (pos.x >= 0 && pos.y >= 0 && pos.x < kScreenWidth && pos.y < kScreenHeight)
 		return 0;
-	debug("In %s %u: invalid screen bounds: %d %d", sourceType, sourceKey, x, y);
+	debug("In %s %u: invalid screen bounds: %d %d", sourceType, sourceKey, pos.x, pos.y);
 	return 1;
 }
 
@@ -169,7 +169,7 @@ uint32 DB::validateRoomObjects() const {
 	uint32 errors = 0;
 	for (const auto &pair : _roomObjects._map) {
 		errors += _rooms.validateRef(pair._value._room, "room object", pair._key);
-		if (pair._value._posX < 0 || pair._value._posY < 0 || pair._value._posZ < 0) {
+		if (pair._value._pos.x < 0 || pair._value._pos.y < 0 || pair._value._posZ < 0) {
 			errors++;
 			debug("In room object %u: invalid position", pair._key);
 		}
@@ -198,7 +198,7 @@ uint32 DB::validateRoomInteractions() const {
 			errors++;
 			debug("In room interaction %u: empty name", pair._key);
 		}
-		errors += validateScreenBounds(pair._value._walkToX, pair._value._walkToY, "room interaction", pair._key);
+		errors += validateScreenBounds(pair._value._walkTo, "room interaction", pair._key);
 		errors += _scripts.validateRef(pair._value._lookScript, "room interaction (look)", pair._key);
 		errors += _scripts.validateRef(pair._value._useScript, "room interaction (use)", pair._key);
 		errors += _scripts.validateRef(pair._value._takeScript, "room interaction (take)", pair._key);
@@ -220,7 +220,7 @@ uint32 DB::validateRoomExits() const {
 	for (const auto &pair : _roomExits._map) {
 		errors += _roomInteractions.validateRef(pair._value._interaction, "room exit", pair._key);
 		errors += _rooms.validateRef(pair._value._target, "room exit", pair._key);
-		errors += validateScreenBounds(pair._value._walkToX, pair._value._walkToY, "room exit", pair._key);
+		errors += validateScreenBounds(pair._value._walkIn, "room exit", pair._key);
 	}
 	return errors;
 }
@@ -443,9 +443,9 @@ uint32 DB::validateScriptCommand(const ScriptLine &line) const {
 		return 0;
 	}
 	if (!scumm_stricmp(function, "walk"))
-		return validateScreenBounds(args._walk._target.x, args._walk._target.y, "script", line._script);
+		return validateScreenBounds(args._walk._target, "script", line._script);
 	if (!scumm_stricmp(function, "walkNsc") || !scumm_stricmp(function, "walkNscP")) {
-		return validateScreenBounds(args._walk._target.x, args._walk._target.y, "script", line._script) +
+		return validateScreenBounds(args._walk._target, "script", line._script) +
 			validateNpcByRoomObject(args._walk._npc, "script", line._script, line._line);
 	}
 	// no validation for freeWalk(Nsc) (without path finding, the character is allowed to walk off-screen)

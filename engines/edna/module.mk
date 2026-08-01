@@ -22,9 +22,7 @@ MODULE_OBJS = \
 	sprite/button.o \
 	sprite/character.o \
 	sprite/commandprompt.o \
-	sprite/npc.o \
 	sprite/object.o \
-	sprite/player.o \
 	sprite/sprite.o \
 	sprite/text.o \
 	translation.o \

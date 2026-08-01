@@ -24,7 +24,7 @@
 #include "edna/edna.h"
 #include "edna/game/game.h"
 #include "edna/scriptcommand.h"
-#include "edna/sprite/player.h"
+#include "edna/sprite/character.h"
 #include "edna/sprite/text.h"
 
 #include "gui/debugger.h"
@@ -255,7 +255,7 @@ bool Script::opExit(const ScriptCommand &line) {
 	const auto dbExit = g_engine->db().roomExit(dbInteraction._toExit);
 	auto &next = g_engine->next();
 	next._room = dbExit._target;
-	next._walkIn = { (int16)dbExit._walkToX, (int16)dbExit._walkToY };
+	next._walkIn = dbExit._walkIn;
 	next._walkInDir = dbExit._lookDirection;
 	next._script = _scriptId;
 	next._scriptLine = _scriptLine + 1;

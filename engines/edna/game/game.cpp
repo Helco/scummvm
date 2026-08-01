@@ -25,8 +25,7 @@
 #include "edna/db.h"
 #include "edna/game/game.h"
 #include "edna/sprite/animation.h"
-#include "edna/sprite/npc.h"
-#include "edna/sprite/player.h"
+#include "edna/sprite/character.h"
 
 #include "graphics/cursorman.h"
 
@@ -132,73 +131,49 @@ void Game::initObjects() {
 	auto dbObjects = g_engine->db().roomObjectsByRoom(_roomId, false);
 	for (uint32 dbObjectId : dbObjects) {
 		const auto dbObject = g_engine->db().roomObject(dbObjectId);
+		const auto dbDisplay = g_engine->db().roomObjectDisplay(dbObject._toDisplay, false);
 		// not sure what the logic behind this is, display is still ignored for NPC/Exit/Interaction
 		Group &targetGroup = dbObject._toDisplay != 0 ? _objects : _bgObjects;
-		Sprite *sprite = nullptr;
+		GameObject *sprite;
 
+		if (dbObject._toInteraction == 0 && dbObject._toDisplay == 0)
+			continue; // this is a pure logic object used by scripts
 		if (dbObject._toNPC != 0) {
 			const auto dbNpc = g_engine->db().npc(dbObject._toNPC);
-			const auto dbDisplay = g_engine->db().roomObjectDisplay(dbObject._toDisplay, false);
+			
 			auto *npc = new Npc(
 				*this,
 				dbNpc,
 				dbObject._toInteraction,
-				{ (int16)dbObject._posX, (int16)dbObject._posY },
-				{ (int16)dbDisplay._startX, (int16)dbDisplay._startY },
-				{ (int16)dbDisplay._endX, (int16)dbDisplay._endY });
+				dbObject._pos,
+				dbDisplay._baseLineStart, dbDisplay._baseLineEnd);
 			sprite = npc;
-		}
-		else if (dbObject._toInteraction != 0) {
-			const auto dbInteraction = g_engine->db().roomInteraction(dbObject._toInteraction);
-			if (dbInteraction._toExit) {
-				warning("Exit is not supported (room=%u, object=%u, interaction=%u, exit=%u)",
-					_roomId, dbObjectId, dbObject._toInteraction, dbInteraction._toExit);
-				continue;
-			}
-			if (dbObject._toDisplay == 0) {
-				auto *object = new InteractableRoomObject(dbInteraction._id);
-				sprite = object;
-				object->setTexture(dbObject._image);
-				object->pos() = Point((int16)dbObject._posX, (int16)dbObject._posY);
-				object->pos().x -= object->size().x / 2;
-				object->pos().y -= object->size().y;
-			} else {
-				const auto dbDisplay = g_engine->db().roomObjectDisplay(dbObject._toDisplay);
-				auto *object = new VisualInteractableRoomObject(
-					dbInteraction._id,
-					{ (int16)dbDisplay._startX, (int16)dbDisplay._startY },
-					{ (int16)dbDisplay._endX, (int16)dbDisplay._endY });
-				sprite = object;
-				if (dbDisplay._animation > 0) {
-					Animation animation(dbDisplay._animation);
-					object->setAnimation(animation);
+		} else {
+			if (dbObject._toInteraction != 0) {
+				const auto dbInteraction = g_engine->db().roomInteraction(dbObject._toInteraction);
+				if (dbInteraction._toExit != 0) {
+					sprite = new RoomExit(
+						dbInteraction._id, dbInteraction._toExit,
+						dbDisplay._baseLineStart, dbDisplay._baseLineEnd);
+				} else {
+					sprite = new InteractableRoomObject(
+						dbInteraction._id,
+						dbDisplay._baseLineStart, dbDisplay._baseLineEnd);
 				}
-				else
-					object->setTexture(dbObject._image);
-				object->setBasePos({ (int16)dbObject._posX, (int16)dbObject._posY });
-			}
-		}
-		else if (dbObject._toDisplay != 0) {
-			const auto dbDisplay = g_engine->db().roomObjectDisplay(dbObject._toDisplay);
-			auto *object = new VisualObject(
-				{ (int16)dbDisplay._startX, (int16)dbDisplay._startY },
-				{ (int16)dbDisplay._endX, (int16)dbDisplay._endY });
-			sprite = object;
-			if (dbDisplay._animation > 0) {
-				Animation animation(dbDisplay._animation);
-				object->setAnimation(animation);
 			} else
-				object->setTexture(dbObject._image);
-			object->setBasePos({ (int16)dbObject._posX, (int16)dbObject._posY });
-		}
-		// else this is a pure logic object used by scripts
+				sprite = new RoomObject(dbDisplay._baseLineStart, dbDisplay._baseLineEnd);
 
-		if (sprite != nullptr) {
-			sprite->id() = dbObjectId;
-			sprite->immutable() = true;
-			sprite->toggle(dbObject._active);
-			targetGroup.add(sprite, DisposeAfterUse::YES);
+			if (dbDisplay._animation != 0)
+				sprite->setAnimation(Animation(dbDisplay._animation));
+			else
+				sprite->setTexture(dbObject._image);
+			sprite->setBasePos(dbObject._pos);
 		}
+
+		sprite->id() = dbObjectId;
+		sprite->immutable() = true;
+		sprite->toggle(dbObject._active);
+		targetGroup.add(sprite, DisposeAfterUse::YES);
 	}
 }
 

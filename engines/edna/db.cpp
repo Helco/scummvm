@@ -124,6 +124,12 @@ static int32 nextSint(char *&full, bool isLastColumn = false, bool isOptional = 
 	return (int32)value;
 }
 
+static Point nextPoint(char *&full, bool isLastColumn = false, bool isOptional = false) {
+	int32 x = nextSint(full, false, isOptional);
+	int32 y = nextSint(full, isLastColumn);
+	return Point((int16)x, (int16)y);
+}
+
 static float nextFloat(char *&full, bool isLastColumn = false) {
 	auto cell = nextCell(full, isLastColumn);
 	char *end = nullptr;
@@ -521,8 +527,7 @@ void DB::loadRoomObjects() {
 		obj._id = nextUint(full);
 		obj._name = nextString(full);
 		obj._room = nextUint(full);
-		obj._posX = nextSint(full);
-		obj._posY = nextSint(full);
+		obj._pos = nextPoint(full);
 		obj._posZ = nextSint(full);
 		obj._image = nextString(full);
 		obj._active = nextBool(full, true);
@@ -563,8 +568,7 @@ void DB::loadRoomInteractions() {
 		interaction._id = nextUint(full);
 		interaction._object = nextUint(full);
 		interaction._name = nextString(full);
-		interaction._walkToX = nextSint(full);
-		interaction._walkToY = nextSint(full);
+		interaction._walkTo = nextPoint(full);
 		interaction._lookDirection = nextDirection(full);
 		interaction._defaultAction = nextPlayerAction(full);
 		interaction._lookScript = nextUint(full);
@@ -678,8 +682,7 @@ void DB::loadRoomExits() {
 		exit._id = nextUint(full);
 		exit._interaction = nextUint(full);
 		exit._target = nextUint(full);
-		exit._walkToX = nextSint(full);
-		exit._walkToY = nextSint(full);
+		exit._walkIn = nextPoint(full);
 		exit._lookDirection = nextDirection(full, true);
 		_roomExits.set(exit._id, exit);
 
@@ -751,10 +754,8 @@ void DB::loadRoomObjectDisplays() {
 		display._id = nextUint(full);
 		display._object = nextUint(full);
 		display._animation = nextUint(full, false, true);
-		display._startX = nextSint(full, false, true); // probably a mistake that this can be optional
-		display._startY = nextSint(full);
-		display._endX = nextSint(full);
-		display._endY = nextSint(full, true);
+		display._baseLineStart = nextPoint(full, false, true); // probably a mistake that this can be optional
+		display._baseLineEnd = nextPoint(full, true);
 		_roomObjectDisplays.set(display._id, display);
 
 		if (_roomObjects._map.contains(display._object))

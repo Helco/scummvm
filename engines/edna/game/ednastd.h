@@ -28,8 +28,6 @@
 
 namespace Edna {
 
-class IInteractableObject;
-
 class EdnaStd : public Game {
 public:
 	EdnaStd(Common::ScopedPtr<GameBase> &myPtr, const GameTransition &transition);
@@ -46,7 +44,7 @@ private:
 	void onMouseLeftReleased(Sprite *selection);
 	void onMouseRightPressed(Sprite *selection);
 	void onMouseRightReleased(Sprite *selection);
-	void invokeRoomInteraction(IInteractableObject *object, PlayerAction action);
+	void invokeRoomInteraction(Sprite *object, PlayerAction action);
 	void invokeCommand();
 
 	PlayerCommand _command = {};

@@ -27,6 +27,60 @@ using namespace Common;
 
 namespace Edna {
 
+RoomInteractable::RoomInteractable(RoomInteractionId interactionId)
+	: _interactionId(interactionId) {}
+
+
+const char *RoomInteractable::displayName() const {
+	return g_engine->db().roomInteraction(_interactionId)._name;
+}
+
+PlayerAction RoomInteractable::defaultAction() const {
+	return g_engine->db().roomInteraction(_interactionId)._defaultAction;
+}
+
+ScriptId RoomInteractable::scriptFor(PlayerAction action) const {
+	return g_engine->db().roomInteraction(_interactionId).scriptFor(action);
+}
+
+Point RoomInteractable::interactionPos() const {
+	return g_engine->db().roomInteraction(_interactionId)._walkTo;
+}
+
+Direction RoomInteractable::interactionDir() const {
+	return g_engine->db().roomInteraction(_interactionId)._lookDirection;
+}
+
+GameObject::GameObject() {}
+
+GameObject::GameObject(Point baseLineStart, Point baseLineEnd)
+	: _baseLineStart(baseLineStart)
+	, _baseLineEnd(baseLineEnd) {}
+
+int32 GameObject::basePosX() const {
+	return pos().x + size().x / 2;
+}
+
+int32 GameObject::basePosY() const {
+	return pos().x + size().y;
+}
+
+int32 GameObject::basePosY(int x) const {
+	auto delta = _baseLineEnd - _baseLineStart;
+	if (delta.x == 0 || delta.y == 0)
+		return basePosY(); // point-spatiality
+	float ratio = delta.y / (float)delta.x;
+	return (int)(_baseLineStart.y + ratio * (x - _baseLineStart.x));
+}
+
+void GameObject::setBasePos(Point p) {
+	pos() = p - Point(size().x / 2, size().y);
+}
+
+void RoomObject::debugPrint() {
+	AnimatedSprite::debugPrint("Visual");
+}
+
 void RoomObject::toggle(bool isActive) {
 	Sprite::toggle(isActive);
 	if (id() == 0)
@@ -39,64 +93,32 @@ void RoomObject::toggle(bool isActive) {
 	}
 }
 
-void SpatialObject::setBasePos(Point basePos) {
-	pos() = basePos - Point(size().x / 2, size().y);
-}
+InteractableRoomObject::InteractableRoomObject(RoomInteractionId roiId)
+	: GameObject()
+	, RoomInteractable(roiId) {}
 
-InteractableRoomObject::InteractableRoomObject(RoomInteractionId interactionId)
-	: _interactionId(interactionId) {}
+InteractableRoomObject::InteractableRoomObject(RoomInteractionId roiId, Point baseLineStart, Point baseLineEnd)
+	: GameObject(baseLineStart, baseLineEnd)
+	, RoomInteractable(roiId) {}
 
 const char *InteractableRoomObject::displayName() const {
-	return g_engine->db().roomInteraction(_interactionId)._name;
+	return RoomInteractable::displayName();
 }
 
-PlayerAction InteractableRoomObject::defaultAction() const {
-	return g_engine->db().roomInteraction(_interactionId)._defaultAction;
+void InteractableRoomObject::debugPrint() {
+	AnimatedSprite::debugPrint("Interactable");
 }
 
-ScriptId InteractableRoomObject::scriptFor(PlayerAction action) const {
-	return g_engine->db().roomInteraction(_interactionId).scriptFor(action);
-}
+RoomExit::RoomExit(RoomInteractionId roiId, RoomExitId exitId)
+	: InteractableRoomObject(roiId)
+	, _exitId(exitId) {}
 
-Point InteractableRoomObject::interactionPos() const {
-	const auto interaction = g_engine->db().roomInteraction(_interactionId);
-	return { (int16)interaction._walkToX, (int16)interaction._walkToY };
-}
+RoomExit::RoomExit(RoomInteractionId roiId, RoomExitId exitId, Point baseLineStart, Point baseLineEnd)
+	: InteractableRoomObject(roiId, baseLineStart, baseLineEnd)
+	, _exitId(exitId) {}
 
-Direction InteractableRoomObject::interactionDir() const {
-	return g_engine->db().roomInteraction(_interactionId)._lookDirection;
-}
-
-VisualObject::VisualObject(Point baseLineStart, Point baseLineEnd)
-	: _baseLineStart(baseLineStart)
-	, _baseLineEnd(baseLineEnd) { }
-
-void VisualObject::debugPrint() {
-	AnimatedSprite::debugPrint("Visual");
-}
-
-int32 VisualObject::basePosX() const {
-	return pos().x + size().x / 2;
-}
-
-int32 VisualObject::basePosY() const {
-	return pos().x + size().y;
-}
-
-int32 VisualObject::basePosY(int x) const {
-	auto delta = _baseLineEnd - _baseLineStart;
-	float ratio = delta.y / (float)delta.x;
-	return (int)(_baseLineStart.y + ratio * (x - _baseLineStart.x));
-}
-
-VisualInteractableRoomObject::VisualInteractableRoomObject(
-	RoomInteractionId interactionId,
-	Point baseLineStart, Point baseLineEnd)
-	: VisualObject(baseLineStart, baseLineEnd)
-	, InteractableRoomObject(interactionId) {}
-
-void VisualInteractableRoomObject::debugPrint() {
-	AnimatedSprite::debugPrint("VisualInteractable");
+void RoomExit::debugPrint() {
+	AnimatedSprite::debugPrint("Exit");
 }
 
 }

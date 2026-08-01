@@ -130,4 +130,16 @@ bool less(const TwoKey &a, const TwoKey &b) {
 	return a.first < b.first || (a.first == b.first && a.second < b.second);
 }
 
+bool PlayerCommand::operator==(const PlayerCommand &other) const {
+	return _action == other._action &&
+		_target == other._target &&
+		_item == other._target &&
+		_targetPos == other._targetPos &&
+		_isComplete == other._isComplete;
+}
+
+bool PlayerCommand::operator!=(const PlayerCommand &other) const {
+	return !(*this == other);
+}
+
 }

@@ -23,6 +23,7 @@
 #define EDNA_EDNASTD_H
 
 #include "edna/game/game.h"
+#include "edna/sprite/commandprompt.h"
 #include "edna/sprite/button.h"
 
 namespace Edna {
@@ -50,6 +51,7 @@ private:
 
 	PlayerCommand _command = {};
 	Button _buttonLook, _buttonPick, _buttonTalk, _buttonUse;
+	CommandPrompt _commandPrompt;
 	Group _inventory; ///< only temporary
 };
 

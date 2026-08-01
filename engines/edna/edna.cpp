@@ -30,6 +30,7 @@
 #include "edna/game/scriptonclick.h"
 #include "edna/input.h"
 #include "edna/pathfinder.h"
+#include "edna/translation.h"
 
 #include "audio/decoders/vorbis.h"
 #include "audio/audiostream.h"
@@ -79,6 +80,7 @@ Error EdnaEngine::run() {
 	_renderer.reset(createSoftwareRenderer());
 	_input.reset(new Input());
 	_assets.reset(new AssetCache());
+	_translation.reset(new Translation(_gameDescription->language));
 	_pathFinder.reset(new PathFinder());
 
 	// If a savegame was selected from the launcher, load it

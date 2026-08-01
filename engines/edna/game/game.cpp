@@ -155,6 +155,28 @@ void Game::initObjects() {
 					_roomId, dbObjectId, dbObject._toInteraction, dbInteraction._toExit);
 				continue;
 			}
+			if (dbObject._toDisplay == 0) {
+				auto *object = new InteractableRoomObject(dbInteraction._id);
+				sprite = object;
+				object->setTexture(dbObject._image);
+				object->pos() = Point((int16)dbObject._posX, (int16)dbObject._posY);
+				object->pos().x -= object->size().x / 2;
+				object->pos().y -= object->size().y;
+			} else {
+				const auto dbDisplay = g_engine->db().roomObjectDisplay(dbObject._toDisplay);
+				auto *object = new VisualInteractableRoomObject(
+					dbInteraction._id,
+					{ (int16)dbDisplay._startX, (int16)dbDisplay._startY },
+					{ (int16)dbDisplay._endX, (int16)dbDisplay._endY });
+				sprite = object;
+				if (dbDisplay._animation > 0) {
+					Animation animation(dbDisplay._animation);
+					object->setAnimation(animation);
+				}
+				else
+					object->setTexture(dbObject._image);
+				object->setBasePos({ (int16)dbObject._posX, (int16)dbObject._posY });
+			}
 		}
 		else if (dbObject._toDisplay != 0) {
 			const auto dbDisplay = g_engine->db().roomObjectDisplay(dbObject._toDisplay);

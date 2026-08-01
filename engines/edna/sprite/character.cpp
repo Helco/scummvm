@@ -24,6 +24,7 @@
 #include "edna/sprite/character.h"
 #include "edna/sprite/text.h"
 
+#include "gui/debugger.h"
 #include "math/vector2d.h"
 
 using namespace Common;
@@ -36,8 +37,10 @@ Character::Character(
 	Point startPos,
 	CharAnimSetId charAnimSetId,
 	float hSpeed, float vSpeed,
-	float baseYAtZeroScale, float baseYAtFullScale)
-	: _game(game)
+	float baseYAtZeroScale, float baseYAtFullScale,
+	Point baseLineStart, Point baseLineEnd)
+	: GameObject(baseLineStart, baseLineEnd)
+	, _game(game)
 	, _charAnimSet(charAnimSetId)
 	, _hSpeed(hSpeed), _vSpeed(vSpeed)
 	, _baseYAtZeroScale(baseYAtZeroScale), _baseYAtFullScale(baseYAtFullScale) {
@@ -229,6 +232,43 @@ const char *Character::stateToString() const {
 	default:
 		return "unknown";
 	}
+}
+
+Npc::Npc(
+	Game &game,
+	const DB::NPC &npc,
+	RoomInteractionId interactionId,
+	Point startPos,
+	Point baseLineStart,
+	Point baseLineEnd)
+	: Character(game, startPos, npc._charAnimSet,
+		npc._hspeed, npc._vspeed,
+		npc._baseYAtZeroScale, npc._baseYAtFullScale,
+		baseLineStart, baseLineEnd)
+	, RoomInteractable(interactionId)
+	, _name(npc._name) {
+	_direction = Direction::Left;
+	_talkFont = _thinkFont = npc._font;
+}
+
+void Npc::debugPrint() {
+	g_engine->getDebugger()->debugPrintf("NPC \"%s\" (%s)\n", _name, stateToString());
+}
+
+Player::Player(Game &game, Point startPos, const DB::Room &room)
+	: Character(game, startPos, room._charAnimSet,
+		room._hspeed, room._vspeed,
+		room._baseYAtZeroScale, room._baseYAtFullScale,
+		Point(), Point()) {
+
+	_talkFont = FontKind::EdnaFont;
+	_thinkFont = FontKind::HarveyFont;
+	if (room._gameMode == GameMode::Harvey)
+		SWAP(_talkFont, _thinkFont);
+}
+
+void Player::debugPrint() {
+	g_engine->getDebugger()->debugPrintf("Player (%s)\n", stateToString());
 }
 
 }

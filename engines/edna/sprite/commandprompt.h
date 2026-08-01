@@ -19,28 +19,32 @@
  *
  */
 
-#ifndef EDNA_BUTTON_H
-#define EDNA_BUTTON_H
+#ifndef EDNA_COMMANDPROMPT_H
+#define EDNA_COMMANDPROMPT_H
 
 #include "edna/sprite/sprite.h"
 
 namespace Edna {
 
-class Button : public Sprite {
-public:
-	Button(uint32 id, Common::Point pos, const Common::String &path);
+class Game;
 
-	void update() override;
-	const char *displayName() const override;
-	void setHovered();
-	void setPressed();
-	void setDisplayName(const char *name);
+class CommandPrompt final : public Sprite {
+public:
+	CommandPrompt(Game &game);
+
+	void render() override;
+	void debugPrint() override;
+	void setText(const PlayerCommand &command, Sprite *selection);
 
 private:
-	const char *_displayName = "";
-	TexturePtr _normal, _hovered, _pressed;
+	Game &_game;
+	const FontInfo _inactiveFont, _activeFont;
+	Common::ScopedPtr<IRenderedText> _rendered;
+	PlayerCommand _lastCommand = {};
+	Common::String _text;
+	uint32 _lastSelectionId = UINT32_MAX;
 };
 
 }
 
-#endif // EDNA_BUTTON_H
+#endif // EDNA_COMMANDPROMPT_H

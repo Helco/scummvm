@@ -42,6 +42,10 @@ void Sprite::render() {
 		g_engine->renderer().sprite(_texture.get(), _pos, _size);
 }
 
+const char *Sprite::displayName() const {
+	return "";
+}
+
 void Sprite::debugRender() {
 	if (!_active)
 		return;

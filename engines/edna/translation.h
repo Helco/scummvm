@@ -19,28 +19,34 @@
  *
  */
 
-#ifndef EDNA_BUTTON_H
-#define EDNA_BUTTON_H
+#ifndef EDNA_TRANSLATION_H
+#define EDNA_TRANSLATION_H
 
-#include "edna/sprite/sprite.h"
+#include "edna/util.h"
+
+#include "common/language.h"
 
 namespace Edna {
 
-class Button : public Sprite {
-public:
-	Button(uint32 id, Common::Point pos, const Common::String &path);
+// The game has some hardcoded translated strings that we keep here
+// eventually we will want to support arbitrary translation lookups
+// e.g. to support the Anniversary Edition data or fan-made translations
 
-	void update() override;
-	const char *displayName() const override;
-	void setHovered();
-	void setPressed();
-	void setDisplayName(const char *name);
+struct MiscTranslations;
+
+class Translation {
+public:
+	Translation(Common::Language language);
+
+	const char *action(PlayerAction action) const;
+	const char *actionWith() const; // for "Use <item> *with* <target>"
 
 private:
-	const char *_displayName = "";
-	TexturePtr _normal, _hovered, _pressed;
+	const Common::Language _language;
+	const char *const *_actionNames = nullptr;
+	const MiscTranslations *_misc = nullptr;
 };
 
 }
 
-#endif // EDNA_BUTTON_H
+#endif // EDNA_TRANSLATION_H

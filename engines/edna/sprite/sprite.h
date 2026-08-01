@@ -47,6 +47,7 @@ public:
 	virtual void toggle(bool isActive);
 	virtual void update();
 	virtual void render();
+	virtual const char *displayName() const;
 	virtual void debugRender();
 	virtual void debugPrint();
 

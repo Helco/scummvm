@@ -39,6 +39,15 @@ void Button::update() {
 	setTexture(_normal);
 }
 
+const char *Button::displayName() const {
+	return _displayName;
+}
+
+void Button::setDisplayName(const char *name) {
+	assert(name != nullptr);
+	_displayName = name;
+}
+
 void Button::setHovered() {
 	setTexture(_hovered);
 }

@@ -595,8 +595,8 @@ ScriptId DB::Item::scriptFor(PlayerAction action) const {
 	}
 }
 
-DB::Item DB::item(ItemId id) const {
-	return _items.get(id);
+DB::Item DB::item(ItemId id, bool required) const {
+	return _items.get(id, required);
 }
 
 void DB::loadItems() {
@@ -617,8 +617,8 @@ void DB::loadItems() {
 	}
 }
 
-DB::Topic DB::topic(TopicId id) const {
-	return _topics.get(id);
+DB::Topic DB::topic(TopicId id, bool required) const {
+	return _topics.get(id, required);
 }
 
 void DB::loadTopics() {

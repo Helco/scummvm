@@ -60,7 +60,7 @@ enum class GameMode {
 };
 const char *gameModeToString(GameMode mode);
 
-enum PlayerAction {
+enum class PlayerAction : uint {
 	None = 0,
 	Look,
 	Use,
@@ -130,6 +130,9 @@ struct AnimationRange {
 	uint32 _startFrame = 0, _endFrame = 0, _delay = 0;
 	bool _loop = false;
 
+	inline AnimationRange(uint32 startFrame = 0, uint32 endFrame = 0, uint32 delay = 0, bool loop = false)
+		: _startFrame(startFrame), _endFrame(endFrame), _delay(delay), _loop(loop) {}
+
 	inline bool isValid() const { return _startFrame < _endFrame; }
 	inline bool operator==(const AnimationRange &o) const {
 		return _startFrame == o._startFrame && _endFrame == o._endFrame &&
@@ -176,6 +179,9 @@ struct PlayerCommand {
 	Common::Point _targetPos = kInvalidPoint;
 
 	bool _isComplete; ///< this cannot be determined by the members alone, e.g. an item can usually not be used as-is
+
+	bool operator==(const PlayerCommand &command) const;
+	bool operator!=(const PlayerCommand &command) const;
 };
 
 }

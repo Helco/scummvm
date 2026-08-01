@@ -89,8 +89,8 @@ Sprite *Group::checkClick(Point screenPos) const {
 
 void ObjectGroup::render() {
 	sort(_sprites.begin(), _sprites.end(), [](const DisposablePtr<Sprite> &aRaw, const DisposablePtr<Sprite> &bRaw) {
-		const auto *a = dynamic_cast<const SpatialObject *>(aRaw.get());
-		const auto *b = dynamic_cast<const SpatialObject *>(bRaw.get());
+		const auto *a = dynamic_cast<const GameObject *>(aRaw.get());
+		const auto *b = dynamic_cast<const GameObject *>(bRaw.get());
 		assert(a != nullptr && b != nullptr);
 		int aBase = a->basePosY(b->basePosX());
 		int bBase = b->basePosY(a->basePosX());
@@ -101,8 +101,8 @@ void ObjectGroup::render() {
 
 Sprite *ObjectGroup::checkInteractableClick(Point screenPos) const {
 	for (uint i = _sprites.size(); i > 0; i--) {
-		const auto *interactable = dynamic_cast<const IInteractableObject *>(_sprites[i - 1].get());
-		if (interactable != nullptr && interactable->checkClick(screenPos))
+		const auto *interactable = dynamic_cast<const IInteractable *>(_sprites[i - 1].get());
+		if (interactable != nullptr && _sprites[i - 1]->checkClick(screenPos))
 			return _sprites[i - 1].get();
 	}
 	return nullptr;

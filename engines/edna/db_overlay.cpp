@@ -237,8 +237,8 @@ void DB::syncScriptId(ScriptId &value, Serializer &s) {
 }
 
 void DB::syncRoomObject(RoomObject &value, Serializer &s) {
-	s.syncAsSint32LE(value._posX);
-	s.syncAsSint32LE(value._posY);
+	s.syncAsSint16LE(value._pos.x);
+	s.syncAsSint16LE(value._pos.y);
 	s.syncAsByte(value._active);
 }
 

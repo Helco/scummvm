@@ -26,21 +26,7 @@
 
 namespace Edna {
 
-class RoomObject : virtual public Sprite {
-public:
-	void toggle(bool isActive) override;
-};
-
-class SpatialObject : virtual public Sprite { // e.g. a Player is not a RoomObject
-public:
-	virtual int32 basePosX() const = 0;
-	virtual int32 basePosY() const = 0;
-	virtual int32 basePosY(int x) const = 0;
-
-	void setBasePos(Common::Point pos);
-};
-
-class IInteractableObject : virtual public RoomObject {
+class IInteractable {
 public:
 	virtual PlayerAction defaultAction() const = 0;
 	virtual ScriptId scriptFor(PlayerAction action) const = 0;
@@ -48,12 +34,12 @@ public:
 	virtual Direction interactionDir() const = 0;
 };
 
-class InteractableRoomObject : virtual public IInteractableObject {
+class RoomInteractable : public IInteractable {
 public:
-	InteractableRoomObject(RoomInteractionId interactionId);
+	RoomInteractable(RoomInteractionId interactionId);
 
 	inline RoomInteractionId interactionId() const { return _interactionId; }
-	const char *displayName() const override;
+	const char *displayName() const; ///< this is not an override
 	PlayerAction defaultAction() const override;
 	ScriptId scriptFor(PlayerAction action) const override;
 	Common::Point interactionPos() const override;
@@ -63,27 +49,59 @@ private:
 	const RoomInteractionId _interactionId;
 };
 
-class VisualObject : public virtual AnimatedSprite, public virtual SpatialObject {
+class GameObject : public AnimatedSprite {
 public:
-	VisualObject(Common::Point baseLineStart, Common::Point baseLineEnd);
+	GameObject(); // point-spatiality
+	GameObject(Common::Point baseLineStart, Common::Point baseLineEnd); // line-spatiality
 
-	void debugPrint() override;
-	int32 basePosX() const override;
-	int32 basePosY() const override;
-	int32 basePosY(int x) const override;
+	int32 basePosX() const;
+	int32 basePosY() const;
+	int32 basePosY(int32 x) const;
+	void setBasePos(Common::Point pos);
 
 private:
 	const Common::Point _baseLineStart, _baseLineEnd;
 };
 
-class VisualInteractableRoomObject final : public virtual VisualObject, public virtual InteractableRoomObject {
+// The ID of a room object corresponds to its database object
+class RoomObject : public GameObject {
 public:
-	VisualInteractableRoomObject(
-		RoomInteractionId interactionId,
-		Common::Point baseLineStart,
-		Common::Point baseLineEnd);
+	using GameObject::GameObject;
 
 	void debugPrint() override;
+	void toggle(bool isActive) override;
+};
+
+class InteractableRoomObject : public GameObject, public RoomInteractable {
+public:
+	InteractableRoomObject(RoomInteractionId roiId);
+	InteractableRoomObject(RoomInteractionId roiId, Common::Point baseLineStart, Common::Point baseLineEnd);
+
+	const char *displayName() const override;
+	void debugPrint() override;
+};
+
+class RoomExit final : public InteractableRoomObject {
+public:
+	RoomExit(RoomInteractionId roiId, RoomExitId exitId);
+	RoomExit(RoomInteractionId roiId, RoomExitId exitId, Common::Point baseLineStart, Common::Point baseLineEnd);
+
+	inline RoomExitId exitId() const { return _exitId; }
+	void debugPrint() override;
+
+private:
+	const RoomExitId _exitId;
+};
+
+// TODO: Implement item
+class Item final : public GameObject, public IInteractable {
+public:
+	const char *displayName() const override;
+	void debugPrint() override;
+	PlayerAction defaultAction() const override;
+	ScriptId scriptFor(PlayerAction action) const override;
+	Common::Point interactionPos() const override;
+	Direction interactionDir() const override;
 };
 
 }

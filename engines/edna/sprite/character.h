@@ -22,6 +22,7 @@
 #ifndef EDNA_CHARACTER_H
 #define EDNA_CHARACTER_H
 
+#include "edna/db.h"
 #include "edna/sprite/animation.h"
 #include "edna/sprite/object.h"
 
@@ -31,7 +32,7 @@ namespace Edna {
 
 class Game;
 
-class Character : public virtual SpatialObject, public virtual AnimatedSprite {
+class Character : public GameObject {
 public:
 	enum State : ActionModeId { // not using an enum class as we need the constants as integers often
 		kWalking,
@@ -46,7 +47,8 @@ public:
 		Common::Point startPos,
 		CharAnimSetId charAnimSetId,
 		float hSpeed, float vSpeed,
-		float baseYAtZeroScale, float baseYAtFullScale);
+		float baseYAtZeroScale, float baseYAtFullScale,
+		Common::Point baseLineStart, Common::Point baseLineEnd);
 
 	inline State state() const { return _state; }
 	inline ActionModeId actionMode() const { return _actionMode; }
@@ -100,6 +102,31 @@ protected:
 	Common::Array<Common::Point> _walkPoints; ///< as unscaled base positions
 	Common::Point _walkTarget; ///< as sprite position
 };
+
+class Npc final :
+	public Character,
+	public RoomInteractable {
+public:
+	Npc(Game &game,
+		const DB::NPC &dbNpc,
+		RoomInteractionId interactionId,
+		Common::Point startPos,
+		Common::Point baseLineStart,
+		Common::Point baseLineEnd);
+
+	void debugPrint() override;
+
+private:
+	const char *const _name;
+};
+
+class Player final : public Character {
+public:
+	Player(Game &game, Common::Point startPos, const DB::Room &room);
+
+	void debugPrint() override;
+};
+
 
 }
 

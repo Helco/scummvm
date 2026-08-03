@@ -315,7 +315,7 @@ bool Script::opWalkNpcP(const ScriptCommand &line) {
 }
 
 bool Script::opFreeWalk(const ScriptCommand &line) {
-	_game.player().walkTo(line._args._walk._target);
+	_game.player().freeWalkTo(line._args._walk._target);
 	return false;
 }
 
@@ -325,7 +325,7 @@ bool Script::opFreeWalkNpc(const ScriptCommand &line) {
 		warning("@ %10u %3u: Invalid NPC id: %u", _scriptId, _scriptLine, line._args._walk._npc);
 	else {
 		_currentNpc = npc->id();
-		npc->walkTo(line._args._walk._target);
+		npc->freeWalkTo(line._args._walk._target);
 	}
 	return npc == nullptr;
 }

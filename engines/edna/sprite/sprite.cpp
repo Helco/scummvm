@@ -19,6 +19,7 @@
  *
  */
 
+#include "edna/console.h"
 #include "edna/edna.h"
 #include "edna/sprite/animation.h"
 #include "edna/sprite/sprite.h"
@@ -47,7 +48,7 @@ const char *Sprite::displayName() const {
 }
 
 void Sprite::debugRender() {
-	if (!_active)
+	if (!_active || !g_engine->console().debugSprites())
 		return;
 	g_engine->renderer().debugRect(bounds(), 255, 255, 255);
 	char buffer[32];
@@ -150,7 +151,7 @@ void AnimatedSprite::resetTextures() {
 }
 
 void AnimatedSprite::setAnimation(AnimationRange animation) {
-	if (animation._startFrame == animation._endFrame || _animation == animation)
+	if (animation._startFrame == 0 && animation._endFrame == 0 && _textures.empty())
 		return;
 	assert(animation._startFrame < _textures.size());
 	assert(animation._endFrame < _textures.size());

@@ -19,13 +19,15 @@
  *
  */
 
+#include "edna/console.h"
 #include "edna/edna.h"
 #include "edna/game/game.h"
+#include "edna/graphics.h"
+#include "edna/pathfinder.h"
 #include "edna/sprite/character.h"
 #include "edna/sprite/text.h"
 
 #include "gui/debugger.h"
-#include "math/vector2d.h"
 
 using namespace Common;
 using namespace Math;
@@ -49,6 +51,30 @@ Character::Character(
 	setTextures(_charAnimSet.textures());
 	initScaling();
 	setState(kWaiting); // also sets the animation
+}
+
+void Character::debugRender() {
+	GameObject::debugRender();
+	if (g_engine->console().debugFloor()) {
+		const Point basePos(basePosX(), basePosY());
+		const Point nearestToBase = g_engine->pathFinder().nearestWalkablePoint(basePos);
+		if (basePos != nearestToBase)
+			g_engine->renderer().debugLine(basePos, nearestToBase, 255, 0, 255);
+
+		if (_state == kWalking) {
+			const Point curPos = scaleSpritePosToBasePos(pos());
+			const Point targetPos = scaleSpritePosToBasePos(_walkTarget);
+			g_engine->renderer().debugLine(basePos, targetPos, 255, 0, 0);
+
+			Point lastPos = targetPos;
+			for (uint i = _walkPoints.size(); i > 0; i--) {
+				Point waypoint = _walkPoints[i - 1];
+				g_engine->renderer().debugRect(Rect(waypoint - Point(2, 2), 5, 5), 0, 0, 255);
+				g_engine->renderer().debugLine(lastPos, waypoint, 0, 0, 255);
+				lastPos = waypoint;
+			}
+		}
+	}
 }
 
 void Character::update() {
@@ -135,25 +161,39 @@ void Character::shutUp() {
 	setState(kWaiting);
 }
 
-void Character::walkTo(Point walkTo, Direction standbyDirection) {
+void Character::freeWalkTo(Point walkTo, Direction standbyDirection) {
 	_standbyDirection = standbyDirection;
 	_walkPoints.clear();
 	_walkPoints.emplace_back(walkTo);
 	nextWalkPoint();
 }
 
+void Character::pathWalkTo(Point walkTo, Direction standbyDirection) {
+	_standbyDirection = standbyDirection;
+	if (!g_engine->pathFinder().findPath(scaleSpritePosToBasePos(pos()), walkTo, _walkPoints))
+		_walkPoints.emplace_back(walkTo);
+	nextWalkPoint();
+}
+
+static Vector2d asVec(Point point) {
+	return Vector2d(point.x, point.y);
+}
+
+static Point asPoint(Vector2d vec) {
+	return Point((int16)(vec.getX() + 0.5f), (int16)(vec.getY() + 0.5f));
+}
+
 void Character::updateWalking() {
 	if (_state != kWalking)
 		return;
 
-	Point delta = _walkTarget - pos();
-	Vector2d move = Vector2d(delta.x, delta.y).getNormalized() * _cSpeed * g_engine->getElapsed();
-	const auto absmin = [](int16 delta, float move) -> int16 {
-		int16 moveI = (int16)(move + 0.5f);
-		return ABS(delta) < ABS(moveI) ? delta : moveI;
+	Vector2d delta = asVec(_walkTarget) - _floatPos;
+	Vector2d move = delta.getNormalized() * _cSpeed * g_engine->getElapsed();
+	const auto absmin = [](float delta, float move) {
+		return ABS(delta) < ABS(move) ? delta : move;
 	};
-	pos().x += absmin(delta.x, move.getX());
-	pos().y += absmin(delta.y, move.getY());
+	_floatPos += Vector2d(absmin(delta.getX(), move.getX()), absmin(delta.getY(), move.getY()));
+	pos() = asPoint(_floatPos);
 
 	if (pos() == _walkTarget)
 		nextWalkPoint();
@@ -173,7 +213,8 @@ void Character::nextWalkPoint() {
 	_cSpeed = (_hSpeed * delta.x + _vSpeed * delta.y) / (delta.x + delta.y);
 	_direction = delta.x > delta.y
 		? (signedDelta.x < 0 ? Direction::Left : Direction::Right)
-		: (signedDelta.y < 0 ? Direction::Up : Direction::Down);
+		: (signedDelta.y < 0 ? Direction::Down : Direction::Up);
+	_floatPos = Vector2d(pos().x, pos().y);
 	setState(kWalking);
 	_walkPoints.pop_back();
 }
@@ -215,6 +256,13 @@ Point Character::scaleBasePosToSpritePos(Point basePos) const {
 	if (_baseYAtZeroScale != _baseYAtFullScale)
 		scale = (basePos.y - _baseYAtZeroScale) / (_baseYAtFullScale - _baseYAtZeroScale);
 	return basePos - _baseOffset * scale;
+}
+
+Point Character::scaleSpritePosToBasePos(Point spritePos) const {
+	float scale = 1.0f;
+	if (_baseYAtZeroScale != _baseYAtFullScale)
+		scale = MAX(0.001f, ABS((spritePos.y - _baseYAtZeroScale) * _scaleFactor));
+	return spritePos + _baseOffset * scale;
 }
 
 const char *Character::stateToString() const {

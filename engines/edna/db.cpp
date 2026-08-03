@@ -246,7 +246,8 @@ DB::DB(const Path &path)
 	, _npcs("npc")
 	, _walkableAreas("walkable area")
 	, _timers("timer", syncTimer)
-	, _roomObjectsByRoom("room object by room", _roomObjects) {
+	, _roomObjectsByRoom("room object by room", _roomObjects)
+	, _ownedItemsByGameMode("owned items by gamemode", _items) {
 	loadScripts();
 	loadAnimations();
 	loadAnimationFrames();
@@ -278,7 +279,7 @@ DB::DBString DB::DBString::copyOf(const char *string) {
 }
 
 DB::DBString DB::DBString::refTo(const char *string) {
-	return DBString(scumm_strdup(string), false);
+	return DBString(string, false);
 }
 
 DB::DBString::DBString(DBString &&other)
@@ -385,6 +386,16 @@ Span<const TValue> DB::SequenceSet<TValue>::get(uint32 key, bool required) const
 }
 
 template<class TValue>
+TValue DB::SequenceSet<TValue>::get(uint32 key1, uint32 key2) const {
+	const Span<const TValue> range = get(key1);
+	const auto itValue = lowerBound(range.begin(), range.end(), key2,
+		[](const TValue &value, uint32 key2) { return value._line < key2; });
+	if (itValue == range.end() || itValue->_line != key2)
+		error("Missing %s: %u %u", _typeName, key1, key2);
+	return *itValue;
+}
+
+template<class TValue>
 template<class GetMe, class GetParent>
 void DB::SequenceSet<TValue>::setupSequences(GetMe getMe, GetParent getParent) {
 	sort(_items.begin(), _items.end(), [&](const TValue &a, const TValue &b) {
@@ -409,16 +420,19 @@ DB::SecondaryIndex<TValue>::SecondaryIndex(const char *name, SimpleDataSet<TValu
 	, _source(source) {}
 
 template<class TValue>
-void DB::SecondaryIndex<TValue>::build(PointerToID toParent) {
+template<class GetSecOrder, class GetParent>
+void DB::SecondaryIndex<TValue>::build(GetSecOrder getSecOrder, GetParent getParent) {
 	_map.clear();
-	_items.clear();
-	_items.reserve(_source._map.size());
+	if (_items.size() == _source._map.size())
+		_items.resize(0); // this does not free the storage
+	else {
+		_items.clear();
+		_items.reserve(_source._map.size());
+	}
 	for (const auto &pair : _source._map)
 		_items.push_back(pair._key);
 
-	setupSequences(
-		[](const uint32 &id) { return id; },
-		[&](const uint32 &id) { return _source._map[id].*toParent; });
+	setupSequences(getSecOrder, getParent);
 }
 
 Span<const DB::ScriptLine> DB::script(ScriptId scriptId, bool required) const {
@@ -534,7 +548,9 @@ void DB::loadRoomObjects() {
 		_roomObjects.set(obj._id, obj);
 	}
 
-	_roomObjectsByRoom.build(&RoomObject::_room);
+	_roomObjectsByRoom.build(
+		[](RoomObjectId objId) { return objId; },
+		[&](RoomObjectId objId) { return _roomObjects._map[objId]._room; });
 }
 
 ScriptId DB::RoomInteraction::scriptFor(PlayerAction action) const {
@@ -549,7 +565,7 @@ ScriptId DB::RoomInteraction::scriptFor(PlayerAction action) const {
 	case PlayerAction::Talk:
 		return _talkScript;
 	case PlayerAction::Pick:
-		return _takeScript;
+		return _pickScript;
 	default:
 		assert(false && "Player action not implemented");
 		return 0;
@@ -573,7 +589,7 @@ void DB::loadRoomInteractions() {
 		interaction._defaultAction = nextPlayerAction(full);
 		interaction._lookScript = nextUint(full);
 		interaction._useScript = nextUint(full);
-		interaction._takeScript = nextUint(full);
+		interaction._pickScript = nextUint(full);
 		interaction._talkScript = nextUint(full, true);
 		_roomInteractions.set(interaction._id, interaction);
 
@@ -603,6 +619,10 @@ DB::Item DB::item(ItemId id, bool required) const {
 	return _items.get(id, required);
 }
 
+Span<const ItemId> DB::ownedItems(GameMode mode) const {
+	return _ownedItemsByGameMode.get((uint32)mode, false);
+}
+
 void DB::loadItems() {
 	char *full = loadFile(_items._data, _path, "inventarobjekt.csv");
 	skipWhitespace(full);
@@ -619,6 +639,20 @@ void DB::loadItems() {
 		item._talkScript = nextUint(full, true);
 		_items.set(item._id, item);
 	}
+
+	buildItemIndex();
+}
+
+void DB::buildItemIndex() {
+	_ownedItemsByGameMode.build(
+		[&](ItemId itemId) { return _items.get(itemId)._inventoryPos; },
+		[&](ItemId itemId) {
+			const Item item = _items.get(itemId);
+			return item._inventoryPos == 0
+				? UINT32_MAX // this splits unowned items into a dummy gamemode
+				: (uint32)item._gameMode;
+		}
+	);
 }
 
 DB::Topic DB::topic(TopicId id, bool required) const {

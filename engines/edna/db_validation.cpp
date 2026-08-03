@@ -201,7 +201,7 @@ uint32 DB::validateRoomInteractions() const {
 		errors += validateScreenBounds(pair._value._walkTo, "room interaction", pair._key);
 		errors += _scripts.validateRef(pair._value._lookScript, "room interaction (look)", pair._key);
 		errors += _scripts.validateRef(pair._value._useScript, "room interaction (use)", pair._key);
-		errors += _scripts.validateRef(pair._value._takeScript, "room interaction (take)", pair._key);
+		errors += _scripts.validateRef(pair._value._pickScript, "room interaction (take)", pair._key);
 		errors += _scripts.validateRef(pair._value._talkScript, "room interaction (talk)", pair._key);
 	}
 	return errors;

@@ -90,6 +90,8 @@ public:
 		ScriptId _script = 0;
 	};
 	Common::Span<const Choice> choices(ChoiceSetId choiceId) const;
+	void setChoiceScript(ChoiceSetId setId, uint32 line, ScriptId scriptId);
+	void toggleChoice(ChoiceSetId setId, uint32 line, bool active);
 
 	struct Room {
 		RoomId _id = 0;
@@ -124,7 +126,9 @@ public:
 		NPCId _toNPC = 0;
 	};
 	RoomObject roomObject(RoomObjectId id, bool required = true) const;
-	Common::Span<const uint32> roomObjectsByRoom(RoomId id, bool required = true) const;
+	Common::Span<const RoomObjectId> roomObjectsByRoom(RoomId id, bool required = true) const;
+	void setRoomObjectPos(RoomObjectId id, Common::Point pos);
+	void toggleRoomObject(RoomObjectId id, bool active);
 
 	struct RoomObjectDisplay {
 		RoomObjectDisplayId _id = 0;
@@ -143,7 +147,7 @@ public:
 		PlayerAction _defaultAction = {};
 		ScriptId _lookScript = 0;
 		ScriptId _useScript = 0;
-		ScriptId _takeScript = 0;
+		ScriptId _pickScript = 0;
 		ScriptId _talkScript = 0;
 
 		// associations
@@ -152,6 +156,7 @@ public:
 		ScriptId scriptFor(PlayerAction action) const;
 	};
 	RoomInteraction roomInteraction(RoomInteractionId id, bool required = true) const;
+	void setRoomInteractionScript(RoomInteractionId id, PlayerAction action, ScriptId scriptId);
 
 	struct Item {
 		ItemId _id = 0;
@@ -167,6 +172,11 @@ public:
 		ScriptId scriptFor(PlayerAction action) const;
 	};
 	Item item(ItemId id, bool required = true) const;
+	Common::Span<const ItemId> ownedItems(GameMode mode) const;
+	void buildItemIndex(); ///< has to be called after setItemPos otherwise ownedItems will be wrong
+	void setItemPos(ItemId id, uint32 pos);
+	void setItemScript(ItemId itemId, PlayerAction action, ScriptId scriptId);
+	void setItemIcon(ItemId itemId, const char *newIcon);
 
 	// a topic is a kind of item only used for when controlling Harvey
 	struct Topic {
@@ -182,6 +192,8 @@ public:
 
 	ScriptId itemInteraction(ItemId item1, ItemId item2) const; ///< can return 0
 	ScriptId roomItemInteraction(ItemId item, RoomObjectId object) const; ///< can return 0
+	void setItemInteraction(ItemId item1, ItemId item2, ScriptId scriptId);
+	void setRoomItemInteraction(ItemId item, RoomObjectId object, ScriptId scriptId);
 
 	struct RoomExit {
 		RoomExitId _id = 0;
@@ -235,6 +247,7 @@ public:
 		bool _active = false;
 	};
 	Timer timer(TimerId id) const;
+	void toggleTimer(TimerId id, bool active);
 
 private:
 	// When loading value will be the original value, 
@@ -256,6 +269,7 @@ private:
 		TValue get(uint32 key, bool required = true) const;
 		uint32 validateRef(uint32 key, const char *sourceType, uint32 sourceKey) const;
 		void overlay(const TValue &value);
+		void ensureOverlay(uint32 key);
 		void resetOverlay();
 		void sync(Common::Serializer &s);
 	};
@@ -297,8 +311,9 @@ private:
 
 		SequenceSet(const char *typeName, RecordSyncFn<TValue> sync = nullptr);
 		template<class GetMe, class GetParent>
-		void setupSequences(GetMe, GetParent getParent);
+		void setupSequences(GetMe getMe, GetParent getParent);
 		Common::Span<const TValue> get(uint32 key, bool required = true) const;
+		TValue get(uint32 key1, uint32 key2) const;
 		uint32 validateRef(uint32 key, const char *sourceType, uint32 sourceKey) const;
 		uint32 validateRef(uint32 key, const char *sourceType, uint32 sourceKey1, uint32 sourceKey2) const;
 		uint32 validateRef(uint32 key1, uint32 key2, const char *sourceType, uint32 sourceKey1, uint32 sourceKey2) const;
@@ -311,11 +326,11 @@ private:
 	// For faster queries and easier data structures
 	template<class TValue>
 	struct SecondaryIndex : public SequenceSet<uint32> {
-		using PointerToID = uint32 TValue::*;
 		SimpleDataSet<TValue> &_source;
 
 		SecondaryIndex(const char *name, SimpleDataSet<TValue> &source);
-		void build(PointerToID toParent);
+		template<class GetSecOrder, class GetParent>
+		void build(GetSecOrder getSecOrder, GetParent getParent);
 	};
 
 	void loadScripts();
@@ -394,6 +409,7 @@ private:
 	SimpleDataSet<Timer> _timers;
 
 	SecondaryIndex<RoomObject> _roomObjectsByRoom;
+	SecondaryIndex<Item> _ownedItemsByGameMode;
 };
 
 }

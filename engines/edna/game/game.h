@@ -30,6 +30,7 @@
 namespace Edna {
 
 class Player;
+class ITexture;
 
 // Everything except Intro inherits from Game
 
@@ -70,6 +71,7 @@ public:
 
 	void update() override;
 	void render() override;
+	void debugRender() override;
 	Sprite *objectById(RoomObjectId id) const;
 
 	void fade(byte color, float target, uint32 duration);
@@ -79,6 +81,7 @@ protected:
 	void initTimer(TimerId timerId);
 	virtual void initGroups();
 	void initGroups(Group *specialObjects, Group *specialGui);
+	void initPathFinder(WalkableAreaId areaId);
 	void initPlayer(const GameTransition &transition);
 	void initObjects();
 
@@ -86,6 +89,8 @@ protected:
 	bool updateScript();
 
 private:
+	void createDebugFloorTexture();
+
 	const RoomId _roomId;
 	Script _script;
 	Player *_player = nullptr;
@@ -105,6 +110,8 @@ private:
 		byte _color = 0; ///< there is only fades to black or white, so this is okay
 		float _current = 0, _speed = 0;
 	} _fade;
+
+	Common::SharedPtr<ITexture> _debugFloorTexture;
 };
 
 }

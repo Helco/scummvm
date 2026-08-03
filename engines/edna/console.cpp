@@ -24,6 +24,10 @@
 #include "edna/edna.h"
 #include "edna/game/game.h"
 #include "edna/sprite/sprite.h"
+#include "edna/pathfinder.h"
+
+#include "common/file.h"
+#include "image/png.h"
 
 using namespace Common;
 
@@ -41,9 +45,11 @@ Console::Console()
 	registerCmd("e", WRAP_METHOD(Console, cmdEval));
 	registerCmd("br", WRAP_METHOD(Console, cmdBreakpoint));
 	registerCmd("delbr", WRAP_METHOD(Console, cmdDelBreakpoint));
+	registerCmd("dumpFloor", WRAP_METHOD(Console, cmdDumpFloor));
 
 	registerVar("waitDiv", &_waitDivider);
 	registerVar("debugSprites", &_debugSprites);
+	registerVar("debugFloor", &_debugFloor);
 }
 
 Console::~Console() {
@@ -334,6 +340,25 @@ void Console::printBreakpointList() {
 
 bool Console::hasBreakpoint(ScriptId scriptId, uint32 line) const {
 	return getBreakpoint(scriptId, line) != _breakpoints.end();
+}
+
+bool Console::cmdDumpFloor(int argc, const char **argv) {
+	static const byte colors[] = { 0, 0, 0, 0xff, 0xff, 0xff };
+	DumpFile dmpFile;
+	if (!dmpFile.open("floor.png")) {
+		debugPrintf("Could not open floor.png\n");
+		return true;
+	}
+	Graphics::Surface surface;
+	surface.pitch = surface.w = kScreenHeight;
+	surface.h = kScreenWidth;
+	surface.format = Graphics::PixelFormat::createFormatCLUT8();
+	surface.setPixels(const_cast<byte *>(g_engine->pathFinder().map().data()));
+	if (!Image::writePNG(dmpFile, surface, colors, 2))
+		debugPrintf("Could not write floor.png\n");
+	else
+		debugPrintf("Saved floor to floor.png\n");
+	return true;
 }
 
 } // End of namespace Edna

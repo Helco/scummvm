@@ -83,7 +83,7 @@ CharacterAnimationSet::CharacterAnimationSet(CharAnimSetId charAnimSetId) : _id(
 AnimationRange CharacterAnimationSet::get(ActionModeId actionMode, Direction dir) {
 	assert(actionMode < kMaxActionMode);
 	if (!_hasActionMode[actionMode]) {
-		_hasActionMode[actionMode];
+		_hasActionMode[actionMode] = true;
 		const auto dbSet = g_engine->db().characterAnimationSet(_id, actionMode, false);
 		if (dbSet._id != _id || dbSet._actionMode != actionMode)
 			return AnimationRange();

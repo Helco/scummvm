@@ -38,6 +38,10 @@ public:
 	bool hasBreakpoint(ScriptId scriptId, uint32 line) const;
 	inline uint32 waitDivider() const { return _waitDivider; }
 	inline bool debugSprites() const { return _debugSprites; }
+	inline bool debugFloor() const { return _debugFloor; }
+	inline bool anyDebugDraw() const {
+		return _debugSprites || _debugFloor;
+	}
 private:
 	bool cmdValidate(int argc, const char **argv);
 	bool cmdRoom(int argc, const char **argv);
@@ -48,7 +52,7 @@ private:
 	bool cmdRun(int argc, const char **argv);
 	bool cmdBreakpoint(int argc, const char **argv);
 	bool cmdDelBreakpoint(int argc, const char **argv);
-	bool cmdWaitDivider(int argc, const char **argv);
+	bool cmdDumpFloor(int argc, const char **argv);
 
 	Game *getGame();
 	bool tryParseUint(const char *arg, uint32 &value, const char *context);
@@ -59,7 +63,8 @@ private:
 	BreakpointList _breakpoints;
 
 	byte _waitDivider = 1;
-	bool _debugSprites = false;
+	bool _debugSprites = false,
+		_debugFloor = false;
 };
 
 } // End of namespace Edna

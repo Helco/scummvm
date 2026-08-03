@@ -24,10 +24,14 @@
 #include "edna/edna.h"
 #include "edna/db.h"
 #include "edna/game/game.h"
+#include "edna/graphics.h"
+#include "edna/input.h"
+#include "edna/pathfinder.h"
 #include "edna/sprite/animation.h"
 #include "edna/sprite/character.h"
 
 #include "graphics/cursorman.h"
+#include "graphics/managed_surface.h"
 
 using namespace Common;
 
@@ -52,10 +56,17 @@ void GameBase::render() {
 }
 
 void GameBase::debugRender() {
-	if (!g_engine->console().debugSprites())
+	if (!g_engine->console().anyDebugDraw())
 		return;
 	for (auto &group : _groups)
 		group->debugRender();
+
+	if (g_engine->console().debugFloor()) {
+		Point mousePos = g_engine->input().mousePos();
+		Point nearest = g_engine->pathFinder().nearestWalkablePoint(mousePos);
+		if (mousePos != nearest)
+			g_engine->renderer().debugLine(mousePos, nearest, 255, 0, 255);
+	}
 }
 
 void GameBase::add(Group *group, DisposeAfterUse::Flag dispose) {
@@ -78,7 +89,7 @@ Game::Game(ScopedPtr<GameBase> &myPtr, GameMode mode, const GameTransition &tran
 	initBackground(room._background);
 	initTimer(room._timer);
 	initGroups();
-	// TODO: Init walkableareamap
+	initPathFinder(room._walkAreaId);
 	// TODO: Init comment
 	initPlayer(transition);
 	initObjects();
@@ -117,6 +128,11 @@ void Game::initGroups(Group *specialObjects, Group *specialGui) {
 	if (specialGui != nullptr)
 		add(specialGui);
 	// TODO: start menu
+}
+
+void Game::initPathFinder(WalkableAreaId areaId) {
+	const auto area = g_engine->db().walkableArea(areaId);
+	g_engine->pathFinder().loadArea(area._file);
 }
 
 void Game::initPlayer(const GameTransition &transition) {
@@ -193,6 +209,14 @@ void Game::render() {
 	}
 }
 
+void Game::debugRender() {
+	GameBase::debugRender();
+	if (g_engine->console().debugFloor()) {
+		createDebugFloorTexture();
+		g_engine->renderer().sprite(_debugFloorTexture.get(), Point());
+	}
+}
+
 void Game::updateFade() {
 	if (!_fade._active)
 		return;
@@ -237,6 +261,21 @@ void Game::fade(byte color, float target, uint32 duration) {
 	_fade._active = true;
 	_fade._color = color;
 	_fade._speed = (target - _fade._current) * 1000.0f / duration;
+}
+
+void Game::createDebugFloorTexture() {
+	if (_debugFloorTexture != nullptr)
+		return;
+	// Manual copy because we have to transpose as well
+	const auto src = g_engine->pathFinder().map();
+	Graphics::ManagedSurface dst(kScreenWidth, kScreenHeight, g_system->getScreenFormat());
+	const uint32 color = dst.format.ARGBToColor(100, 0, 255, 0);
+	for (uint y = 0; y < kScreenHeight; y++) {
+		uint32 *dstLine = (uint32 *)(dst.getBasePtr(0, y));
+		for (uint x = 0; x < kScreenWidth; x++)
+			*(dstLine++) = src[x * kScreenHeight + y] ? color : 0;
+	}
+	_debugFloorTexture = g_engine->renderer().loadTexture(dst);
 }
 
 }

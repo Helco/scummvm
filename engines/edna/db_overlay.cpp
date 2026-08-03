@@ -43,6 +43,8 @@ void DB::resetOverlay() {
 	assert(_npcs._overlay.empty());
 	assert(_walkableAreas._overlay.empty());
 	_timers.resetOverlay();
+
+	buildItemIndex();
 }
 
 void DB::syncOverlay(Common::Serializer &s) {
@@ -54,12 +56,21 @@ void DB::syncOverlay(Common::Serializer &s) {
     _roomItemInteractions.sync(s);
     _topics.sync(s);
     _timers.sync(s);
+
+	buildItemIndex();
 }
 
 template<class TValue>
 void DB::SimpleDataSet<TValue>::overlay(const TValue &value) {
 	assert(_map.contains(value._id));
 	_overlay[value._id] = value;
+}
+
+template<class TValue>
+void DB::SimpleDataSet<TValue>::ensureOverlay(uint32 key) {
+	assert(_map.contains(key));
+	if (!_overlay.contains(key))
+		_overlay.setVal(key, _map[key]);
 }
 
 template<class TValue>
@@ -224,6 +235,18 @@ void DB::syncChoice(Choice &value, Serializer &s) {
 	s.syncAsUint32LE(value._script);
 }
 
+void DB::setChoiceScript(ChoiceSetId setId, uint32 line, ScriptId scriptId) {
+	Choice choice = _choices.get(setId, line);
+	choice._script = scriptId;
+	_choices.overlay(choice);
+}
+
+void DB::toggleChoice(ChoiceSetId setId, uint32 line, bool active) {
+	Choice choice = _choices.get(setId, line);
+	choice._active = active;
+	_choices.overlay(choice);
+}
+
 void DB::syncItem(Item &value, Serializer &s) {
 	syncDBString(value._icon, s);
 	s.syncAsUint32LE(value._inventoryPos);
@@ -232,8 +255,48 @@ void DB::syncItem(Item &value, Serializer &s) {
 	s.syncAsUint32LE(value._talkScript);
 }
 
+// for items have to access the overlay directly, otherwise we make copies
+// of DBString causing potentially overwritten strings to be freed
+
+void DB::setItemPos(ItemId id, uint32 pos) {
+	_items.ensureOverlay(id);
+	_items._overlay[id]._inventoryPos = pos;
+}
+
+void DB::setItemScript(ItemId itemId, PlayerAction action, ScriptId scriptId) {
+	_items.ensureOverlay(itemId);
+	Item &item = _items._overlay[itemId];
+	switch (action) {
+	case PlayerAction::Look:
+		item._lookScript = scriptId;
+		break;
+	case PlayerAction::Use:
+		item._useScript = scriptId;
+		break;
+	case PlayerAction::Talk:
+		item._talkScript = scriptId;
+		break;
+	default:
+		assert(false && "Invalid action to set item script for");
+		return;
+	}
+}
+
+void DB::setItemIcon(ItemId itemId, const char *newIcon) {
+	_items.ensureOverlay(itemId);
+	_items._overlay[itemId]._icon = move(DBString::copyOf(newIcon));
+}
+
 void DB::syncScriptId(ScriptId &value, Serializer &s) {
 	s.syncAsUint32LE(value);
+}
+
+void DB::setItemInteraction(ItemId item1, ItemId item2, ScriptId scriptId) {
+	_itemInteractions.overlay(item1, item2, scriptId);
+}
+
+void DB::setRoomItemInteraction(ItemId item, RoomObjectId object, ScriptId scriptId) {
+	_roomItemInteractions.overlay(item, object, scriptId);
 }
 
 void DB::syncRoomObject(RoomObject &value, Serializer &s) {
@@ -242,11 +305,45 @@ void DB::syncRoomObject(RoomObject &value, Serializer &s) {
 	s.syncAsByte(value._active);
 }
 
+void DB::setRoomObjectPos(RoomObjectId id, Common::Point pos) {
+	RoomObject obj = roomObject(id);
+	obj._pos = pos;
+	_roomObjects.overlay(obj);
+}
+
+void DB::toggleRoomObject(RoomObjectId id, bool active) {
+	RoomObject obj = roomObject(id);
+	obj._active = active;
+	_roomObjects.overlay(obj);
+}
+
 void DB::syncRoomInteraction(RoomInteraction &value, Serializer &s) {
 	s.syncAsUint32LE(value._lookScript);
 	s.syncAsUint32LE(value._useScript);
-	s.syncAsUint32LE(value._takeScript);
+	s.syncAsUint32LE(value._pickScript);
 	s.syncAsUint32LE(value._talkScript);
+}
+
+void DB::setRoomInteractionScript(RoomInteractionId id, PlayerAction action, ScriptId scriptId) {
+	RoomInteraction interaction = roomInteraction(id);
+	switch (action) {
+	case PlayerAction::Look:
+		interaction._lookScript = scriptId;
+		break;
+	case PlayerAction::Use:
+		interaction._useScript = scriptId;
+		break;
+	case PlayerAction::Pick:
+		interaction._pickScript = scriptId;
+		break;
+	case PlayerAction::Talk:
+		interaction._talkScript = scriptId;
+		break;
+	default:
+		assert(false && "Invalid action for setting a room interaction script");
+		return;
+	}
+	_roomInteractions.overlay(interaction);
 }
 
 void DB::syncTopic(Topic &value, Serializer &s) {
@@ -256,6 +353,12 @@ void DB::syncTopic(Topic &value, Serializer &s) {
 
 void DB::syncTimer(Timer &value, Serializer &s) {
 	s.syncAsByte(value._active);
+}
+
+void DB::toggleTimer(TimerId id, bool active) {
+	Timer timer = _timers.get(id);
+	timer._active = active;
+	_timers.overlay(timer);
 }
 
 }

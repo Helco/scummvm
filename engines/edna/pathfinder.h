@@ -34,8 +34,8 @@ public:
 
     void loadArea(const char *fileName);
     bool findPath(Common::Point from, Common::Point to, Common::Array<Common::Point> &waypoints);
+	Common::Point nearestWalkablePoint(Common::Point pos) const;
 private:
-    Common::Point nearestWalkablePoint(Common::Point pos) const;
     bool dijkstraDistances(Common::Point from, Common::Point to);
     void dijkstraPath(Common::Point from, Common::Point to, Common::Array<Common::Point> &waypoints);
     void reduceWaypoints(Common::Array<Common::Point> &waypoints) const;
@@ -59,6 +59,7 @@ private:
 	// these large, static data blocks is why we use a single instance of PathFinder for the engine
     byte _map[kScreenWidth * kScreenHeight]; ///< unfortunately this is column-major
     uint32 _distance[kScreenWidth * kScreenHeight];
+	Common::Rect _bounds; ///< we reduce the screen bounds to speed up nearestWalkablePoint
     PointQueue _queue; ///< only used locally in dijkstraDistances but we keep it to reduce allocations
 };
 

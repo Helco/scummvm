@@ -142,12 +142,11 @@ void EdnaStd::updateCommandByHover(Sprite *selection) {
 void EdnaStd::onMouseLeftPressed(Sprite *selection) {
 	if (selection == nullptr) {
 		// TODO: Check that inventory is closed
-		// TODO: Use path finding
 		_command = {};
 		_command._action = PlayerAction::Walk;
 		_command._targetPos = g_engine->input().mousePos();
 		_command._isComplete = true;
-		player().walkTo(_command._targetPos);
+		player().pathWalkTo(_command._targetPos);
 		return;
 	}
 	// TODO: Filter interaction with comment or achievement close button
@@ -242,13 +241,12 @@ void EdnaStd::invokeRoomInteraction(Sprite *object, PlayerAction action) {
 	_command._targetPos = interactable->interactionPos();
 	if (_command._targetPos == kInvalidPoint)
 		_command._targetPos = object->pos();
-	// TODO: Use path finding
-	player().walkTo(_command._targetPos, interactable->interactionDir());
+	player().pathWalkTo(_command._targetPos, interactable->interactionDir());
 }
 
 void EdnaStd::invokeCommand() {
 	assert(_command._isComplete);
-	warning("Command invocation is not implemented yet");
+	//warning("Command invocation is not implemented yet");
 }
 
 }

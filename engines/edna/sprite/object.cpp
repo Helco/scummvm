@@ -62,7 +62,7 @@ int32 GameObject::basePosX() const {
 }
 
 int32 GameObject::basePosY() const {
-	return pos().x + size().y;
+	return pos().y + size().y;
 }
 
 int32 GameObject::basePosY(int x) const {

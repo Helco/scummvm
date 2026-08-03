@@ -27,6 +27,7 @@
 #include "edna/sprite/object.h"
 
 #include "audio/mixer.h"
+#include "math/vector2d.h"
 
 namespace Edna {
 
@@ -55,14 +56,15 @@ public:
 	inline Direction &direction() { return _direction; }
 
 	void update() override;
-	// TODO: Maybe Character should override render to cache scaled images
+	void debugRender() override;
 
 	void wait(uint32 duration);
 	void lookIn(Direction direction);
 	void say(const char *text, const char *soundFile);
 	void think(const char *text, const char *soundFile);
 	void shutUp(); ///< original method name and it fits...
-	void walkTo(Common::Point walkTo, Direction standbyDirection = Direction::None);
+	void freeWalkTo(Common::Point walkTo, Direction standbyDirection = Direction::None);
+	void pathWalkTo(Common::Point walkTo, Direction standbyDirection = Direction::None);
 
 protected:
 	void sayOrThink(const char *text, const char *soundFile, State newState);
@@ -73,6 +75,7 @@ protected:
 	void initScaling();
 	void updateScaling();
 	Common::Point scaleBasePosToSpritePos(Common::Point basePos) const;
+	Common::Point scaleSpritePosToBasePos(Common::Point basePos) const;
 	void updateTalking();
 	void updateWalking();
 	void nextWalkPoint();
@@ -98,6 +101,7 @@ protected:
 
 	const float _hSpeed = 0, _vSpeed = 0;
 	float _cSpeed = 0;
+	Math::Vector2d _floatPos; ///< only used during walking
 	Direction _standbyDirection = Direction::None;
 	Common::Array<Common::Point> _walkPoints; ///< as unscaled base positions
 	Common::Point _walkTarget; ///< as sprite position

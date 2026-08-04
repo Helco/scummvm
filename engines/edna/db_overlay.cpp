@@ -313,6 +313,8 @@ void DB::setRoomObjectPos(RoomObjectId id, Common::Point pos) {
 
 void DB::toggleRoomObject(RoomObjectId id, bool active) {
 	RoomObject obj = roomObject(id);
+	if (obj._active == active)
+		return;
 	obj._active = active;
 	_roomObjects.overlay(obj);
 }

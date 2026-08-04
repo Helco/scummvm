@@ -46,6 +46,7 @@ private:
 	bool cmdValidate(int argc, const char **argv);
 	bool cmdRoom(int argc, const char **argv);
 	bool cmdSprites(int argc, const char **argv);
+	bool cmdObject(int argc, const char **argv);
 	bool cmdScript(int argc, const char **argv);
 	bool cmdStop(int argc, const char **argv);
 	bool cmdEval(int argc, const char **argv);

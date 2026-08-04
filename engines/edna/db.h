@@ -29,6 +29,7 @@
 namespace Edna {
 
 using FileData = Common::SpanOwner<StringSpan>;
+class Console;
 
 class DB final {
 	struct StringBuffer;
@@ -250,6 +251,8 @@ public:
 	void toggleTimer(TimerId id, bool active);
 
 private:
+	friend class Console; ///< for debugging output
+
 	// When loading value will be the original value, 
 	// only modifiable values should be loaded or saved
 	template<class TValue>

@@ -181,6 +181,7 @@ Audio::SoundHandle EdnaEngine::playSpeech(const char *fileName) {
 	assert(fileName != nullptr);
 	File *file = new File();
 	if (!file->open(fileName) && !file->open(Path(String(fileName) + ".ogg"))) {
+		warning("Could not open speech: %s", fileName);
 		delete file;
 		return {};
 	}

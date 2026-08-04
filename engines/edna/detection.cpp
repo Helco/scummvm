@@ -33,6 +33,7 @@ const DebugChannelDef EdnaMetaEngineDetection::debugFlagList[] = {
 	{ Edna::kDebugGameplay, "Gameplay", "Gameplay debug level" },
 	{ Edna::kDebugGraphics, "Graphics", "Graphics debug level" },
 	{ Edna::kDebugScript, "Script", "Script debug level" },
+	{ Edna::kDebugPathFinder, "PathFinding", "Path finder debug level" },
 	DEBUG_CHANNEL_END
 };
 

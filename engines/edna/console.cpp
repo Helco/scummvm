@@ -39,6 +39,7 @@ Console::Console()
 	registerCmd("validate", WRAP_METHOD(Console, cmdValidate));
 	registerCmd("room", WRAP_METHOD(Console, cmdRoom));
 	registerCmd("sprites", WRAP_METHOD(Console, cmdSprites));
+	registerCmd("object", WRAP_METHOD(Console, cmdObject));
 	registerCmd("script", WRAP_METHOD(Console, cmdScript));
 	registerCmd("stop", WRAP_METHOD(Console, cmdStop));
 	registerCmd("eval", WRAP_METHOD(Console, cmdEval));
@@ -137,14 +138,106 @@ bool Console::cmdSprites(int argc, const char **argv) {
 		const auto sprites = group->sprites();
 		debugPrintf("%s \"%s\" (%u)\n", group->active() ? "ACTIVE" : "INACTIVE", group->name(), sprites.size());
 		for (const auto &sprite : sprites) {
-			char flags[3] = "AI";
+			char flags[4] = "AIO";
 			flags[0] = sprite->active() ? 'A' : ' ';
 			flags[1] = sprite->immutable() ? 'I' : ' ';
-			debugPrintf("  %10u  %s   %6d %6d %6d %6d ",
+			flags[2] = ' ';
+
+			// Is this an overlayed room object?
+			const auto object = g_engine->db().roomObject(sprite->id(), false);
+			if (object._id == sprite->id() && (
+				g_engine->db()._roomObjects._overlay.contains(object._id) ||
+				g_engine->db()._roomInteractions._overlay.contains(object._toInteraction)))
+				flags[2] = 'O';
+
+			debugPrintf("  %10u  %s  %6d %6d %6d %6d ",
 				sprite->id(), flags, sprite->pos().x, sprite->pos().y, sprite->size().x, sprite->size().y);
 			sprite->debugPrint();
 		}
 	}
+	return true;
+}
+
+bool Console::cmdObject(int argc, const char **argv) {
+	if (argc != 2) {
+		debugPrintf("usage: object <id>\n");
+		return true;
+	}
+	RoomObjectId objId;
+	if (!tryParseUint(argv[1], objId, "object id"))
+		return true;
+	const DB::RoomObject obj = g_engine->db().roomObject(objId, false);
+	if (obj._id != objId) {
+		debugPrintf("No such room object: %u\n", objId);
+		return true;
+	}
+
+	// Base properties
+	DB::RoomObject origObj;
+	if (g_engine->db()._roomObjects._overlay.contains(objId))
+		origObj = g_engine->db()._roomObjects._map[objId];
+	debugPrintf("Object %u\n", objId);
+	debugPrintf("     Property                  Current                 Original\n");
+	debugPrintf("O   Obj. Name %24s\n", obj._name);
+	debugPrintf("O        Room %24u\n", obj._room);
+#define EDNA_OVERLAY(cond, part1, part2) (cond) ? part1 part2 "\n" : part1 "\n"
+	debugPrintf(EDNA_OVERLAY(origObj._id == objId, "O      Active %24s", " %24s"),
+		obj._active ? "true" : "false", origObj._active ? "true" : "false");
+	debugPrintf(EDNA_OVERLAY(origObj._id == objId, "O    Position        %8d,%8d", "        %8d,%8d\n"),
+		obj._pos.x, obj._pos.y, origObj._pos.x, origObj._pos.y);
+	debugPrintf("O       Image %24s\n", obj._image);
+
+	const DB::RoomObjectDisplay display = g_engine->db().roomObjectDisplay(obj._toDisplay, false);
+	if (display._object == objId) {
+		const auto animation = g_engine->db().animation(display._animation, false);
+		debugPrintf("D     Display %24u\n", display._id);
+		debugPrintf("D   Animation %24u (%s)\n", display._animation, animation._name);
+		debugPrintf("D    BaseLine   (%3d,%3d) -> (%3d,%3d)\n",
+			display._baseLineStart.x, display._baseLineStart.y, display._baseLineEnd.x, display._baseLineEnd.y);
+	}
+
+	const DB::RoomInteraction inter = g_engine->db().roomInteraction(obj._toInteraction, false);
+	if (inter._object == objId) {
+		DB::RoomInteraction origInter;
+		if (g_engine->db()._roomInteractions._overlay.contains(obj._toInteraction))
+			origInter = g_engine->db()._roomInteractions._overlay[obj._toInteraction];
+		debugPrintf("I Interaction %24u\n", inter._id);
+		debugPrintf("I Inter. Name %24s\n", inter._name);
+		debugPrintf("I Inter.  Pos        %8d,%8d\n", inter._walkTo.x, inter._walkTo.y);
+		debugPrintf("I Inter.  Dir %24s\n", directionToString(inter._lookDirection));
+		debugPrintf("I Def. Action %24s\n", playerActionToString(inter._defaultAction));
+		debugPrintf(EDNA_OVERLAY(inter._id == origInter._id, "I Look Script %24u", " %24u\n"),
+			inter._lookScript, origInter._lookScript);
+		debugPrintf(EDNA_OVERLAY(inter._id == origInter._id, "I Pick Script %24u", " %24u\n"),
+			inter._pickScript, origInter._pickScript);
+		debugPrintf(EDNA_OVERLAY(inter._id == origInter._id, "I Talk Script %24u", " %24u\n"),
+			inter._talkScript, origInter._talkScript);
+		debugPrintf(EDNA_OVERLAY(inter._id == origInter._id, "I  Use Script %24u", " %24u\n"),
+			inter._useScript, origInter._useScript);
+	}
+
+	const DB::RoomExit exit = g_engine->db().roomExit(inter._toExit, false);
+	if (inter._object == objId && exit._interaction == inter._id) {
+		debugPrintf("E        Exit %24u\n", exit._id);
+		debugPrintf("E      Target %24u (%s)\n", exit._target, g_engine->db().room(exit._target, false)._name);
+		debugPrintf("E     Walk-In        %8d,%8d\n", exit._walkIn.x, exit._walkIn.y);
+		debugPrintf("E Walk-In-Dir %24s\n", directionToString(exit._lookDirection));
+	}
+
+	const DB::NPC npc = g_engine->db().npc(obj._toNPC, false);
+	if (npc._object == objId) {
+		debugPrintf("N         NPC %24u\n", npc._id);
+		debugPrintf("N        Name %24s\n", npc._name);
+		debugPrintf("N CharAnimSet %24u\n", npc._charAnimSet);
+		debugPrintf("N        Font %24s\n", fontKindToString(npc._font));
+		debugPrintf("N       Speed        %8f,%8f\n", npc._hspeed, npc._vspeed);
+		debugPrintf("N     Scale-Y     %8f -> %8f\n", npc._baseYAtZeroScale, npc._baseYAtFullScale);
+	}
+
+	if (obj._toTopicId != 0)
+		debugPrintf("T       Topic %24u (%s)\n", obj._toTopicId, g_engine->db().topic(obj._toTopicId)._name);
+	if (obj._toTopicObject != 0)
+		debugPrintf("T   Topic Obj %24u (%s)\n", obj._toTopicObject, g_engine->db().topic(obj._toTopicObject)._name);
 	return true;
 }
 

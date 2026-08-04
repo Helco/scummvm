@@ -67,7 +67,7 @@ int32 GameObject::basePosY() const {
 
 int32 GameObject::basePosY(int x) const {
 	auto delta = _baseLineEnd - _baseLineStart;
-	if (delta.x == 0 || delta.y == 0)
+	if (delta.x == 0)
 		return basePosY(); // point-spatiality
 	float ratio = delta.y / (float)delta.x;
 	return (int)(_baseLineStart.y + ratio * (x - _baseLineStart.x));

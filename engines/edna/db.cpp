@@ -283,7 +283,7 @@ DB::DBString DB::DBString::refTo(const char *string) {
 }
 
 DB::DBString::DBString(DBString &&other)
-	: _string(other._string), _ownsString(other._string) {
+	: _string(other._string), _ownsString(other._ownsString) {
 	other._string = nullptr;
 	other._ownsString = false;
 }
@@ -384,6 +384,9 @@ Span<const TValue> DB::SequenceSet<TValue>::get(uint32 key, bool required) const
 	assert(range._begin < _items.size() && range._begin + range._count <= _items.size());
 	return { &_items[range._begin], range._count };
 }
+
+// necessary for db_overlay.cpp
+template DB::Choice DB::SequenceSet<DB::Choice>::get(uint32 key1, uint32 key2) const;
 
 template<class TValue>
 TValue DB::SequenceSet<TValue>::get(uint32 key1, uint32 key2) const {

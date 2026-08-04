@@ -43,6 +43,20 @@ void Timer::toggle(bool active) {
     reset();
 }
 
+static constexpr const char *const DirectionNames[] = {
+	"None",
+	"Up",
+	"Down",
+	"Left",
+	"Right"
+};
+const char *directionToString(Direction dir) {
+	int index = 1 + (int)dir;
+	if (index < 0 || index >= ARRAYSIZE(DirectionNames))
+		return "<unknown>";
+	return DirectionNames[index];
+}
+
 static constexpr const char *const GameModeNames[] = {
 	"None",
 	"StartMenu",
@@ -61,6 +75,49 @@ const char *gameModeToString(GameMode mode) {
 	if (index < 0 || index >= ARRAYSIZE(GameModeNames))
 		return "<unknown>";
 	return GameModeNames[index];
+}
+
+static constexpr const char *const PlayerActionNames[] = {
+	"None",
+	"Look",
+	"Use",
+	"Pick",
+	"Talk",
+	"Walk"
+};
+
+const char *playerActionToString(PlayerAction action) {
+	int index = (int)action;
+	if (index < 0 || index >= ARRAYSIZE(PlayerActionNames))
+		return "<unknown>";
+	return PlayerActionNames[index];
+}
+
+static constexpr const char *const FontKindNames[] = {
+	"EdnaFont",
+	"HarveyFont",
+	"NscFontRot",
+	"NscFontGelb",
+	"NscFontOrange",
+	"NscFontGreygreen",
+	"NscFontBlau",
+	"NscFontGrau",
+	"NscFontHellgelb",
+	"NscFontLind",
+	"NscFontStahlblau",
+	"NscFontWeiss",
+	"TestFont",
+	"ActiveFont",
+	"InactiveFont",
+	"MenuFont",
+	"MenuFont2"
+};
+
+const char *fontKindToString(FontKind kind) {
+	int index = (int)kind;
+	if (index < 0 || index >= ARRAYSIZE(FontKindNames))
+		return "<unknown>";
+	return FontKindNames[index];
 }
 
 bool parseDirection(const char *text, Direction &value) {

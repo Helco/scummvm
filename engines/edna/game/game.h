@@ -62,6 +62,7 @@ public:
 
 	inline RoomId roomId() const { return _roomId; }
 	inline Script &script() { return _script; }
+	inline Timer &timer() { return _timer; }
 	inline Player &player() { assert(_player != nullptr); return *_player; }
 	inline Group &background() { return _background; }
 	inline Group &bgObjects() { return _bgObjects; }

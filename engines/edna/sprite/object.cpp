@@ -83,14 +83,8 @@ void RoomObject::debugPrint() {
 
 void RoomObject::toggle(bool isActive) {
 	Sprite::toggle(isActive);
-	if (id() == 0)
-		return;
-
-	auto dbObject = g_engine->db().roomObject(id());
-	if (dbObject._active != isActive) {
-		dbObject._active = isActive;
-		// TODO: Save modified object back
-	}
+	if (id() != 0)
+		g_engine->db().toggleRoomObject(id(), isActive);
 }
 
 InteractableRoomObject::InteractableRoomObject(RoomInteractionId roiId)

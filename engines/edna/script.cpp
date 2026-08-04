@@ -93,8 +93,6 @@ void Script::resume() {
 	if (!_isScriptRunning)
 		return;
 
-	// TODO: Exit handling
-
 	_isPerforming = true;
 	auto &console = g_engine->console();
 	ScriptId prevScriptId = _scriptId; // opScript can change the script, we have to handle this
@@ -147,8 +145,11 @@ bool Script::opIfActive(const ScriptCommand &line) {
 }
 
 bool Script::opIfItemActive(const ScriptCommand &line) {
-	warning("STUB script op: IfItemActive");
-	return true;
+	if (g_engine->db().item(line._args._ifItemActive)._inventoryPos == 0)
+		return true;
+	assert(line._thenLine != nullptr);
+	const auto &thenLine = *line._thenLine;
+	return thenLine._handler == nullptr || (this->*thenLine._handler)(thenLine);
 }
 
 String Script::speechPath() {
@@ -207,37 +208,45 @@ bool Script::opChoice(const ScriptCommand &line) {
 }
 
 bool Script::opToggleChoice(const ScriptCommand &line) {
-	warning("STUB script op: ToggleChoice");
+	const auto &args = line._args._toggleChoice;
+	g_engine->db().toggleChoice(args._set, args._line, args._active);
 	return true;
 }
 
 bool Script::opChangeInteraction(const ScriptCommand &line) {
-	warning("STUB script op: ChangeInteraction");
+	const auto &args = line._args._changeInteraction;
+	const auto object = g_engine->db().roomObject(args._object);
+	g_engine->db().setRoomInteractionScript(object._toInteraction, args._action, args._newScript);
 	return true;
 }
 
 bool Script::opChangeItemInteraction(const ScriptCommand &line) {
-	warning("STUB script op: ChangeItemInteraction");
+	const auto &args = line._args._changeItemInteraction;
+	g_engine->db().setItemScript(args._item, args._action, args._newScript);
 	return true;
 }
 
 bool Script::opChangeItemImage(const ScriptCommand &line) {
-	warning("STUB script op: ChangeItemImage");
+	const auto &args = line._args._changeItemImage;
+	g_engine->db().setItemIcon(args._item, args._image);
 	return true;
 }
 
 bool Script::opChangeRoomItemInteraction(const ScriptCommand &line) {
-	warning("STUB script op: ChangeRoomItemInteraction");
+	const auto &args = line._args._changeRoomItemInteraction;
+	g_engine->db().setRoomItemInteraction(args._item, args._object, args._newScript);
 	return true;
 }
 
 bool Script::opChangeInvOBMScript(const ScriptCommand &line) {
-	warning("STUB script op: ChangeInvOBMScript");
+	const auto &args = line._args._changeItemItemInteraction;
+	g_engine->db().setItemInteraction(args._item1, args._item2, args._newScript);
 	return true;
 }
 
 bool Script::opChangeChoiceScript(const ScriptCommand &line) {
-	warning("STUB script op: ChangeChoiceScript");
+	const auto &args = line._args._changeChoiceScript;
+	g_engine->db().setChoiceScript(args._set, args._line, args._newScript);
 	return true;
 }
 
@@ -280,8 +289,13 @@ bool Script::opFade(const ScriptCommand &line) {
 }
 
 bool Script::opTempoMorph(const ScriptCommand &line) {
-	warning("STUB script op: TempoMorph");
-	return true;
+	_game.fade(255, 1.0f, 7000);
+	_game.player().wait(7000);
+	if (line._args._tempoMorphAlternateSound)
+		g_engine->playSpeech((String("soundfx/h-tempo2_") + g_engine->language() + ".ogg").c_str());
+	else
+		g_engine->playSpeech("soundfx/h-tempom.ogg");
+	return false;
 }
 
 bool Script::opAnimatePlayer(const ScriptCommand &line) {
@@ -300,18 +314,26 @@ bool Script::opAnimateNpc(const ScriptCommand &line) {
 }
 
 bool Script::opWalk(const ScriptCommand &line) {
-	warning("STUB script op: Walk");
-	return true;
+	_game.player().pathWalkTo(line._args._walk._target);
+	return false;
 }
 
 bool Script::opWalkNpc(const ScriptCommand &line) {
-	warning("STUB script op: WalkNpc");
-	return true;
+	auto *npc = dynamic_cast<Character *>(_game.objectById(line._args._walk._npc));
+	if (npc == nullptr)
+		warning("@ %10u %3u: Invalid NPC id: %u", _scriptId, _scriptLine, line._args._walk._npc);
+	else {
+		_currentNpc = npc->id();
+		npc->pathWalkTo(line._args._walk._target);
+	}
+	return npc == nullptr;
 }
 
 bool Script::opWalkNpcP(const ScriptCommand &line) {
-	warning("STUB script op: WalkNpcP");
-	return true;
+	if (opWalkNpc(line))
+		return true;
+	_parallelPerformance = true;
+	return false;
 }
 
 bool Script::opFreeWalk(const ScriptCommand &line) {
@@ -331,7 +353,7 @@ bool Script::opFreeWalkNpc(const ScriptCommand &line) {
 }
 
 bool Script::opPutPlayer(const ScriptCommand &line) {
-	warning("STUB script op: PutPlayer");
+	_game.player().pos() = line._args._putTarget;
 	return true;
 }
 
@@ -367,26 +389,26 @@ bool Script::opDeactivate(const ScriptCommand &line) {
 
 void Script::toggleObject(RoomObjectId objectId, bool isActive) {
 	auto sprite = _game.objectById(objectId);
-	if (sprite == nullptr) {
-		auto dbObject = g_engine->db().roomObject(objectId);
-		if (dbObject._active != isActive) {
-			dbObject._active = isActive;
-			// TODO: Store dbObject back
-		}
-	}
+	if (sprite == nullptr)
+		g_engine->db().toggleRoomObject(objectId, isActive);
 	else
 		sprite->toggle(isActive);
 }
 
 bool Script::opToggleTimer(const ScriptCommand &line) {
-	warning("STUB script op: ToggleTimer");
+	const auto &args = line._args._toggleTimer;
+	g_engine->db().toggleTimer(args._timer, args._active);
+	
+	const auto room = g_engine->db().room(_game.roomId());
+	if (room._timer == args._timer)
+		_game.timer().toggle(args._active);
 	return true;
 }
 
 bool Script::opAnimateObject(const ScriptCommand &line) {
 	auto sprite = dynamic_cast<AnimatedSprite *>(_game.objectById(line._args._animateObject));
 	if (sprite == nullptr)
-		warning("Could not animated object %u", line._args._animateObject);
+		warning("Could not find animated object %u", line._args._animateObject);
 	else {
 		sprite->toggle(true);
 		sprite->startAnimation();
@@ -395,13 +417,19 @@ bool Script::opAnimateObject(const ScriptCommand &line) {
 }
 
 bool Script::opLookAt(const ScriptCommand &line) {
-	warning("STUB script op: LookAt");
+	_game.player().lookIn(line._args._lookAt._direction);
 	return true;
 }
 
 bool Script::opNpcLookAt(const ScriptCommand &line) {
-	warning("STUB script op: NpcLookAt");
-	return true;
+	auto *npc = dynamic_cast<Character *>(_game.objectById(line._args._lookAt._npcId));
+	if (npc == nullptr)
+		warning("@ %10u %3u: Invalid NPC id: %u", _scriptId, _scriptLine, line._args._lookAt._npcId);
+	else {
+		_currentNpc = npc->id();
+		npc->lookIn(line._args._lookAt._direction);
+	}
+	return npc == nullptr;
 }
 
 }

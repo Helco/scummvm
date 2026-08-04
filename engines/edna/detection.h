@@ -30,6 +30,7 @@ enum EdnaDebugChannels {
 	kDebugGameplay = 1,
 	kDebugGraphics,
 	kDebugScript,
+	kDebugPathFinder,
 };
 
 extern const PlainGameDescriptor ednaGames[];

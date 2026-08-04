@@ -87,14 +87,35 @@ Sprite *Group::checkClick(Point screenPos) const {
 	return nullptr;
 }
 
+template<typename Iterator, typename Comp>
+static void stable_sort(Iterator begin, Iterator end, Comp comp) {
+	if (begin == end)
+		return;
+	Iterator innerEnd = end;
+	for (Iterator outer = begin; outer != end; ++outer) {
+		bool didSwap = false;
+		Iterator first = begin, second = begin;
+		for (++second; second != innerEnd; ++second) {
+			if (!comp(*first, *second)) {
+				SWAP(*first, *second);
+				didSwap = true;
+			}
+			first = second;
+		}
+		if (!didSwap)
+			return;
+		innerEnd = first;
+	}
+}
+
 void ObjectGroup::render() {
-	sort(_sprites.begin(), _sprites.end(), [](const DisposablePtr<Sprite> &aRaw, const DisposablePtr<Sprite> &bRaw) {
+	stable_sort(_sprites.begin(), _sprites.end(), [](const DisposablePtr<Sprite> &aRaw, const DisposablePtr<Sprite> &bRaw) {
 		const auto *a = dynamic_cast<const GameObject *>(aRaw.get());
 		const auto *b = dynamic_cast<const GameObject *>(bRaw.get());
 		assert(a != nullptr && b != nullptr);
 		int aBase = a->basePosY(b->basePosX());
 		int bBase = b->basePosY(a->basePosX());
-		return aBase < bBase;
+		return aBase <= bBase;
 	});
 	Group::render();
 }

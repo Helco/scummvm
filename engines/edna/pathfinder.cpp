@@ -90,7 +90,7 @@ bool PathFinder::findPath(Point fromOrig, Point toOrig, Array<Point> &waypoints)
 
     Point from = nearestWalkablePoint(fromOrig);
 	Point to = nearestWalkablePoint(toOrig);
-	if (debugChannelSet(2, kDebugGameplay) && (from != fromOrig || to != toOrig))
+	if (debugChannelSet(0, kDebugPathFinder) && (from != fromOrig || to != toOrig))
 		debug("Path corrected from (%d,%d)->(%d,%d) to (%d,%d)->(%d,%d)",
 			fromOrig.x, fromOrig.y, toOrig.x, toOrig.y, from.x, from.y, to.x, to.y);
 
@@ -102,7 +102,7 @@ bool PathFinder::findPath(Point fromOrig, Point toOrig, Array<Point> &waypoints)
 	uint beforeReduction = waypoints.size();
     reduceWaypoints(waypoints);
 
-	debugC(2, kDebugGameplay, "Path (%d,%d) -> (%d,%d), distance=%u, before=%u, after=%u, queueCap=%u",
+	debugC(kDebugPathFinder, "Path (%d,%d) -> (%d,%d), distance=%u, before=%u, after=%u, queueCap=%u",
 		from.x, from.y, to.x, to.y, distance(to) >> 4, beforeReduction, waypoints.size(), _queue.capacity());
     return true;
 }

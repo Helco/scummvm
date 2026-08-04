@@ -45,6 +45,7 @@ enum class Direction {
 	Right
 };
 bool parseDirection(const char *text, Direction &value);
+const char *directionToString(Direction dir);
 
 enum class GameMode {
 	None = -1,
@@ -69,6 +70,7 @@ enum class PlayerAction : uint {
 	Walk
 };
 bool parsePlayerAction(const char *text, PlayerAction &value);
+const char *playerActionToString(PlayerAction action);
 
 enum class FontKind {
 	EdnaFont = 0,
@@ -89,6 +91,7 @@ enum class FontKind {
 	MenuFont,
 	MenuFont2
 };
+const char *fontKindToString(FontKind kind);
 
 struct FontInfo {
 	Graphics::Font

@@ -263,6 +263,16 @@ void Game::fade(byte color, float target, uint32 duration) {
 	_fade._speed = (target - _fade._current) * 1000.0f / duration;
 }
 
+void Game::triggerExit(RoomExitId exitId, ScriptId scriptId, uint32 scriptLine) {
+	const auto dbExit = g_engine->db().roomExit(exitId);
+	auto &next = g_engine->next();
+	next._room = dbExit._target;
+	next._walkIn = dbExit._walkIn;
+	next._walkInDir = dbExit._lookDirection;
+	next._script = scriptId;
+	next._scriptLine = scriptLine;
+}
+
 void Game::createDebugFloorTexture() {
 	if (_debugFloorTexture != nullptr)
 		return;

@@ -98,7 +98,8 @@ void EdnaStd::update() {
 	if (input.wasMouseRightReleased())
 		onMouseRightReleased(selection);
 
-	_commandPrompt.setText(_command, selection);
+	if (!script().isScriptRunning()) // keep the commmand prompt while the action is ongoing
+		_commandPrompt.setText(_command, selection);
 }
 
 Sprite *EdnaStd::findSelection() {
@@ -246,7 +247,45 @@ void EdnaStd::invokeRoomInteraction(Sprite *object, PlayerAction action) {
 
 void EdnaStd::invokeCommand() {
 	assert(_command._isComplete);
-	//warning("Command invocation is not implemented yet");
+	PlayerCommand cmd = _command;
+	_command = {}; // early lest we forget to reset it
+
+	const auto findInteractable = [&](const uint32 id) -> IInteractable & {
+		assert(id != 0);
+		Sprite *sprite = objectById(id);
+		// TODO: if (sprite == nullptr) sprite = inventory.byId(id);
+		auto interactable = dynamic_cast<IInteractable *>(sprite);
+		assert(interactable != nullptr);
+		return *interactable;
+	};
+	
+	switch (cmd._action) {
+	case PlayerAction::Pick:
+	case PlayerAction::Look:
+	case PlayerAction::Talk:
+		script().runNew(findInteractable(cmd._target).scriptFor(cmd._action));
+		break;
+	case PlayerAction::Walk: {
+		auto *exit = dynamic_cast<RoomExit *>(&findInteractable(cmd._target));
+		if (exit == nullptr)
+			break; // nothing to do, the player arrived at their target
+		const auto scriptId = exit->scriptFor(PlayerAction::Use);
+		if (scriptId == 0)
+			triggerExit(exit->exitId());
+		else
+			script().runNew(scriptId);
+		break;
+	case PlayerAction::Use:
+		if (cmd._item != 0) // USE ... WITH <object> (item-item-interaction is not handled here)
+			script().runNew(g_engine->db().roomItemInteraction(cmd._item, cmd._target));
+		else
+			script().runNew(findInteractable(cmd._target).scriptFor(cmd._action));
+		break;
+	default:
+		assert(false && "Unhandled player action in invokeCommand");
+		break;
+	}
+	}
 }
 
 }

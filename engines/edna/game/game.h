@@ -76,6 +76,7 @@ public:
 	Sprite *objectById(RoomObjectId id) const;
 
 	void fade(byte color, float target, uint32 duration);
+	void triggerExit(RoomExitId exitId, ScriptId scriptId = 0, uint32 scriptLine = 1);
 
 protected:
 	void initBackground(const char *background);

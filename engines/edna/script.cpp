@@ -79,7 +79,7 @@ bool Script::isPerforming() {
 }
 
 void Script::runNew(ScriptId scriptId, uint32 firstLine) {
-	assert(!_isPerforming);
+	assert(!_isScriptRunning && !_isPerforming);
 	assert(firstLine > 0);
 	assert(firstLine <= g_engine->db().script(scriptId).size());
 	_scriptId = scriptId;

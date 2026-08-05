@@ -73,6 +73,8 @@ PlayerAction EdnaStd::isPlayerActionButton(Sprite *selection) const {
 
 void EdnaStd::update() {
 	Game::update();
+	if (script().isScriptRunning() || script().isPerforming())
+		return;
 
 	Sprite *selection = findSelection();
 	Button *selectedButton = dynamic_cast<Button *>(selection);
@@ -82,6 +84,7 @@ void EdnaStd::update() {
 	// TODO: Add inventory handling
 
 	if (_command._isComplete) {
+		selection = nullptr;
 		if (player().state() != Character::kWalking) // TODO: This is original but should it be == kWaiting?
 			invokeCommand();
 	} else { // TODO: Needs condition for inventory control sprite
@@ -98,8 +101,8 @@ void EdnaStd::update() {
 	if (input.wasMouseRightReleased())
 		onMouseRightReleased(selection);
 
-	if (!script().isScriptRunning()) // keep the commmand prompt while the action is ongoing
-		_commandPrompt.setText(_command, selection);
+
+	_commandPrompt.setText(_command, selection);
 }
 
 Sprite *EdnaStd::findSelection() {

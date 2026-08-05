@@ -197,7 +197,7 @@ void Game::update() {
 	updateFade();
 	if (!updateScript())
 		return;
-	CursorMan.showMouse(!script().isScriptRunning());
+	CursorMan.showMouse(!script().isScriptRunning() && !script().isPerforming());
 	GameBase::update(); // updates sprite groups
 }
 

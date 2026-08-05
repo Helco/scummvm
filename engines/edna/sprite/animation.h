@@ -77,8 +77,8 @@ private:
     Animation
 		_left[kMaxActionMode],
 		_right[kMaxActionMode],
-		_forward[kMaxActionMode],
-		_back[kMaxActionMode];
+		_up[kMaxActionMode],
+		_down[kMaxActionMode];
     const char *_name = nullptr;
 };
 

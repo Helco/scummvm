@@ -92,8 +92,8 @@ AnimationRange CharacterAnimationSet::get(ActionModeId actionMode, Direction dir
 
 		_left[actionMode].loadTextures(dbSet._left, _textures);
 		_right[actionMode].loadTextures(dbSet._right, _textures);
-		_forward[actionMode].loadTextures(dbSet._forward, _textures);
-		_back[actionMode].loadTextures(dbSet._back, _textures);
+		_up[actionMode].loadTextures(dbSet._up, _textures);
+		_down[actionMode].loadTextures(dbSet._down, _textures);
 	}
 	
 	switch (dir) {
@@ -102,9 +102,9 @@ AnimationRange CharacterAnimationSet::get(ActionModeId actionMode, Direction dir
 	case Direction::Right:
 		return _right[actionMode].range();
 	case Direction::Up:
-		return _forward[actionMode].range();
+		return _up[actionMode].range();
 	case Direction::Down:
-		return _back[actionMode].range();
+		return _down[actionMode].range();
 	default:
 		assert("Invalid direction for character animation set");
 		return AnimationRange();

@@ -78,8 +78,8 @@ public:
 		const char *_name = "";
 		AnimationId _left = 0;
 		AnimationId _right = 0;
-		AnimationId _forward = 0;
-		AnimationId _back = 0;
+		AnimationId _down = 0;
+		AnimationId _up = 0;
 	};
 	CharacterAnimationSet characterAnimationSet(CharAnimSetId set, ActionModeId actionMode, bool required = true) const;
 

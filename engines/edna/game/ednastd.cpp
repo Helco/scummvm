@@ -266,7 +266,7 @@ void EdnaStd::invokeCommand() {
 		script().runNew(findInteractable(cmd._target).scriptFor(cmd._action));
 		break;
 	case PlayerAction::Walk: {
-		auto *exit = dynamic_cast<RoomExit *>(&findInteractable(cmd._target));
+		auto *exit = dynamic_cast<RoomExit *>(objectById(cmd._target));
 		if (exit == nullptr)
 			break; // nothing to do, the player arrived at their target
 		const auto scriptId = exit->scriptFor(PlayerAction::Use);
@@ -275,6 +275,7 @@ void EdnaStd::invokeCommand() {
 		else
 			script().runNew(scriptId);
 		break;
+	}
 	case PlayerAction::Use:
 		if (cmd._item != 0) // USE ... WITH <object> (item-item-interaction is not handled here)
 			script().runNew(g_engine->db().roomItemInteraction(cmd._item, cmd._target));
@@ -284,7 +285,6 @@ void EdnaStd::invokeCommand() {
 	default:
 		assert(false && "Unhandled player action in invokeCommand");
 		break;
-	}
 	}
 }
 

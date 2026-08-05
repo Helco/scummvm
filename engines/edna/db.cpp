@@ -473,8 +473,8 @@ void DB::loadCharAnimSets() {
 		set._name = nextString(full);
 		set._left = nextUint(full);
 		set._right = nextUint(full);
-		set._forward = nextUint(full);
-		set._back = nextUint(full, true);
+		set._down = nextUint(full);
+		set._up = nextUint(full, true);
 		_charAnimSets.set(set._id, set._actionMode, set);
 	}
 }

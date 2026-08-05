@@ -208,12 +208,12 @@ void Character::nextWalkPoint() {
 	}
 
 	_walkTarget = scaleBasePosToSpritePos(_walkPoints.back());
-	Point signedDelta = _walkPoints.back() - Point(basePosX(), basePosY());
+	Point signedDelta = _walkPoints.back() - scaleSpritePosToBasePos(pos());
 	Point delta(ABS(signedDelta.x), ABS(signedDelta.y));
 	_cSpeed = (_hSpeed * delta.x + _vSpeed * delta.y) / (delta.x + delta.y);
 	_direction = delta.x > delta.y
 		? (signedDelta.x < 0 ? Direction::Left : Direction::Right)
-		: (signedDelta.y < 0 ? Direction::Down : Direction::Up);
+		: (signedDelta.y < 0 ? Direction::Up : Direction::Down);
 	_floatPos = Vector2d(pos().x, pos().y);
 	setState(kWalking);
 	_walkPoints.pop_back();

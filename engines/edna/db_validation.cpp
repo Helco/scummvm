@@ -133,8 +133,8 @@ uint32 DB::validateCharAnimSets() const {
 	for (const auto &pair : _charAnimSets._map) {
 		errors += _animations.validateRef(pair._value._left, "character animation set (left)", pair._key.first);
 		errors += _animations.validateRef(pair._value._right, "character animation set (right)", pair._key.first);
-		errors += _animations.validateRef(pair._value._forward, "character animation set (forward)", pair._key.first);
-		errors += _animations.validateRef(pair._value._back, "character animation set (back)", pair._key.first);
+		errors += _animations.validateRef(pair._value._down, "character animation set (down)", pair._key.first);
+		errors += _animations.validateRef(pair._value._up, "character animation set (up)", pair._key.first);
 	}
 	return errors;
 }

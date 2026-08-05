@@ -261,13 +261,7 @@ bool Script::opExit(const ScriptCommand &line) {
 	// originally this should throw a SQL exception, so we are fine to expect all objects?
 	const auto dbObject = g_engine->db().roomObject(line._args._exit._object);
 	const auto dbInteraction = g_engine->db().roomInteraction(dbObject._toInteraction);
-	const auto dbExit = g_engine->db().roomExit(dbInteraction._toExit);
-	auto &next = g_engine->next();
-	next._room = dbExit._target;
-	next._walkIn = dbExit._walkIn;
-	next._walkInDir = dbExit._lookDirection;
-	next._script = _scriptId;
-	next._scriptLine = _scriptLine + 1;
+	_game.triggerExit(dbInteraction._toExit, _scriptId, _scriptLine + 1);
 	return false;
 }
 

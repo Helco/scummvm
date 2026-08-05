@@ -87,24 +87,24 @@ Sprite *Group::checkClick(Point screenPos) const {
 	return nullptr;
 }
 
+// linear insertion sort
 template<typename Iterator, typename Comp>
 static void stable_sort(Iterator begin, Iterator end, Comp comp) {
 	if (begin == end)
 		return;
-	Iterator innerEnd = end;
-	for (Iterator outer = begin; outer != end; ++outer) {
-		bool didSwap = false;
-		Iterator first = begin, second = begin;
-		for (++second; second != innerEnd; ++second) {
-			if (!comp(*first, *second)) {
-				SWAP(*first, *second);
-				didSwap = true;
-			}
-			first = second;
+	Iterator endSorted = begin;
+	Iterator beginUnsorted = begin;
+	for (++beginUnsorted; beginUnsorted != end; endSorted = beginUnsorted, ++beginUnsorted) {
+		Iterator a = endSorted;
+		Iterator b = beginUnsorted;
+		while (!comp(*a, *b))
+		{
+			SWAP(*a, *b);
+			if (a == begin)
+				break;
+			b = a;
+			--a;
 		}
-		if (!didSwap)
-			return;
-		innerEnd = first;
 	}
 }
 

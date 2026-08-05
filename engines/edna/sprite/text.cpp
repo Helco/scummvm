@@ -61,29 +61,21 @@ Text::Text(Point pos, FontKind font, const char *text, TextFlags flags) {
 		text = skipSpace(text);
 		const char *textEnd = text + strlen(text);
 		while (textEnd - text > kMaxLineLength) {
-			const char *lineEnd = skipNonSpace(text + kMaxLineLength);			
-			if (lineEnd - text <= kMaxLineLength) {
-				_lines.emplace_back(g_engine->renderer().createText(fontInfo, text, lineEnd));
-				text = skipSpace(lineEnd);
-			} else {
-				// find the end of the last word
-				const char *wordEnd = lineEnd;
-				while (wordEnd > text && *wordEnd != ' ')
-					wordEnd--;
-				while (wordEnd > text && *wordEnd == ' ')
-					wordEnd--;
+			const char *lineEnd = text + kMaxLineLength;
+			while (lineEnd > text && *lineEnd != ' ')
+				lineEnd--;
 
-				if (text < wordEnd) {
-					_lines.emplace_back(g_engine->renderer().createText(fontInfo, text, wordEnd));
-					text = skipSpace(wordEnd);
-				} else { // one massive word we cannot split
-					_lines.emplace_back(g_engine->renderer().createText(fontInfo, text, lineEnd));
-					text = skipSpace(lineEnd);
-				}
+			if (lineEnd == text) // one massive word
+				lineEnd = skipNonSpace(lineEnd);
+			else { // the regular case
+				while (lineEnd > text && *lineEnd == ' ')
+					lineEnd--;
+				lineEnd++;
 			}
+			_lines.emplace_back(g_engine->renderer().createText(fontInfo, text, lineEnd));
+			text = skipSpace(lineEnd);
 		}
 
-		text = skipSpace(text);
 		if (text < textEnd)
 			_lines.emplace_back(g_engine->renderer().createText(fontInfo, text, textEnd));
 	} else

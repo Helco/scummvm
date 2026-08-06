@@ -84,9 +84,10 @@ void EdnaStd::update() {
 	// TODO: Add inventory handling
 
 	if (_command._isComplete) {
-		selection = nullptr;
-		if (player().state() != Character::kWalking) // TODO: This is original but should it be == kWaiting?
+		if (player().state() != Character::kWalking) { // TODO: This is original but should it be == kWaiting?
+			selection = nullptr;
 			invokeCommand();
+		}
 	} else { // TODO: Needs condition for inventory control sprite
 		updateCommandByHover(selection);
 	}

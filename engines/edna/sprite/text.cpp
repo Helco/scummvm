@@ -86,14 +86,14 @@ Text::Text(Point pos, FontKind font, const char *text, TextFlags flags) {
 		size.x = MAX(size.x, line->size().x);
 	this->size() = size;
 
-	if (flags & kTextMoveIntoScreen) {
-		if (pos.x + size.x / 2 + kTextMargin > kScreenWidth)
-			pos.x = kScreenWidth - kTextMargin - size.x / 2;
-		if (pos.x - size.x / 2 < kTextMargin)
-			pos.x = kTextMargin;
-	}
 	pos.x -= size.x / 2;
 	pos.y -= kTextOffsetY + (fontInfo._fgFont->getFontHeight() - kTextLineHeight) * _lines.size();
+	if (flags & kTextMoveIntoScreen) {
+		if (pos.x + size.x + kTextMargin > kScreenWidth)
+			pos.x = kScreenWidth - kTextMargin - size.x;
+		if (pos.x < kTextMargin)
+			pos.x = kTextMargin;
+	}
 	this->pos() = pos;
 }
 

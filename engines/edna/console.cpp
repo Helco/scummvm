@@ -112,8 +112,8 @@ bool Console::cmdRoom(int argc, const char **argv) {
 		return true;
 
 	// Object summary
-	debugPrintf("  ID        Active Name                    Flags Image\n");
-	char flags[6] = "IDTtN";
+	debugPrintf("  ID        Active Name                    Flags  Image\n");
+	char flags[7] = "IDTtNE";
 	for (auto objectId : objects) {
 		DB::RoomObject obj = db.roomObject(objectId, false);
 		if (obj._id != objectId) {
@@ -125,6 +125,7 @@ bool Console::cmdRoom(int argc, const char **argv) {
 		flags[2] = obj._toTopicId ? 'T' : ' ';
 		flags[3] = obj._toTopicObject ? 't' : ' ';
 		flags[4] = obj._toNPC ? 'N' : ' ';
+		flags[5] = obj._toInteraction && g_engine->db().roomInteraction(obj._toInteraction, false)._toExit ? 'E' : ' ';
 		debugPrintf("  %9d %-6s%-24s%s %s\n", obj._id, obj._active ? "true" : "false", obj._name, flags, obj._image);
 	}
 	debugPrintf("\n");

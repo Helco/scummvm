@@ -170,7 +170,8 @@ static constexpr const Point kNeighborOffsets[] = {
 	Point(0, -1), // top-left
 	Point(2, 0), // top-right
 	Point(0, 2), // bottom-right
-	Point(-2, 0) // bottom-left
+	Point(-2, 0), // bottom-left
+	Point(-1000, -1000), // end sentinel
 };
 struct Neighbors {
     struct Iterator {
@@ -183,7 +184,6 @@ struct Neighbors {
         }
 
         Iterator &operator++() {
-            assert(_step < 9);
             do
             {
                 _pos += kNeighborOffsets[_step++];
@@ -307,16 +307,16 @@ PathFinder::PointQueue::~PointQueue() {
 
 void PathFinder::PointQueue::enqueue(Point p) {
 	if (_count == _capacity) {
-		if (_capacity == 0)
-			_capacity = 128; // for walking across the map, TODO: check usual capacities for large walks
-		Point *newData = new Point[_capacity *= 2];
+		uint32 newCapacity = _capacity == 0 ? 512 : _capacity * 2;
+		Point *newData = new Point[newCapacity];
 		if (_data != nullptr) {
-			copy(_data + _first, _data + _capacity - _first, newData); // reorder during copy
+			copy(_data + _first, _data + _capacity, newData); // reorder during copy
 			copy(_data, _data + _first, newData + _capacity - _first);
 			delete[] _data;
 		}
 		_data = newData;
 		_first = 0;
+		_capacity = newCapacity;
 	}
 
 	_data[(_first + _count) % _capacity] = p;

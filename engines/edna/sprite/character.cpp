@@ -170,7 +170,10 @@ void Character::freeWalkTo(Point walkTo, Direction standbyDirection) {
 
 void Character::pathWalkTo(Point walkTo, Direction standbyDirection) {
 	_standbyDirection = standbyDirection;
-	if (!g_engine->pathFinder().findPath(scaleSpritePosToBasePos(pos()), walkTo, _walkPoints))
+	Point walkFrom = scaleSpritePosToBasePos(pos());
+	if (walkFrom == walkTo)
+		_walkPoints.clear();
+	else if (!g_engine->pathFinder().findPath(walkFrom, walkTo, _walkPoints))
 		_walkPoints.emplace_back(walkTo);
 	nextWalkPoint();
 }
@@ -180,7 +183,7 @@ static Vector2d asVec(Point point) {
 }
 
 static Point asPoint(Vector2d vec) {
-	return Point((int16)(vec.getX() + 0.5f), (int16)(vec.getY() + 0.5f));
+	return Point((int16)(vec.getX()), (int16)(vec.getY()));
 }
 
 void Character::updateWalking() {
@@ -210,7 +213,9 @@ void Character::nextWalkPoint() {
 	_walkTarget = scaleBasePosToSpritePos(_walkPoints.back());
 	Point signedDelta = _walkPoints.back() - scaleSpritePosToBasePos(pos());
 	Point delta(ABS(signedDelta.x), ABS(signedDelta.y));
-	_cSpeed = (_hSpeed * delta.x + _vSpeed * delta.y) / (delta.x + delta.y);
+	_cSpeed = delta.x + delta.y == 0
+		? 1.0f // we will arrive very soon at the destination where we already are
+		: (_hSpeed * delta.x + _vSpeed * delta.y) / (delta.x + delta.y);
 	_direction = delta.x > delta.y
 		? (signedDelta.x < 0 ? Direction::Left : Direction::Right)
 		: (signedDelta.y < 0 ? Direction::Up : Direction::Down);

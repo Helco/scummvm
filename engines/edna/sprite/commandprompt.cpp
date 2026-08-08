@@ -24,6 +24,7 @@
 #include "edna/edna.h"
 #include "edna/game/game.h"
 #include "edna/sprite/commandprompt.h"
+#include "edna/sprite/object.h"
 #include "edna/translation.h"
 
 #include "gui/debugger.h"
@@ -56,13 +57,16 @@ void CommandPrompt::setText(const PlayerCommand &command, Sprite *selection) {
 	_lastSelectionId = selectionId;
 	_text.assign(0, ' '); // clear would free, this keeps the allocation
 
+	const auto &translation = g_engine->translation();
+	const auto &db = g_engine->db();
 	if (command._action == PlayerAction::None) {
+		if (dynamic_cast<RoomExit *>(selection) != nullptr) {
+			_text += translation.action(PlayerAction::Walk);
+			_text += ' ';
+		}
 		if (selection != nullptr)
-			_text = selection->displayName();
+			_text += selection->displayName();
 	} else {
-		const auto &translation = g_engine->translation();
-		const auto &db = g_engine->db();
-
 		_text += translation.action(command._action);
 		if (command._item != 0) {
 			_text += ' ';
@@ -70,16 +74,16 @@ void CommandPrompt::setText(const PlayerCommand &command, Sprite *selection) {
 			_text += ' ';
 			_text += translation.actionWith();
 		}
-		if (command._target != 0) {
+		if (command._target != 0 && command._target != command._item) {
 			const auto dbObject = db.roomObject(command._target, false);
 			const char *targetName = dbObject._name;
 			if (dbObject._toInteraction != 0)
 				targetName = db.roomInteraction(dbObject._toInteraction)._name;
-			if (targetName == nullptr)
+			if (!*targetName)
 				targetName = db.item(command._target, false)._name;
-			if (targetName == nullptr)
+			if (!*targetName)
 				targetName = db.topic(command._target, false)._name;
-			if (targetName == nullptr) {
+			if (!*targetName) {
 				targetName = "<unknown>";
 				warning("Unknown target ID: %u", command._target);
 			}

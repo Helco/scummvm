@@ -42,7 +42,7 @@ private:
 
 	Sprite *findSelection();
 	void updateHover(Sprite *selection);
-	void onMouseLeftPressed(Sprite *selection);
+	void onMouseLeftPressed(Sprite *&selection);
 	void onMouseLeftReleased(Sprite *selection);
 	void onMouseRightPressed(Sprite *selection);
 	void onMouseRightReleased(Sprite *selection);

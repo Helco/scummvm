@@ -199,6 +199,15 @@ void Game::update() {
 	if (!updateScript())
 		return;
 	CursorMan.showMouse(!script().isScriptRunning() && !script().isPerforming());
+	if (_useExitCursor != _didUseExitCursor) {
+		_didUseExitCursor = _useExitCursor;
+		if (_useExitCursor)
+			g_engine->assets().pushExitCursor();
+		else
+			CursorMan.popCursor();
+	}
+	_useExitCursor = false;
+
 	GameBase::update(); // updates sprite groups
 }
 
@@ -249,6 +258,10 @@ bool Game::updateScript() {
 	if (_timer.update())
 		_pendingTimerInvoke = true;
 	return true;
+}
+
+void Game::useExitCursor() {
+	_useExitCursor = true;
 }
 
 Sprite *Game::objectById(RoomObjectId id) const {

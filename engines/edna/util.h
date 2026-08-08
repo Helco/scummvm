@@ -165,6 +165,28 @@ bool less(const TwoKey &a, const TwoKey &b);
 template<class TValue>
 using TwoKeyMap = Common::HashMap<TwoKey, TValue, TwoKeyHash, TwoKeyEqualTo>;
 
+// linear insertion sort
+template<typename Iterator, typename Comp>
+inline void stable_sort(Iterator begin, Iterator end, Comp comp) {
+	if (begin == end)
+		return;
+	Iterator endSorted = begin;
+	Iterator beginUnsorted = begin;
+	for (++beginUnsorted; beginUnsorted != end; endSorted = beginUnsorted, ++beginUnsorted) {
+		Iterator a = endSorted;
+		Iterator b = beginUnsorted;
+		while (!comp(*a, *b))
+		{
+			SWAP(*a, *b);
+			if (a == begin)
+				break;
+			b = a;
+			--a;
+		}
+	}
+}
+
+
 struct GameTransition {
 	RoomId _room = 0;
 	Common::Point _walkIn;

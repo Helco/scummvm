@@ -13,6 +13,7 @@ MODULE_OBJS = \
 	game/intro.o \
 	game/scriptonclick.o \
 	group/group.o \
+	group/inventory.o \
 	input.o \
 	metaengine.o \
 	pathfinder.o \

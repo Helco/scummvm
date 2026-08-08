@@ -79,7 +79,7 @@ public:
 	void debugPrint() override;
 	using Sprite::setTexture;
 	void setTexture(TexturePtr texture) override;
-	void setTextures(std::initializer_list<const char *> fileNames);
+	void setTextures(std::initializer_list<Common::String> fileNames);
 	void setTextures(TextureSpan textures);
 	void setTextures(TextureArray &&textures);
 	void setAnimation(AnimationRange animation);

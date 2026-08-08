@@ -79,6 +79,7 @@ public:
 	void triggerExit(RoomExitId exitId, ScriptId scriptId = 0, uint32 scriptLine = 1);
 
 protected:
+	void init(const GameTransition &transition);
 	void initBackground(const char *background);
 	void initTimer(TimerId timerId);
 	virtual void initGroups();

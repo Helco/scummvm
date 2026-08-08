@@ -19,6 +19,7 @@
  *
  */
 
+#include "edna/assetcache.h"
 #include "edna/edna.h"
 #include "edna/sprite/button.h"
 
@@ -29,9 +30,9 @@ namespace Edna {
 Button::Button(uint32 id, Point pos, const String &path) {
 	this->id() = id;
 	this->pos() = pos;
-	_normal = g_engine->renderer().loadTexture((path + ".png").c_str());
-	_hovered = g_engine->renderer().loadTexture((path + "_a.png").c_str());
-	_pressed = g_engine->renderer().loadTexture((path + "_p.png").c_str());
+	_normal = g_engine->assets().texture(path + ".png");
+	_hovered = g_engine->assets().texture(path + "_a.png");
+	_pressed = g_engine->assets().texture(path + "_p.png");
 	setTexture(_normal);
 }
 

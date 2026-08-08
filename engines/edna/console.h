@@ -54,6 +54,7 @@ private:
 	bool cmdBreakpoint(int argc, const char **argv);
 	bool cmdDelBreakpoint(int argc, const char **argv);
 	bool cmdDumpFloor(int argc, const char **argv);
+	bool cmdAllItems(int argc, const char **argv);
 
 	Game *getGame();
 	bool tryParseUint(const char *arg, uint32 &value, const char *context);

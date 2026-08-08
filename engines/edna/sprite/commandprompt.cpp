@@ -45,7 +45,7 @@ void CommandPrompt::render() {
 }
 
 void CommandPrompt::debugPrint() {
-	g_engine->getDebugger()->debugPrintf("Command prompt");
+	g_engine->getDebugger()->debugPrintf("Command prompt\n");
 }
 
 void CommandPrompt::setText(const PlayerCommand &command, Sprite *selection) {

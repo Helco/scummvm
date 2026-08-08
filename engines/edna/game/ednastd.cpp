@@ -84,14 +84,12 @@ void EdnaStd::update() {
 	Sprite *selection = findSelection();
 
 	if (_command._isComplete) {
-		if (player().state() != Character::kWalking) { // TODO: This is original but should it be == kWaiting?
+		if (player().state() == Character::kWaiting) {
 			selection = nullptr;
 			invokeCommand();
 		}
-	} else {
+	} else
 		updateHover(selection);
-		_inventory.updateSelection(selection);
-	}
 
 	const auto &input = g_engine->input();
 	if (input.wasMouseLeftPressed())
@@ -128,6 +126,9 @@ void EdnaStd::updateHover(Sprite *selection) {
 	auto *interactable = dynamic_cast<IInteractable *>(selection);
 	if (selection == nullptr) {
 		_command._target = 0;
+	} else if (dynamic_cast<RoomExit *>(interactable) != nullptr) {
+		_command._target = 0;
+		useExitCursor();
 	} else if (_command._action == PlayerAction::None) {
 		const auto defaultAction = interactable == nullptr ? PlayerAction::None : interactable->defaultAction();
 		switch (defaultAction) {
@@ -144,13 +145,13 @@ void EdnaStd::updateHover(Sprite *selection) {
 			_buttonUse.setHovered();
 			break;
 		}
-	} else if (interactable != nullptr) {
+	} else if (interactable != nullptr)
 		_command._target = selection->id();
-	}
-	// The other cases 
+
+	_inventory.updateSelection(selection);
 }
 
-void EdnaStd::onMouseLeftPressed(Sprite *selection) {
+void EdnaStd::onMouseLeftPressed(Sprite *&selection) {
 	if (selection == nullptr) {
 		if (_inventory.isClosed()) {
 			_command = {};
@@ -172,11 +173,12 @@ void EdnaStd::onMouseLeftPressed(Sprite *selection) {
 		case PlayerAction::Pick:
 		case PlayerAction::Use: {
 			ScriptId scriptId = interactable->scriptFor(PlayerAction::Use);
-			if (scriptId == 0) { // TODO: Recheck triggering of script 0 for interactions
+			if (scriptId == 0) {
 				_command._action = PlayerAction::Use;
 				_command._item = selection->id();
 			} else {
 				_command = {};
+				selection = nullptr;
 				script().runNew(scriptId);
 			}
 			break;
@@ -187,13 +189,9 @@ void EdnaStd::onMouseLeftPressed(Sprite *selection) {
 			if (scriptId != 0)
 				script().runNew(scriptId);
 			_command = {};
+			selection = nullptr;
 			break;
 		}
-		case PlayerAction::Walk:
-			break;
-		default:
-			// TODO: Too bad this is wrong -_-
-			break;
 		}
 	} else if (playerAction != PlayerAction::None) {
 		_command = {};
@@ -203,8 +201,9 @@ void EdnaStd::onMouseLeftPressed(Sprite *selection) {
 	else if (interactable != nullptr) {
 		if (_command._action == PlayerAction::None)
 			_command._action = PlayerAction::Walk;
-		// TODO: Add weird exit condition here
-		invokeRoomInteraction(selection, _command._action);
+		if (dynamic_cast<RoomExit *>(interactable) == nullptr || _command._action == PlayerAction::Walk)
+			invokeRoomInteraction(selection, _command._action);
+		// Room exits do not react at all to other commands
 	}
 }
 

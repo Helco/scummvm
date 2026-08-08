@@ -72,7 +72,7 @@ public:
 	void toggle(bool isActive) override;
 };
 
-class InteractableRoomObject : public GameObject, public RoomInteractable {
+class InteractableRoomObject : public RoomObject, public RoomInteractable {
 public:
 	InteractableRoomObject(RoomInteractionId roiId);
 	InteractableRoomObject(RoomInteractionId roiId, Common::Point baseLineStart, Common::Point baseLineEnd);
@@ -87,6 +87,7 @@ public:
 	RoomExit(RoomInteractionId roiId, RoomExitId exitId, Common::Point baseLineStart, Common::Point baseLineEnd);
 
 	inline RoomExitId exitId() const { return _exitId; }
+	const char *displayName() const override;
 	void debugPrint() override;
 
 private:

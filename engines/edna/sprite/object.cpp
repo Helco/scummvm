@@ -90,11 +90,11 @@ void RoomObject::toggle(bool isActive) {
 }
 
 InteractableRoomObject::InteractableRoomObject(RoomInteractionId roiId)
-	: GameObject()
+	: RoomObject()
 	, RoomInteractable(roiId) {}
 
 InteractableRoomObject::InteractableRoomObject(RoomInteractionId roiId, Point baseLineStart, Point baseLineEnd)
-	: GameObject(baseLineStart, baseLineEnd)
+	: RoomObject(baseLineStart, baseLineEnd)
 	, RoomInteractable(roiId) {}
 
 const char *InteractableRoomObject::displayName() const {
@@ -112,6 +112,11 @@ RoomExit::RoomExit(RoomInteractionId roiId, RoomExitId exitId)
 RoomExit::RoomExit(RoomInteractionId roiId, RoomExitId exitId, Point baseLineStart, Point baseLineEnd)
 	: InteractableRoomObject(roiId, baseLineStart, baseLineEnd)
 	, _exitId(exitId) {}
+
+const char *RoomExit::displayName() const {
+	// for some reason the exit name is *not* the interaction name but the object name...
+	return g_engine->db().roomObject(id())._name;
+}
 
 void RoomExit::debugPrint() {
 	AnimatedSprite::debugPrint("Exit");

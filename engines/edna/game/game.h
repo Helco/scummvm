@@ -90,6 +90,7 @@ protected:
 
 	void updateFade();
 	bool updateScript();
+	void useExitCursor();
 
 private:
 	void createDebugFloorTexture();
@@ -103,9 +104,10 @@ private:
 	Group _texts;
 	Group _gui;
 	// missing due to custom type: comment, mainMenu, choiceList
+	bool _useExitCursor = false, _didUseExitCursor = false;
 
 	bool _pendingTimerInvoke = false;
-	ScriptId _timerScript;
+	ScriptId _timerScript = 0;
 	Timer _timer;
 
 	struct {

@@ -19,6 +19,7 @@
  *
  */
 
+#include "edna/assetcache.h"
 #include "edna/console.h"
 #include "edna/edna.h"
 #include "edna/sprite/animation.h"
@@ -116,11 +117,11 @@ void AnimatedSprite::setTexture(TexturePtr texture) {
 	setTextures(TextureSpan { &texture, 1 });
 }
 
-void AnimatedSprite::setTextures(std::initializer_list<const char *> fileNames) {
+void AnimatedSprite::setTextures(std::initializer_list<String> fileNames) {
 	TextureArray textures;
 	textures.reserve(fileNames.size());
-	for (const auto fileName : fileNames)
-		textures.emplace_back(move(g_engine->renderer().loadTexture(fileName)));
+	for (const auto &fileName : fileNames)
+		textures.emplace_back(move(g_engine->assets().texture(fileName)));
 	setTextures(move(textures));
 }
 

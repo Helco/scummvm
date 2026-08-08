@@ -19,42 +19,46 @@
  *
  */
 
-#include "edna/assetcache.h"
-#include "edna/edna.h"
-#include "edna/sprite/button.h"
+#ifndef EDNA_INVENTORY_H
+#define EDNA_INVENTORY_H
 
-using namespace Common;
+#include "edna/group/group.h"
+#include "edna/sprite/button.h"
 
 namespace Edna {
 
-Button::Button(uint32 id, Point pos, const String &path) {
-	this->id() = id;
-	this->pos() = pos;
-	_normal = g_engine->assets().texture(path + ".png");
-	_hovered = g_engine->assets().texture(path + "_a.png");
-	_pressed = g_engine->assets().texture(path + "_p.png");
-	setTexture(_normal);
+class Item;
+
+class Inventory final : public Group {
+public:
+	Inventory();
+
+	enum class State {
+		Closed,
+		Opening,
+		Open,
+		Locked
+	};
+	inline State state() const { return _state; }
+	inline bool isClosed() const { return _state == State::Closed || _state == State::Locked; }
+	
+	void update() override;
+	void updateSelection(Sprite *selection);
+	bool updatePressed(Sprite *selection);
+	void onItemsChanged();
+
+private:
+	void close();
+	void toggleAllItems(bool active);
+	void updateItems();
+
+	static constexpr uint kFirstItemI = 5;
+	Button _buttonLock, _buttonUnlock, _buttonUp, _buttonDown;
+	AnimatedSprite _frame;
+	State _state = State::Closed;
+	uint _scroll = 0;
+};
+
 }
 
-void Button::update() {
-	setTexture(_normal);
-}
-
-const char *Button::displayName() const {
-	return _displayName;
-}
-
-void Button::setDisplayName(const char *name) {
-	assert(name != nullptr);
-	_displayName = name;
-}
-
-void Button::setHovered() {
-	setTexture(_hovered);
-}
-
-void Button::setPressed() {
-	setTexture(_pressed);
-}
-
-}
+#endif // EDNA_INVENTORY_H

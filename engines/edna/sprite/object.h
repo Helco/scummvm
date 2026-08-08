@@ -93,11 +93,16 @@ private:
 	const RoomExitId _exitId;
 };
 
-// TODO: Implement item
 class Item final : public GameObject, public IInteractable {
 public:
-	const char *displayName() const override;
+	Item(ItemId itemId);
+
+	void reloadImage();
+	void setHovered();
+	void update() override;
 	void debugPrint() override;
+
+	const char *displayName() const override;
 	PlayerAction defaultAction() const override;
 	ScriptId scriptFor(PlayerAction action) const override;
 	Common::Point interactionPos() const override;

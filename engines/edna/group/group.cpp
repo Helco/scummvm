@@ -87,27 +87,6 @@ Sprite *Group::checkClick(Point screenPos) const {
 	return nullptr;
 }
 
-// linear insertion sort
-template<typename Iterator, typename Comp>
-static void stable_sort(Iterator begin, Iterator end, Comp comp) {
-	if (begin == end)
-		return;
-	Iterator endSorted = begin;
-	Iterator beginUnsorted = begin;
-	for (++beginUnsorted; beginUnsorted != end; endSorted = beginUnsorted, ++beginUnsorted) {
-		Iterator a = endSorted;
-		Iterator b = beginUnsorted;
-		while (!comp(*a, *b))
-		{
-			SWAP(*a, *b);
-			if (a == begin)
-				break;
-			b = a;
-			--a;
-		}
-	}
-}
-
 void ObjectGroup::render() {
 	stable_sort(_sprites.begin(), _sprites.end(), [](const DisposablePtr<Sprite> &aRaw, const DisposablePtr<Sprite> &bRaw) {
 		const auto *a = dynamic_cast<const GameObject *>(aRaw.get());

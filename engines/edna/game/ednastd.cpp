@@ -40,8 +40,7 @@ EdnaStd::EdnaStd(ScopedPtr<GameBase> &myPtr, const GameTransition &transition)
 	, _buttonPick(kButtonIdPick, Point(100, 565), String("gui/edna/") + g_engine->language() + "/b_nehmen")
 	, _buttonTalk(kButtonIdTalk, Point(200, 565), String("gui/edna/") + g_engine->language() + "/b_reden")
 	, _buttonUse(kButtonIdUse, Point(300, 565), String("gui/edna/") + g_engine->language() + "/b_benutzen")
-	, _commandPrompt(*this)
-	, _inventory("Inventory") {
+	, _commandPrompt(*this) {
 
 	const auto &translation = g_engine->translation();
 	_buttonLook.setDisplayName(translation.action(PlayerAction::Look));
@@ -53,10 +52,16 @@ EdnaStd::EdnaStd(ScopedPtr<GameBase> &myPtr, const GameTransition &transition)
 	gui().add(&_buttonTalk, DisposeAfterUse::NO);
 	gui().add(&_buttonUse, DisposeAfterUse::NO);
 	texts().add(&_commandPrompt, DisposeAfterUse::NO);
+
+	init(transition);
+}
+
+void EdnaStd::initGroups() {
+	Game::initGroups(nullptr, &_inventory);
 }
 
 bool EdnaStd::isItem(Sprite *selection) const {
-	return &selection->group() == &_inventory && selection->id() > 0;
+	return selection != nullptr && &selection->group() == &_inventory && selection->id() > 0;
 }
 
 PlayerAction EdnaStd::isPlayerActionButton(Sprite *selection) const {
@@ -77,19 +82,15 @@ void EdnaStd::update() {
 		return;
 
 	Sprite *selection = findSelection();
-	Button *selectedButton = dynamic_cast<Button *>(selection);
-	if (selectedButton != nullptr)
-		selectedButton->setHovered();
-
-	// TODO: Add inventory handling
 
 	if (_command._isComplete) {
 		if (player().state() != Character::kWalking) { // TODO: This is original but should it be == kWaiting?
 			selection = nullptr;
 			invokeCommand();
 		}
-	} else { // TODO: Needs condition for inventory control sprite
-		updateCommandByHover(selection);
+	} else {
+		updateHover(selection);
+		_inventory.updateSelection(selection);
 	}
 
 	const auto &input = g_engine->input();
@@ -111,15 +112,20 @@ Sprite *EdnaStd::findSelection() {
 	Sprite *sprite = gui().checkClick(mousePos);
 	// TODO: Comment group is missing
 	if (sprite == nullptr)
+		sprite = _inventory.checkClick(mousePos);
+	if (sprite == nullptr)
 		sprite = objects().checkInteractableClick(mousePos);
 	if (sprite == nullptr)
 		sprite = bgObjects().checkClick(mousePos);
 	return sprite;
 }
 
-void EdnaStd::updateCommandByHover(Sprite *selection) {
-	auto *interactable = dynamic_cast<IInteractable *>(selection);
+void EdnaStd::updateHover(Sprite *selection) {
+	Button *selectedButton = dynamic_cast<Button *>(selection);
+	if (selectedButton != nullptr)
+		selectedButton->setHovered();
 
+	auto *interactable = dynamic_cast<IInteractable *>(selection);
 	if (selection == nullptr) {
 		_command._target = 0;
 	} else if (_command._action == PlayerAction::None) {
@@ -146,12 +152,13 @@ void EdnaStd::updateCommandByHover(Sprite *selection) {
 
 void EdnaStd::onMouseLeftPressed(Sprite *selection) {
 	if (selection == nullptr) {
-		// TODO: Check that inventory is closed
-		_command = {};
-		_command._action = PlayerAction::Walk;
-		_command._targetPos = g_engine->input().mousePos();
-		_command._isComplete = true;
-		player().pathWalkTo(_command._targetPos);
+		if (_inventory.isClosed()) {
+			_command = {};
+			_command._action = PlayerAction::Walk;
+			_command._targetPos = g_engine->input().mousePos();
+			_command._isComplete = true;
+			player().pathWalkTo(_command._targetPos);
+		}
 		return;
 	}
 	// TODO: Filter interaction with comment or achievement close button
@@ -191,7 +198,9 @@ void EdnaStd::onMouseLeftPressed(Sprite *selection) {
 	} else if (playerAction != PlayerAction::None) {
 		_command = {};
 		_command._action = playerAction;
-	} else if (interactable != nullptr) { // TODO: Add Inventory controls here
+	} else if (_inventory.updatePressed(selection))
+		return;
+	else if (interactable != nullptr) {
 		if (_command._action == PlayerAction::None)
 			_command._action = PlayerAction::Walk;
 		// TODO: Add weird exit condition here
@@ -257,7 +266,8 @@ void EdnaStd::invokeCommand() {
 	const auto findInteractable = [&](const uint32 id) -> IInteractable & {
 		assert(id != 0);
 		Sprite *sprite = objectById(id);
-		// TODO: if (sprite == nullptr) sprite = inventory.byId(id);
+		if (sprite == nullptr)
+			sprite = _inventory.byId(id);
 		auto interactable = dynamic_cast<IInteractable *>(sprite);
 		assert(interactable != nullptr);
 		return *interactable;

@@ -47,6 +47,7 @@ Console::Console()
 	registerCmd("br", WRAP_METHOD(Console, cmdBreakpoint));
 	registerCmd("delbr", WRAP_METHOD(Console, cmdDelBreakpoint));
 	registerCmd("dumpFloor", WRAP_METHOD(Console, cmdDumpFloor));
+	registerCmd("allItems", WRAP_METHOD(Console, cmdAllItems));
 
 	registerVar("waitDiv", &_waitDivider);
 	registerVar("debugSprites", &_debugSprites);
@@ -452,6 +453,30 @@ bool Console::cmdDumpFloor(int argc, const char **argv) {
 		debugPrintf("Could not write floor.png\n");
 	else
 		debugPrintf("Saved floor to floor.png\n");
+	return true;
+}
+
+bool Console::cmdAllItems(int argc, const char **argv) {
+	const auto allItemsFor = [&](GameMode mode, const char *context) {
+		uint32 nextPos = 0;
+		const auto ownedItems = g_engine->db().ownedItems(mode);
+		for (ItemId itemId : ownedItems)
+			nextPos = MAX(nextPos, g_engine->db().item(itemId)._inventoryPos);
+
+		uint gaveItems = 0;
+		for (const auto &item : g_engine->db()._items._map) {
+			if (item._value._inventoryPos != 0 || item._value._gameMode != mode)
+				continue;
+			g_engine->db().setItemPos(item._key, ++nextPos);
+			gaveItems++;
+		}
+
+		debugPrintf("Gave %u %s items\n", gaveItems, context);
+	};
+
+	allItemsFor(GameMode::StartMenu, "EdnaStd");
+	allItemsFor(GameMode::EdnaGirl, "EdnaGirl");
+	g_engine->db().buildItemIndex();
 	return true;
 }
 

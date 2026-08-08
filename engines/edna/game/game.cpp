@@ -83,9 +83,11 @@ Game::Game(ScopedPtr<GameBase> &myPtr, GameMode mode, const GameTransition &tran
 	, _texts("texts")
 	, _gui("gui") {
 	assert(mode != GameMode::Intro);
-	DB::Room room = g_engine->db().room(_roomId);
-	assert(room._gameMode == mode);
+}
 
+void Game::init(const GameTransition &transition) {
+	DB::Room room = g_engine->db().room(_roomId);
+	assert(room._gameMode == gameMode());
 	initBackground(room._background);
 	initTimer(room._timer);
 	initGroups();
@@ -93,7 +95,6 @@ Game::Game(ScopedPtr<GameBase> &myPtr, GameMode mode, const GameTransition &tran
 	// TODO: Init comment
 	initPlayer(transition);
 	initObjects();
-	// TODO: Init CommandPrompt
 	g_engine->playMusic(room._music);
 }
 

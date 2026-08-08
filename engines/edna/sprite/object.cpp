@@ -23,6 +23,8 @@
 #include "edna/edna.h"
 #include "edna/sprite/object.h"
 
+#include "gui/debugger.h"
+
 using namespace Common;
 
 namespace Edna {
@@ -113,6 +115,50 @@ RoomExit::RoomExit(RoomInteractionId roiId, RoomExitId exitId, Point baseLineSta
 
 void RoomExit::debugPrint() {
 	AnimatedSprite::debugPrint("Exit");
+}
+
+Item::Item(ItemId itemId) {
+	id() = itemId;
+	reloadImage();
+}
+
+void Item::reloadImage() {
+	const String path = g_engine->db().item(id())._icon.get();
+	setTextures({ path + ".png", path + "_a.png" });
+	setFrame(0);
+}
+
+void Item::setHovered() {
+	setFrame(1);
+}
+
+void Item::update() {
+	GameObject::update();
+	setFrame(0);
+}
+
+void Item::debugPrint() {
+	g_engine->getDebugger()->debugPrintf("Item \"%s\"\n", displayName());
+}
+
+const char *Item::displayName() const {
+	return g_engine->db().item(id())._name;
+}
+
+PlayerAction Item::defaultAction() const {
+	return g_engine->db().item(id())._defaultAction;
+}
+
+ScriptId Item::scriptFor(PlayerAction action) const {
+	return g_engine->db().item(id()).scriptFor(action);
+}
+
+Point Item::interactionPos() const {
+	return kInvalidPoint;
+}
+
+Direction Item::interactionDir() const {
+	return Direction::None;
 }
 
 }

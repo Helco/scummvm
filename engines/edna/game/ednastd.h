@@ -23,6 +23,7 @@
 #define EDNA_EDNASTD_H
 
 #include "edna/game/game.h"
+#include "edna/group/inventory.h"
 #include "edna/sprite/commandprompt.h"
 #include "edna/sprite/button.h"
 
@@ -32,6 +33,7 @@ class EdnaStd : public Game {
 public:
 	EdnaStd(Common::ScopedPtr<GameBase> &myPtr, const GameTransition &transition);
 
+	void initGroups() override;
 	void update() override;
 
 private:
@@ -39,7 +41,7 @@ private:
 	PlayerAction isPlayerActionButton(Sprite *selection) const;
 
 	Sprite *findSelection();
-	void updateCommandByHover(Sprite *selection);
+	void updateHover(Sprite *selection);
 	void onMouseLeftPressed(Sprite *selection);
 	void onMouseLeftReleased(Sprite *selection);
 	void onMouseRightPressed(Sprite *selection);
@@ -50,7 +52,7 @@ private:
 	PlayerCommand _command = {};
 	Button _buttonLook, _buttonPick, _buttonTalk, _buttonUse;
 	CommandPrompt _commandPrompt;
-	Group _inventory; ///< only temporary
+	Inventory _inventory;
 };
 
 }

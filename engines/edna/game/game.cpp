@@ -199,16 +199,10 @@ void Game::update() {
 	if (!updateScript())
 		return;
 	CursorMan.showMouse(!script().isScriptRunning() && !script().isPerforming());
-	if (_useExitCursor != _didUseExitCursor) {
-		_didUseExitCursor = _useExitCursor;
-		if (_useExitCursor)
-			g_engine->assets().pushExitCursor();
-		else
-			CursorMan.popCursor();
-	}
-	_useExitCursor = false;
+	g_engine->assets().useStandardCursor();
 
 	GameBase::update(); // updates sprite groups
+	updateInput();
 }
 
 void Game::render() {
@@ -260,8 +254,25 @@ bool Game::updateScript() {
 	return true;
 }
 
-void Game::useExitCursor() {
-	_useExitCursor = true;
+void Game::updateInput() {
+	if (g_engine->input().wasMouseRightReleased() && shutUp())
+		g_engine->input().nextFrame(); // otherwise the click triggers the next default action
+}
+
+bool Game::shutUp() {
+	bool result = false;
+	for (const auto &sprite : _objects.sprites()) {
+		Character *character = dynamic_cast<Character *>(sprite.get());
+		if (character != nullptr)
+			result |= character->shutUp();
+	}
+	for (const auto &sprite : _bgObjects.sprites()) {
+		Character *character = dynamic_cast<Character *>(sprite.get());
+		if (character != nullptr)
+			result |= character->shutUp();
+	}
+	result |= script().shutUp();
+	return result;
 }
 
 Sprite *Game::objectById(RoomObjectId id) const {
@@ -288,6 +299,10 @@ void Game::triggerExit(RoomExitId exitId, ScriptId scriptId, uint32 scriptLine) 
 }
 
 void Game::triggerChoiceList(ChoiceSetId setId) {
+	warning("Triggered choice list %u in unsupported game mode %s", setId, gameModeToString(gameMode()));
+}
+
+void Game::triggerInventoryUpdate() {
 }
 
 void Game::createDebugFloorTexture() {

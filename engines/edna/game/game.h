@@ -78,6 +78,7 @@ public:
 	void fade(byte color, float target, uint32 duration);
 	void triggerExit(RoomExitId exitId, ScriptId scriptId = 0, uint32 scriptLine = 1);
 	virtual void triggerChoiceList(ChoiceSetId setId);
+	virtual void triggerInventoryUpdate();
 
 protected:
 	void init(const GameTransition &transition);
@@ -91,7 +92,8 @@ protected:
 
 	void updateFade();
 	bool updateScript();
-	void useExitCursor();
+	void updateInput();
+	bool shutUp();
 
 private:
 	void createDebugFloorTexture();
@@ -105,7 +107,6 @@ private:
 	Group _texts;
 	Group _gui;
 	// missing due to custom type: comment, mainMenu, choiceList
-	bool _useExitCursor = false, _didUseExitCursor = false;
 
 	bool _pendingTimerInvoke = false;
 	ScriptId _timerScript = 0;

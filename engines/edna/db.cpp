@@ -688,15 +688,11 @@ void DB::loadTopics() {
 }
 
 ScriptId DB::itemInteraction(ItemId item1, ItemId item2) const {
-	ScriptId script = 0;
-	_itemInteractions._map.tryGetVal({ item1, item2 }, script);
-	return script;
+	return _itemInteractions.get(item1, item2, false);
 }
 
 ScriptId DB::roomItemInteraction(ItemId item, RoomObjectId object) const {
-	ScriptId script = 0;
-	_roomItemInteractions._map.tryGetVal({ item, object }, script);
-	return script;
+	return _roomItemInteractions.get(item, object, false);
 }
 
 void DB::loadItemInteractions() {

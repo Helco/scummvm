@@ -37,6 +37,7 @@ public:
 	void initGroups() override;
 	void update() override;
 	void triggerChoiceList(ChoiceSetId setId) override;
+	void triggerInventoryUpdate() override;
 
 private:
 	bool isItem(Sprite *selection) const;

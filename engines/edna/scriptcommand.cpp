@@ -376,8 +376,10 @@ static void debugPrint(const ScriptCommand &cmd, T print) {
 		print(ptr);
 		ptr += strlen(ptr);
 	}
-	print(")\n");
-	assert(ptr + 1 == end); // otherwise we overshot the end
+	if (state != kFirstArg) {
+		print(")\n");
+		assert(ptr + 1 == end); // otherwise we overshot the end
+	}
 }
 
 void ScriptCommand::debugPrintLog() const {

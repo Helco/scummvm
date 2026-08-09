@@ -95,7 +95,8 @@ bool PathFinder::findPath(Point fromOrig, Point toOrig, Array<Point> &waypoints)
 			fromOrig.x, fromOrig.y, toOrig.x, toOrig.y, from.x, from.y, to.x, to.y);
 
 	// this distance check fixes flicker when a character walks repeatedly to the same spot
-	if (from.sqrDist(to) < 2)
+	Point delta = from - to;
+	if (ABS(delta.x) < 2 && ABS(delta.y) < 2)
 		return false;
 
     if (from == kInvalidPoint ||
@@ -121,7 +122,7 @@ Point PathFinder::nearestWalkablePoint(Point pos) const {
         return pos;
 	const auto relPos = pos - _bounds.origin();
     const int maxRadius = MAX<int>(
-		MAX(relPos.x, relPos.y),
+		MAX(relPos.x, relPos.y) + 1,
 		MAX(_bounds.width() - relPos.x - 1, _bounds.height() - relPos.y - 1));
 
 	Point bestPoint;
@@ -158,6 +159,8 @@ Point PathFinder::nearestWalkablePoint(Point pos) const {
 		if ((uint)(r * r) >= bestDistanceSqr)
 			return bestPoint;
     }
+	if (bestDistanceSqr < UINT_MAX)
+		return bestPoint;
 
 	warning("Could not find any walkable point (%d, %d), this should not have happened", pos.x, pos.y);
     return kInvalidPoint;

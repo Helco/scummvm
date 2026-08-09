@@ -131,6 +131,19 @@ void Script::stop() {
 	_parallelPerformance = 0;
 }
 
+bool Script::shutUp() {
+	if (!isPerforming())
+		return false;
+	if (_soundText != nullptr)
+		_soundText->toggle(false);
+	_soundText = nullptr;
+	g_system->getMixer()->stopHandle(_currentSound);
+	_currentSound = {};
+	_currentSoundDuration = 0;
+	_currentNpc = 0;
+	return true;
+}
+
 bool Script::opAchievement(const ScriptCommand &line) {
 	warning("STUB script op: Achievement");
 	return true;
@@ -221,8 +234,8 @@ bool Script::opChangeInteraction(const ScriptCommand &line) {
 }
 
 bool Script::opChangeItemInteraction(const ScriptCommand &line) {
-	const auto &args = line._args._changeItemInteraction;
-	g_engine->db().setItemScript(args._item, args._action, args._newScript);
+	const auto &args = line._args._changeItemItemInteraction;
+	g_engine->db().setItemInteraction(args._item1, args._item2, args._newScript);
 	return true;
 }
 
@@ -293,18 +306,25 @@ bool Script::opTempoMorph(const ScriptCommand &line) {
 }
 
 bool Script::opAnimatePlayer(const ScriptCommand &line) {
-	warning("STUB script op: AnimatePlayer");
-	return true;
+	_game.player().act(line._args._animateCharacter._actionMode, line._args._animateCharacter._duration);
+	return false;
 }
 
 bool Script::opAnimatePlayerP(const ScriptCommand &line) {
-	warning("STUB script op: AnimatePlayerP");
-	return true;
+	_parallelPerformance = true;
+	return opAnimatePlayer(line);
 }
 
 bool Script::opAnimateNpc(const ScriptCommand &line) {
-	warning("STUB script op: AnimateNpc");
-	return true;
+	const auto &args = line._args._animateCharacter;
+	auto *npc = dynamic_cast<Character *>(_game.objectById(args._npc));
+	if (npc == nullptr)
+		warning("@ %10u %3u: Invalid NPC id: %u", _scriptId, _scriptLine, args._npc);
+	else {
+		_currentNpc = npc->id();
+		npc->act(args._actionMode, args._duration);
+	}
+	return npc == nullptr;
 }
 
 bool Script::opWalk(const ScriptCommand &line) {
@@ -357,17 +377,27 @@ bool Script::opWait(const ScriptCommand &line) {
 }
 
 bool Script::opItemActivate(const ScriptCommand &line) {
-	warning("STUB script op: ItemActivate");
-	return true;
+	const auto itemGameMode = _game.gameMode() == GameMode::EdnaStd ? GameMode::StartMenu : _game.gameMode();
+	const auto dbOwned = g_engine->db().ownedItems(itemGameMode);
+	uint nextPos = dbOwned.size() == 0 ? 1 :
+		g_engine->db().item(dbOwned[dbOwned.size() - 1])._inventoryPos + 1;
+	g_engine->db().setItemPos(line._args._toggleItem, nextPos);
+	g_engine->db().buildItemIndex();
+	_game.triggerInventoryUpdate();
+	return false;
 }
 
 bool Script::opItemActivateSound(const ScriptCommand &line) {
-	warning("STUB script op: ItemActivateSound");
-	return true;
+	opItemActivate(line);
+	_game.player().wait(64);
+	g_engine->playSpeech("soundfx/nehmen_2.ogg");
+	return false;
 }
 
 bool Script::opItemDeactivate(const ScriptCommand &line) {
-	warning("STUB script op: ItemDeactivate");
+	g_engine->db().setItemPos(line._args._toggleItem, 0);
+	g_engine->db().buildItemIndex();
+	_game.triggerInventoryUpdate();
 	return true;
 }
 

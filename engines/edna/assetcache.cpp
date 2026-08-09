@@ -103,8 +103,18 @@ AssetCache::AssetCache()
 	_bgFont18.reset(loadFont(18, true));
 }
 
-void AssetCache::pushExitCursor() const {
-	pushCursor(_exitCursor);
+void AssetCache::useStandardCursor() {
+	if (_isExitCursorPushed) {
+		CursorMan.popCursor();
+		_isExitCursorPushed = false;
+	}
+}
+
+void AssetCache::pushExitCursor() {
+	if (!_isExitCursorPushed) {
+		pushCursor(_exitCursor);
+		_isExitCursorPushed = true;
+	}
 }
 
 const FontInfo AssetCache::font(FontKind kind) const {

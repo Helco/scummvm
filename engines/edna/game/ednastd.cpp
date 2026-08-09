@@ -40,7 +40,8 @@ EdnaStd::EdnaStd(ScopedPtr<GameBase> &myPtr, const GameTransition &transition)
 	, _buttonPick(kButtonIdPick, Point(100, 565), String("gui/edna/") + g_engine->language() + "/b_nehmen")
 	, _buttonTalk(kButtonIdTalk, Point(200, 565), String("gui/edna/") + g_engine->language() + "/b_reden")
 	, _buttonUse(kButtonIdUse, Point(300, 565), String("gui/edna/") + g_engine->language() + "/b_benutzen")
-	, _commandPrompt(*this) {
+	, _commandPrompt(*this)
+	, _choiceList(*this) {
 
 	const auto &translation = g_engine->translation();
 	_buttonLook.setDisplayName(translation.action(PlayerAction::Look));
@@ -57,7 +58,7 @@ EdnaStd::EdnaStd(ScopedPtr<GameBase> &myPtr, const GameTransition &transition)
 }
 
 void EdnaStd::initGroups() {
-	Game::initGroups(nullptr, &_inventory);
+	Game::initGroups(&_inventory, &_choiceList);
 }
 
 bool EdnaStd::isItem(Sprite *selection) const {
@@ -78,8 +79,12 @@ PlayerAction EdnaStd::isPlayerActionButton(Sprite *selection) const {
 
 void EdnaStd::update() {
 	Game::update();
-	if (script().isScriptRunning() || script().isPerforming())
+	_inventory.active() = gui().active();
+
+	if (script().isScriptRunning() || script().isPerforming() || _choiceList.active()) {
+		_inventory.close();
 		return;
+	}
 
 	Sprite *selection = findSelection();
 
@@ -299,6 +304,10 @@ void EdnaStd::invokeCommand() {
 		assert(false && "Unhandled player action in invokeCommand");
 		break;
 	}
+}
+
+void EdnaStd::triggerChoiceList(ChoiceSetId setId) {
+	_choiceList.openSet(setId);
 }
 
 }

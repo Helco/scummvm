@@ -19,39 +19,32 @@
  *
  */
 
-#ifndef EDNA_TEXT_H
-#define EDNA_TEXT_H
+#ifndef EDNA_CHOICELIST_H
+#define EDNA_CHOICELIST_H
 
-#include "edna/sprite/sprite.h"
+#include "edna/group/group.h"
 
 namespace Edna {
 
-enum TextFlags {
-	kTextWrapLines = 1 << 0,
-	kTextMoveIntoScreen = 1 << 1,
-	kTextAlignCenter = 1 << 2,
+class Game;
+class Text;
 
-	kTextDialog = (kTextWrapLines | kTextMoveIntoScreen | kTextAlignCenter)
-};
-
-class Text final : public Sprite {
+class ChoiceList final : public Group {
 public:
-	Text(Common::Point pos, FontKind font, const char *text, TextFlags flags);
+	ChoiceList(Game &game);
 
-	void render() override;
-	void debugPrint() override;
-	bool checkClick(Common::Point screenPos) const override;
-	void setColor(FontKind font);
+	inline ChoiceSetId setId() const { return _setId; }
+
+	void update() override;
+	void openSet(ChoiceSetId setId);
+	void close();
 
 private:
-	Common::Point getLineRenderPos(uint lineI) const;
-
-	static constexpr uint kDebugTextSize = 32;
-	const TextFlags _flags;
-	Common::Array<Common::ScopedPtr<IRenderedText>> _lines;
-	char _debugText[kDebugTextSize] = { };
+	Game &_game;
+	ChoiceSetId _setId = 0;
+	Text *_selected = nullptr;
 };
 
 }
 
-#endif // EDNA_TEXT_H
+#endif // EDNA_CHOICELIST_H

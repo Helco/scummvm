@@ -125,7 +125,7 @@ void Character::sayOrThink(const char *text, const char *soundFile, State newSta
 			Point(basePosX(), pos().y),
 			newState == State::kTalking ? _talkFont : _thinkFont,
 			text,
-			(TextFlags)(kTextWrapLines | kTextMoveIntoScreen));
+			kTextDialog);
 		_game.texts().add(_talkText, DisposeAfterUse::YES);
 	}
 

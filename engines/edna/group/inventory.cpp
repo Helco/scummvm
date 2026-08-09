@@ -123,6 +123,8 @@ void Inventory::onItemsChanged() {
 }
 
 void Inventory::close() {
+	if (_state == State::Closed)
+		return;
 	_state = State::Closed;
 	toggleAllItems(false);
 	_buttonUp.toggle(false);

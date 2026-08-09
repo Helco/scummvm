@@ -171,10 +171,8 @@ void Character::freeWalkTo(Point walkTo, Direction standbyDirection) {
 void Character::pathWalkTo(Point walkTo, Direction standbyDirection) {
 	_standbyDirection = standbyDirection;
 	Point walkFrom = scaleSpritePosToBasePos(pos());
-	if (walkFrom == walkTo)
+	if (walkFrom == walkTo || !g_engine->pathFinder().findPath(walkFrom, walkTo, _walkPoints))
 		_walkPoints.clear();
-	else if (!g_engine->pathFinder().findPath(walkFrom, walkTo, _walkPoints))
-		_walkPoints.emplace_back(walkTo);
 	nextWalkPoint();
 }
 

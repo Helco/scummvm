@@ -94,6 +94,10 @@ bool PathFinder::findPath(Point fromOrig, Point toOrig, Array<Point> &waypoints)
 		debug("Path corrected from (%d,%d)->(%d,%d) to (%d,%d)->(%d,%d)",
 			fromOrig.x, fromOrig.y, toOrig.x, toOrig.y, from.x, from.y, to.x, to.y);
 
+	// this distance check fixes flicker when a character walks repeatedly to the same spot
+	if (from.sqrDist(to) < 2)
+		return false;
+
     if (from == kInvalidPoint ||
         to == kInvalidPoint ||
         !dijkstraDistances(from, to))

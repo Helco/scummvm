@@ -45,10 +45,10 @@ public:
 	void update() override;
 	void updateSelection(Sprite *selection);
 	bool updatePressed(Sprite *selection);
+	void close();
 	void onItemsChanged();
 
 private:
-	void close();
 	void toggleAllItems(bool active);
 	void updateItems();
 

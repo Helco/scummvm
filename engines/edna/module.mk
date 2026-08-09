@@ -12,6 +12,7 @@ MODULE_OBJS = \
 	game/game.o \
 	game/intro.o \
 	game/scriptonclick.o \
+	group/choicelist.o \
 	group/group.o \
 	group/inventory.o \
 	input.o \

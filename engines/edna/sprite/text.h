@@ -28,7 +28,10 @@ namespace Edna {
 
 enum TextFlags {
 	kTextWrapLines = 1 << 0,
-	kTextMoveIntoScreen = 1 << 1
+	kTextMoveIntoScreen = 1 << 1,
+	kTextAlignCenter = 1 << 2,
+
+	kTextDialog = (kTextWrapLines | kTextMoveIntoScreen | kTextAlignCenter)
 };
 
 class Text final : public Sprite {
@@ -37,10 +40,14 @@ public:
 
 	void render() override;
 	void debugPrint() override;
+	bool checkClick(Common::Point screenPos) const override;
 	void setColor(FontKind font);
 
 private:
+	Common::Point getLineRenderPos(uint lineI) const;
+
 	static constexpr uint kDebugTextSize = 32;
+	const TextFlags _flags;
 	Common::Array<Common::ScopedPtr<IRenderedText>> _lines;
 	char _debugText[kDebugTextSize] = { };
 };

@@ -287,6 +287,9 @@ void Game::triggerExit(RoomExitId exitId, ScriptId scriptId, uint32 scriptLine) 
 	next._scriptLine = scriptLine;
 }
 
+void Game::triggerChoiceList(ChoiceSetId setId) {
+}
+
 void Game::createDebugFloorTexture() {
 	if (_debugFloorTexture != nullptr)
 		return;

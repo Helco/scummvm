@@ -91,6 +91,7 @@ public:
 		ScriptId _script = 0;
 	};
 	Common::Span<const Choice> choices(ChoiceSetId choiceId) const;
+	Choice choice(ChoiceSetId setId, uint32 line) const;
 	void setChoiceScript(ChoiceSetId setId, uint32 line, ScriptId scriptId);
 	void toggleChoice(ChoiceSetId setId, uint32 line, bool active);
 

@@ -51,7 +51,7 @@ static const char *skipNonSpace(const char *text) {
 	return space;
 }
 
-Text::Text(Point pos, FontKind font, const char *text, TextFlags flags) {
+Text::Text(Point pos, FontKind font, const char *text, TextFlags flags) : _flags(flags) {
 	assert(text != nullptr);
 	const FontInfo fontInfo = g_engine->assets().font(font);
 	strncpy(_debugText, text, kDebugTextSize - 1);
@@ -86,8 +86,10 @@ Text::Text(Point pos, FontKind font, const char *text, TextFlags flags) {
 		size.x = MAX(size.x, line->size().x);
 	this->size() = size;
 
-	pos.x -= size.x / 2;
-	pos.y -= kTextOffsetY + (fontInfo._fgFont->getFontHeight() - kTextLineHeight) * _lines.size();
+	if (flags & kTextAlignCenter) {
+		pos.x -= size.x / 2;
+		pos.y -= kTextOffsetY + (fontInfo._fgFont->getFontHeight() - kTextLineHeight) * _lines.size();
+	}
 	if (flags & kTextMoveIntoScreen) {
 		if (pos.x + size.x + kTextMargin > kScreenWidth)
 			pos.x = kScreenWidth - kTextMargin - size.x;
@@ -102,13 +104,26 @@ void Text::debugPrint() {
 }
 
 void Text::render() {
-	const int baseX = pos().x + size().x / 2;
-	int cursorY = pos().y;
-	for (auto &line : _lines) {
-		int cursorX = baseX - line->size().x / 2;
-		g_engine->renderer().text(line.get(), Point(cursorX, cursorY));
-		cursorY += kTextLineHeight;
+	for (uint i = 0; i < _lines.size(); i++)
+		g_engine->renderer().text(_lines[i].get(), getLineRenderPos(i));
+}
+
+bool Text::checkClick(Common::Point screenPos) const {
+	for (uint i = 0; i < _lines.size(); i++) {
+		Point relPos = screenPos - getLineRenderPos(i);
+		if (_lines[i]->alphaCheck(relPos))
+			return true;
 	}
+	return false;
+}
+
+Point Text::getLineRenderPos(uint lineI) const {
+	assert(lineI < _lines.size());
+	Point pos = this->pos();
+	if (_flags & kTextAlignCenter)
+		pos.x += size().x / 2 - _lines[lineI]->size().x / 2;
+	pos.y += lineI * kTextLineHeight;
+	return pos;
 }
 
 void Text::setColor(FontKind font) {

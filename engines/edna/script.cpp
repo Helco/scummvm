@@ -203,8 +203,8 @@ bool Script::opSaySound(const ScriptCommand &line) {
 }
 
 bool Script::opChoice(const ScriptCommand &line) {
-	warning("STUB script op: Choice");
-	return true;
+	_game.triggerChoiceList(line._args._choiceSet);
+	return false;
 }
 
 bool Script::opToggleChoice(const ScriptCommand &line) {

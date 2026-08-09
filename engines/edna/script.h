@@ -44,6 +44,7 @@ public:
 	void resume();
 	void runNew(ScriptId scriptId, uint32 firstLine = 1);
 	void stop(); ///< currently only used for debugging
+	bool shutUp();
 	bool isPerforming(); ///< this function has side-effects...
 
 private:

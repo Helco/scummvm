@@ -19,6 +19,7 @@
  *
  */
 
+#include "edna/assetcache.h"
 #include "edna/edna.h"
 #include "edna/input.h"
 #include "edna/game/ednastd.h"
@@ -133,7 +134,7 @@ void EdnaStd::updateHover(Sprite *selection) {
 		_command._target = 0;
 	} else if (dynamic_cast<RoomExit *>(interactable) != nullptr) {
 		_command._target = 0;
-		useExitCursor();
+		g_engine->assets().pushExitCursor();
 	} else if (_command._action == PlayerAction::None) {
 		const auto defaultAction = interactable == nullptr ? PlayerAction::None : interactable->defaultAction();
 		switch (defaultAction) {
@@ -177,11 +178,20 @@ void EdnaStd::onMouseLeftPressed(Sprite *&selection) {
 		case PlayerAction::None:
 		case PlayerAction::Pick:
 		case PlayerAction::Use: {
-			ScriptId scriptId = interactable->scriptFor(PlayerAction::Use);
-			if (scriptId == 0) {
-				_command._action = PlayerAction::Use;
-				_command._item = selection->id();
-			} else {
+			if (_command._item == 0) {
+				ScriptId scriptId = interactable->scriptFor(PlayerAction::Use);
+				if (scriptId == 0) {
+					_command._action = PlayerAction::Use;
+					_command._item = selection->id();
+				} else {
+					_command = {};
+					selection = nullptr;
+					script().runNew(scriptId);
+				}
+			} else { // USE <item> WITH <item>
+				ScriptId scriptId = g_engine->db().itemInteraction(_command._item, _command._target);
+				if (scriptId == 0)
+					scriptId = g_engine->db().itemInteraction(_command._target, _command._item);
 				_command = {};
 				selection = nullptr;
 				script().runNew(scriptId);
@@ -308,6 +318,10 @@ void EdnaStd::invokeCommand() {
 
 void EdnaStd::triggerChoiceList(ChoiceSetId setId) {
 	_choiceList.openSet(setId);
+}
+
+void EdnaStd::triggerInventoryUpdate() {
+	_inventory.onItemsChanged();
 }
 
 }

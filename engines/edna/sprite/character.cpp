@@ -149,9 +149,16 @@ void Character::updateTalking() {
 	shutUp();
 }
 
-void Character::shutUp() {
+void Character::act(ActionModeId actionMode, uint32 duration) {
+	_state = kActing;
+	setAnimation(actionMode);
+	_stateTimer.delay() = duration;
+	_stateTimer.toggle(true);
+}
+
+bool Character::shutUp() {
 	if (_state != kActing && _state != kTalking && _state != kThinking)
-		return;
+		return false;
 
 	if (_talkText != nullptr)
 		_talkText->toggle(false);
@@ -159,6 +166,7 @@ void Character::shutUp() {
 	g_system->getMixer()->stopHandle(_talkSound);
 	_talkSound = {};
 	setState(kWaiting);
+	return true;
 }
 
 void Character::freeWalkTo(Point walkTo, Direction standbyDirection) {

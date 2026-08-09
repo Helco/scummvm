@@ -62,7 +62,8 @@ public:
 	void lookIn(Direction direction);
 	void say(const char *text, const char *soundFile);
 	void think(const char *text, const char *soundFile);
-	void shutUp(); ///< original method name and it fits...
+	void act(ActionModeId actionMode, uint32 duration);
+	bool shutUp(); ///< original method name and it fits...
 	void freeWalkTo(Common::Point walkTo, Direction standbyDirection = Direction::None);
 	void pathWalkTo(Common::Point walkTo, Direction standbyDirection = Direction::None);
 

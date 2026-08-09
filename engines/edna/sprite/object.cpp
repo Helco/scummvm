@@ -115,7 +115,9 @@ RoomExit::RoomExit(RoomInteractionId roiId, RoomExitId exitId, Point baseLineSta
 
 const char *RoomExit::displayName() const {
 	// for some reason the exit name is *not* the interaction name but the object name...
-	return g_engine->db().roomObject(id())._name;
+	// TODO: Or only sometimes?!
+	return RoomInteractable::displayName();
+	//return g_engine->db().roomObject(id())._name;
 }
 
 void RoomExit::debugPrint() {

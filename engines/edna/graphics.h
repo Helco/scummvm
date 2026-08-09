@@ -52,6 +52,7 @@ public:
 	virtual Common::Point size() const = 0;
 	virtual void setColor(const FontInfo &fontInfo) = 0; ///< font is not touched, ideally no rerendering should be done
 	virtual void setText(const char *textBegin, const char *textEnd = nullptr) = 0;
+	virtual bool alphaCheck(Common::Point pos) const = 0;
 };
 
 class IRenderer {

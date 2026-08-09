@@ -161,6 +161,15 @@ public:
 		// we render the string in white so we can multiply with a color without rerendering the text
 		// the border is always black so is not affected by it
 	}
+
+	bool alphaCheck(Point pos) const override {
+		if (pos.x < 0 || pos.y < 0 || pos.x >= _surface.w || pos.y >= _surface.h)
+			return false;
+		uint32 pixel = _surface.getPixel(pos.x, pos.y);
+		uint8 a, r, g, b;
+		_surface.format.colorToARGB(pixel, a, r, g, b);
+		return a > 25;
+	}
 };
 
 class SoftwareRenderer final : public IRenderer {

@@ -23,6 +23,7 @@
 #define EDNA_EDNASTD_H
 
 #include "edna/game/game.h"
+#include "edna/group/choicelist.h"
 #include "edna/group/inventory.h"
 #include "edna/sprite/commandprompt.h"
 #include "edna/sprite/button.h"
@@ -35,6 +36,7 @@ public:
 
 	void initGroups() override;
 	void update() override;
+	void triggerChoiceList(ChoiceSetId setId) override;
 
 private:
 	bool isItem(Sprite *selection) const;
@@ -53,6 +55,7 @@ private:
 	Button _buttonLook, _buttonPick, _buttonTalk, _buttonUse;
 	CommandPrompt _commandPrompt;
 	Inventory _inventory;
+	ChoiceList _choiceList;
 };
 
 }

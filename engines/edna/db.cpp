@@ -483,6 +483,10 @@ Span<const DB::Choice> DB::choices(ChoiceSetId choiceId) const {
 	return _choices.get(choiceId);
 }
 
+DB::Choice DB::choice(ChoiceSetId setId, uint32 line) const {
+	return _choices.get(setId, line);
+}
+
 void DB::loadChoices() {
 	char *full = loadFile(_choices._data, _path, "choiceliste.csv");
 	skipWhitespace(full);

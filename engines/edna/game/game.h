@@ -77,6 +77,7 @@ public:
 
 	void fade(byte color, float target, uint32 duration);
 	void triggerExit(RoomExitId exitId, ScriptId scriptId = 0, uint32 scriptLine = 1);
+	virtual void triggerChoiceList(ChoiceSetId setId);
 
 protected:
 	void init(const GameTransition &transition);

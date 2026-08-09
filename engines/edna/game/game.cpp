@@ -153,11 +153,9 @@ void Game::initObjects() {
 		Group &targetGroup = dbObject._toDisplay != 0 ? _objects : _bgObjects;
 		GameObject *sprite;
 
-		if (dbObject._toInteraction == 0 && dbObject._toDisplay == 0)
-			continue; // this is a pure logic object used by scripts
 		if (dbObject._toNPC != 0) {
 			const auto dbNpc = g_engine->db().npc(dbObject._toNPC);
-			
+
 			auto *npc = new Npc(
 				*this,
 				dbNpc,
@@ -165,7 +163,9 @@ void Game::initObjects() {
 				dbObject._pos,
 				dbDisplay._baseLineStart, dbDisplay._baseLineEnd);
 			sprite = npc;
-		} else {
+		} else if (dbObject._toInteraction == 0 && dbObject._toDisplay == 0)
+			continue; // this is a pure logic object used by scripts
+		else {
 			if (dbObject._toInteraction != 0) {
 				const auto dbInteraction = g_engine->db().roomInteraction(dbObject._toInteraction);
 				if (dbInteraction._toExit != 0) {

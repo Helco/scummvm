@@ -379,7 +379,8 @@ static void debugPrint(const ScriptCommand &cmd, T print) {
 	if (state != kFirstArg) {
 		print(")\n");
 		assert(ptr + 1 == end); // otherwise we overshot the end
-	}
+	} else
+		print("\n");
 }
 
 void ScriptCommand::debugPrintLog() const {

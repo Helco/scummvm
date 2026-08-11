@@ -83,7 +83,9 @@ static constexpr const char *const PlayerActionNames[] = {
 	"Use",
 	"Pick",
 	"Talk",
-	"Walk"
+	"Walk",
+	"ToHarvey",
+	"ToEdna"
 };
 
 const char *playerActionToString(PlayerAction action) {

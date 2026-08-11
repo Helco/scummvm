@@ -22,14 +22,14 @@
 #include "edna/db.h"
 #include "edna/edna.h"
 #include "edna/input.h"
-#include "edna/group/inventory.h"
+#include "edna/group/stdinventory.h"
 #include "edna/sprite/object.h"
 
 using namespace Common;
 
 namespace Edna {
 
-Inventory::Inventory()
+StdInventory::StdInventory()
 	: Group("Inventory")
 	, _buttonLock(0, Point(755, 568), "gui/edna/b_schloss")
 	, _buttonUnlock(0, Point(755, 568), "gui/edna/b_keinschloss")
@@ -71,7 +71,7 @@ Inventory::Inventory()
 	toggleAllItems(false);
 }
 
-void Inventory::update() {
+void StdInventory::update() {
 	Group::update();
 
 	const Point mousePos = g_engine->input().mousePos();
@@ -85,7 +85,7 @@ void Inventory::update() {
 	}
 }
 
-void Inventory::updateSelection(Sprite *selection) {
+void StdInventory::updateSelection(Sprite *selection) {
 	if (selection == &_frame && _state == State::Closed) {
 		_state = State::Opening;
 		_frame.setAnimation(AnimationRange(0, _frame.textureCount() - 1, 60, false));
@@ -93,7 +93,7 @@ void Inventory::updateSelection(Sprite *selection) {
 		dynamic_cast<Item *>(selection)->setHovered();
 }
 
-bool Inventory::updatePressed(Sprite *selection) {
+bool StdInventory::updatePressed(Sprite *selection) {
 	if (selection == &_buttonUp) {
 		_scroll++;
 		updateItems();
@@ -116,13 +116,13 @@ bool Inventory::updatePressed(Sprite *selection) {
 	return true;
 }
 
-void Inventory::onItemsChanged() {
+void StdInventory::onItemsChanged() {
 	_scroll = 0;
 	if (_state == State::Open)
 		updateItems();
 }
 
-void Inventory::close() {
+void StdInventory::close() {
 	if (_state == State::Closed)
 		return;
 	_state = State::Closed;
@@ -132,12 +132,12 @@ void Inventory::close() {
 	_frame.setFrame(0);
 }
 
-void Inventory::toggleAllItems(bool active) {
+void StdInventory::toggleAllItems(bool active) {
 	for (uint i = kFirstItemI; i < _sprites.size(); i++)
 		_sprites[i]->toggle(active);
 }
 
-void Inventory::updateItems() {
+void StdInventory::updateItems() {
 	constexpr Point kOrigin(401, 523);
 	constexpr int16 kSlotWidth = 75;
 	constexpr int16 kSlotHeight = -78;

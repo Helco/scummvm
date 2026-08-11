@@ -22,41 +22,28 @@
 #ifndef EDNA_EDNASTD_H
 #define EDNA_EDNASTD_H
 
-#include "edna/game/game.h"
-#include "edna/group/choicelist.h"
-#include "edna/group/inventory.h"
-#include "edna/sprite/commandprompt.h"
-#include "edna/sprite/button.h"
+#include "edna/game/ednagame.h"
+#include "edna/group/stdinventory.h"
 
 namespace Edna {
 
-class EdnaStd : public Game {
+class EdnaStd : public EdnaGame {
 public:
 	EdnaStd(Common::ScopedPtr<GameBase> &myPtr, const GameTransition &transition);
 
 	void initGroups() override;
 	void update() override;
-	void triggerChoiceList(ChoiceSetId setId) override;
 	void triggerInventoryUpdate() override;
 
 private:
 	bool isItem(Sprite *selection) const;
-	PlayerAction isPlayerActionButton(Sprite *selection) const;
 
 	Sprite *findSelection();
-	void updateHover(Sprite *selection);
 	void onMouseLeftPressed(Sprite *&selection);
 	void onMouseLeftReleased(Sprite *selection);
 	void onMouseRightPressed(Sprite *selection);
-	void onMouseRightReleased(Sprite *selection);
-	void invokeRoomInteraction(Sprite *object, PlayerAction action);
-	void invokeCommand();
 
-	PlayerCommand _command = {};
-	Button _buttonLook, _buttonPick, _buttonTalk, _buttonUse;
-	CommandPrompt _commandPrompt;
-	Inventory _inventory;
-	ChoiceList _choiceList;
+	StdInventory _inventory;
 };
 
 }

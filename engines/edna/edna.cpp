@@ -25,6 +25,7 @@
 #include "edna/detection.h"
 #include "edna/db.h"
 #include "edna/graphics.h"
+#include "edna/game/ednagirl.h"
 #include "edna/game/ednastd.h"
 #include "edna/game/intro.h"
 #include "edna/game/scriptonclick.h"
@@ -136,6 +137,9 @@ void EdnaEngine::createRoom(const GameTransition &transition) {
 		break;
 	case GameMode::EdnaStd:
 		new EdnaStd(_game, transition);
+		break;
+	case GameMode::EdnaGirl:
+		new EdnaGirl(_game, transition);
 		break;
 	default:
 		error("Unimplemented game mode: %s", gameModeToString(room._gameMode));

@@ -8,13 +8,15 @@ MODULE_OBJS = \
 	db_validation.o \
 	edna.o \
 	graphics.o \
+	game/ednagame.o \
+	game/ednagirl.o \
 	game/ednastd.o \
 	game/game.o \
 	game/intro.o \
 	game/scriptonclick.o \
 	group/choicelist.o \
 	group/group.o \
-	group/inventory.o \
+	group/stdinventory.o \
 	input.o \
 	metaengine.o \
 	pathfinder.o \

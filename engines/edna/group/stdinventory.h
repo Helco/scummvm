@@ -19,33 +19,46 @@
  *
  */
 
-#ifndef EDNA_EDNASTD_H
-#define EDNA_EDNASTD_H
+#ifndef EDNA_INVENTORY_H
+#define EDNA_INVENTORY_H
 
-#include "edna/game/ednagame.h"
-#include "edna/group/stdinventory.h"
+#include "edna/group/group.h"
+#include "edna/sprite/button.h"
 
 namespace Edna {
 
-class EdnaStd : public EdnaGame {
-public:
-	EdnaStd(Common::ScopedPtr<GameBase> &myPtr, const GameTransition &transition);
+class Item;
 
-	void initGroups() override;
+class StdInventory final : public Group {
+public:
+	StdInventory();
+
+	enum class State {
+		Closed,
+		Opening,
+		Open,
+		Locked
+	};
+	inline State state() const { return _state; }
+	inline bool isClosed() const { return _state == State::Closed || _state == State::Locked; }
+	
 	void update() override;
-	void triggerInventoryUpdate() override;
+	void updateSelection(Sprite *selection);
+	bool updatePressed(Sprite *selection);
+	void close();
+	void onItemsChanged();
 
 private:
-	bool isItem(Sprite *selection) const;
+	void toggleAllItems(bool active);
+	void updateItems();
 
-	Sprite *findSelection();
-	void onMouseLeftPressed(Sprite *&selection);
-	void onMouseLeftReleased(Sprite *selection);
-	void onMouseRightPressed(Sprite *selection);
-
-	StdInventory _inventory;
+	static constexpr uint kFirstItemI = 5;
+	Button _buttonLock, _buttonUnlock, _buttonUp, _buttonDown;
+	AnimatedSprite _frame;
+	State _state = State::Closed;
+	uint _scroll = 0;
 };
 
 }
 
-#endif // EDNA_EDNASTD_H
+#endif // EDNA_INVENTORY_H

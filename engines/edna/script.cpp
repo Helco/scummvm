@@ -264,6 +264,12 @@ bool Script::opChangeChoiceScript(const ScriptCommand &line) {
 }
 
 bool Script::opScript(const ScriptCommand &line) {
+	if (!_isScriptRunning) {
+		// this can only happen if the command was executed using the console
+		runNew(line._args._script);
+		return false;
+	}
+
 	_scriptId = line._args._script;
 	_scriptLine = 1;
 	return true;

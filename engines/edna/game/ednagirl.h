@@ -19,17 +19,17 @@
  *
  */
 
-#ifndef EDNA_EDNASTD_H
-#define EDNA_EDNASTD_H
+#ifndef EDNA_EDNAGIRL_H
+#define EDNA_EDNAGIRL_H
 
 #include "edna/game/ednagame.h"
-#include "edna/group/stdinventory.h"
+#include "edna/sprite/button.h"
 
 namespace Edna {
 
-class EdnaStd : public EdnaGame {
+class EdnaGirl : public EdnaGame {
 public:
-	EdnaStd(Common::ScopedPtr<GameBase> &myPtr, const GameTransition &transition);
+	EdnaGirl(Common::ScopedPtr<GameBase> &myPtr, const GameTransition &transition);
 
 	void initGroups() override;
 	void update() override;
@@ -39,13 +39,10 @@ private:
 	bool isItem(Sprite *selection) const;
 
 	Sprite *findSelection();
-	void onMouseLeftPressed(Sprite *&selection);
-	void onMouseLeftReleased(Sprite *selection);
-	void onMouseRightPressed(Sprite *selection);
 
-	StdInventory _inventory;
+	Button _buttonToHarvey;
 };
 
 }
 
-#endif // EDNA_EDNASTD_H
+#endif // EDNA_EDNAGIRL_H

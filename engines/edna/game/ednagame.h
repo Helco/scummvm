@@ -9,6 +9,7 @@
  * the Free Software Foundation, either version 3 of the License, or
  * (at your option) any later version.
  *
+ * 
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
@@ -19,46 +20,41 @@
  *
  */
 
-#ifndef EDNA_INVENTORY_H
-#define EDNA_INVENTORY_H
+#ifndef EDNA_EDNAGAME_H
+#define EDNA_EDNAGAME_H
 
-#include "edna/group/group.h"
+#include "edna/game/game.h"
+#include "edna/group/choicelist.h"
 #include "edna/sprite/button.h"
+#include "edna/sprite/commandprompt.h"
 
 namespace Edna {
 
-class Item;
-
-class Inventory final : public Group {
+class EdnaGame : public Game {
 public:
-	Inventory();
+	EdnaGame(
+		Common::ScopedPtr<GameBase> &myPtr,
+		GameMode mode,
+		const GameTransition &transition,
+		const char *guiBasePath); ///< for the buttons
 
-	enum class State {
-		Closed,
-		Opening,
-		Open,
-		Locked
-	};
-	inline State state() const { return _state; }
-	inline bool isClosed() const { return _state == State::Closed || _state == State::Locked; }
-	
-	void update() override;
-	void updateSelection(Sprite *selection);
-	bool updatePressed(Sprite *selection);
-	void close();
-	void onItemsChanged();
+	void triggerChoiceList(ChoiceSetId setId) override;
 
-private:
-	void toggleAllItems(bool active);
-	void updateItems();
+protected:
+	PlayerAction isPlayerActionButton(Sprite *selection) const;
 
-	static constexpr uint kFirstItemI = 5;
-	Button _buttonLock, _buttonUnlock, _buttonUp, _buttonDown;
-	AnimatedSprite _frame;
-	State _state = State::Closed;
-	uint _scroll = 0;
+	void updateHover(Sprite *selection);
+	void invokeObjectCommand();
+	void invokeItemCommand(Sprite *&selection);
+	void invokeDefaultCommand(Sprite *selection, bool isItem);
+	void invokeRoomInteraction(Sprite *object, PlayerAction action);
+
+	PlayerCommand _command = {};
+	CommandPrompt _commandPrompt;
+	ChoiceList _choiceList;
+	Button _buttonLook, _buttonPick, _buttonTalk, _buttonUse;
 };
 
 }
 
-#endif // EDNA_INVENTORY_H
+#endif // EDNA_EDNAGAME_H

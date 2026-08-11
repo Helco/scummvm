@@ -67,7 +67,10 @@ enum class PlayerAction : uint {
 	Use,
 	Pick,
 	Talk,
-	Walk
+	Walk,
+
+	ToHarvey,
+	ToEdna
 };
 bool parsePlayerAction(const char *text, PlayerAction &value);
 const char *playerActionToString(PlayerAction action);

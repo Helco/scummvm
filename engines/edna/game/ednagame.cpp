@@ -22,6 +22,7 @@
 #include "edna/assetcache.h"
 #include "edna/db.h"
 #include "edna/edna.h"
+#include "edna/input.h"
 #include "edna/game/ednagame.h"
 #include "edna/sprite/character.h"
 #include "edna/sprite/object.h"
@@ -77,10 +78,14 @@ PlayerAction EdnaGame::isPlayerActionButton(Sprite *selection) const {
 	return PlayerAction::None;
 }
 
-void EdnaGame::updateHover(Sprite *selection) {
+void EdnaGame::updateHover(Sprite *selection, bool selectDefaultAction) {
 	Button *selectedButton = dynamic_cast<Button *>(selection);
-	if (selectedButton != nullptr)
-		selectedButton->setHovered();
+	if (selectedButton != nullptr) {
+		if (g_engine->input().isMouseLeftPressed())
+			selectedButton->setPressed();
+		else
+			selectedButton->setHovered();
+	}
 
 	auto *interactable = dynamic_cast<IInteractable *>(selection);
 	if (selection == nullptr) {
@@ -91,7 +96,9 @@ void EdnaGame::updateHover(Sprite *selection) {
 		g_engine->assets().pushExitCursor();
 	}
 	else if (_command._action == PlayerAction::None) {
-		const auto defaultAction = interactable == nullptr ? PlayerAction::None : interactable->defaultAction();
+		const auto defaultAction = selectDefaultAction && interactable != nullptr
+			? interactable->defaultAction()
+			: PlayerAction::None;
 		switch (defaultAction) {
 		case PlayerAction::Look:
 			_buttonLook.setHovered();

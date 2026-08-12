@@ -23,7 +23,7 @@
 #define EDNA_EDNASTD_H
 
 #include "edna/game/ednagame.h"
-#include "edna/group/stdinventory.h"
+#include "edna/group/inventory.h"
 
 namespace Edna {
 

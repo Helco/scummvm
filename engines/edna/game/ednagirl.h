@@ -23,7 +23,7 @@
 #define EDNA_EDNAGIRL_H
 
 #include "edna/game/ednagame.h"
-#include "edna/sprite/button.h"
+#include "edna/group/inventory.h"
 
 namespace Edna {
 
@@ -39,8 +39,12 @@ private:
 	bool isItem(Sprite *selection) const;
 
 	Sprite *findSelection();
+	void onMouseLeftPressed(Sprite *selection);
+	void onMouseLeftReleased(Sprite *selection);
+	void onMouseRightPressed(Sprite *selection);
 
 	Button _buttonToHarvey;
+	GirlInventory _inventory;
 };
 
 }

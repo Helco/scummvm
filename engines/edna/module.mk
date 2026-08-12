@@ -16,7 +16,7 @@ MODULE_OBJS = \
 	game/scriptonclick.o \
 	group/choicelist.o \
 	group/group.o \
-	group/stdinventory.o \
+	group/inventory.o \
 	input.o \
 	metaengine.o \
 	pathfinder.o \

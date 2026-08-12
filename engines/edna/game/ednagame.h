@@ -43,7 +43,7 @@ public:
 protected:
 	PlayerAction isPlayerActionButton(Sprite *selection) const;
 
-	void updateHover(Sprite *selection);
+	void updateHover(Sprite *selection, bool selectDefaultAction);
 	void invokeObjectCommand();
 	void invokeItemCommand(Sprite *&selection);
 	void invokeDefaultCommand(Sprite *selection, bool isItem);

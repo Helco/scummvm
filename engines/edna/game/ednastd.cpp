@@ -59,7 +59,7 @@ void EdnaStd::update() {
 			invokeObjectCommand();
 		}
 	} else {
-		updateHover(selection);
+		updateHover(selection, true);
 		_inventory.updateSelection(selection);
 	}
 

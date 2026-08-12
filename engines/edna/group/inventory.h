@@ -29,7 +29,22 @@ namespace Edna {
 
 class Item;
 
-class StdInventory final : public Group {
+class Inventory : public Group {
+public:
+	Inventory(GameMode gameMode);
+
+	void updateSelection(Sprite *selection);
+	virtual void onItemsChanged();
+
+protected:
+	virtual void updateItems();
+	virtual void updateItem(Item *item, uint slotI) = 0;
+
+	const GameMode _gameMode;
+	uint _firstItemI = UINT_MAX; ///< set at the first updateItems
+};
+
+class StdInventory final : public Inventory {
 public:
 	StdInventory();
 
@@ -48,15 +63,26 @@ public:
 	void close();
 	void onItemsChanged();
 
-private:
+protected:
 	void toggleAllItems(bool active);
-	void updateItems();
+	void updateItems() override;
+	void updateItem(Item *item, uint slotI) override;
 
 	static constexpr uint kFirstItemI = 5;
 	Button _buttonLock, _buttonUnlock, _buttonUp, _buttonDown;
 	AnimatedSprite _frame;
 	State _state = State::Closed;
 	uint _scroll = 0;
+};
+
+class GirlInventory final : public Inventory {
+public:
+	GirlInventory();
+
+protected:
+	void updateItem(Item *item, uint slotI) override;
+
+	Sprite _frame;
 };
 
 }

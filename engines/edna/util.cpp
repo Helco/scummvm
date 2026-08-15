@@ -22,6 +22,8 @@
 #include "edna/edna.h"
 #include "edna/util.h"
 
+#include "common/intrinsics.h"
+
 namespace Edna {
 
 bool Timer::update() {
@@ -85,7 +87,9 @@ static constexpr const char *const PlayerActionNames[] = {
 	"Talk",
 	"Walk",
 	"ToHarvey",
-	"ToEdna"
+	"ToEdna",
+	"WhatIs",
+	"TalkAbout"
 };
 
 const char *playerActionToString(PlayerAction action) {
@@ -199,6 +203,31 @@ bool PlayerCommand::operator==(const PlayerCommand &other) const {
 
 bool PlayerCommand::operator!=(const PlayerCommand &other) const {
 	return !(*this == other);
+}
+
+// the original engine converts the ID to a string then reparses a substring
+// we can avoid that by just using the convention as is (every ID is 6 digits)
+static void decomposeRoomId(RoomId roomId, uint32 &v, uint32 &q) {
+	assert(roomId >= 100000);
+	v = roomId / 100;
+	q = roomId % 100;
+	assert(q < 10000);
+}
+
+PastRoomIds PastRoomIds::fromHarveyRoom(RoomId harveyRoom) {
+	uint32 v, q;
+	decomposeRoomId(harveyRoom, v, q);
+	PastRoomIds ids;
+	ids._harveyRoom = harveyRoom;
+	ids._ednaRoom = harveyRoom + 50;
+	ids._ednaId = v * 10000 + 9900 + q;
+	ids._harveyId = v * 10000 + 9900 + q + 50;
+	return ids;
+}
+
+PastRoomIds PastRoomIds::fromEdnaRoom(RoomId ednaRoom) {
+	assert(ednaRoom >= 100050);
+	return fromHarveyRoom(ednaRoom - 50);
 }
 
 }

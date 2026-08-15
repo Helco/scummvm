@@ -168,4 +168,17 @@ Direction Item::interactionDir() const {
 	return Direction::None;
 }
 
+Topic::Topic(TopicId topicId, RoomObjectId roomObjectId) : _roomObjectId(roomObjectId) {
+	id() = topicId;
+	setTexture(g_engine->db().topic(id())._icon);
+}
+
+const char *Topic::displayName() const {
+	return g_engine->db().topic(id())._name;
+}
+
+void Topic::debugPrint() {
+	g_engine->getDebugger()->debugPrintf("Topic \"%s\"\n", displayName());
+}
+
 }

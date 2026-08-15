@@ -110,6 +110,18 @@ public:
 	Direction interactionDir() const override;
 };
 
+class Topic final : public AnimatedSprite {
+public:
+	Topic(TopicId topicId, RoomObjectId roomObjectId);
+
+	inline RoomObjectId roomObjectId() const { return _roomObjectId; }
+	const char *displayName() const override;
+	void debugPrint() override;
+
+private:
+	const RoomObjectId _roomObjectId;
+};
+
 }
 
 #endif // EDNA_OBJECT_H

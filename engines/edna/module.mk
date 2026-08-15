@@ -12,11 +12,13 @@ MODULE_OBJS = \
 	game/ednagirl.o \
 	game/ednastd.o \
 	game/game.o \
+	game/harvey.o \
 	game/intro.o \
 	game/scriptonclick.o \
 	group/choicelist.o \
 	group/group.o \
 	group/inventory.o \
+	group/topicrow.o \
 	input.o \
 	metaengine.o \
 	pathfinder.o \

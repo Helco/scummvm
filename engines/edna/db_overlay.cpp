@@ -353,6 +353,12 @@ void DB::syncTopic(Topic &value, Serializer &s) {
 	s.syncAsUint32LE(value._topicRowPos);
 }
 
+void DB::setTopicPos(TopicId id, uint32 pos) {
+	Topic topic = this->topic(id);
+	topic._topicRowPos = pos;
+	_topics.overlay(topic);
+}
+
 void DB::syncTimer(Timer &value, Serializer &s) {
 	s.syncAsByte(value._active);
 }

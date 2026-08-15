@@ -191,6 +191,7 @@ public:
 		ScriptId _script = 0;
 	};
 	Topic topic(TopicId id, bool required = true) const;
+	void setTopicPos(TopicId id, uint32 pos);
 
 	ScriptId itemInteraction(ItemId item1, ItemId item2) const; ///< can return 0
 	ScriptId roomItemInteraction(ItemId item, RoomObjectId object) const; ///< can return 0

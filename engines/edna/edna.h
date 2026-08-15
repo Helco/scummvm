@@ -100,7 +100,8 @@ public:
 		return
 		    (f == kSupportsLoadingDuringRuntime) ||
 		    (f == kSupportsSavingDuringRuntime) ||
-		    (f == kSupportsReturnToLauncher);
+		    (f == kSupportsReturnToLauncher) ||
+			(f == kSupportsSubtitleOptions);
 	};
 
 	bool canLoadGameStateCurrently(Common::U32String *msg = nullptr) override {
@@ -134,7 +135,7 @@ private:
 	Common::ScopedPtr<Input> _input;
 	Common::ScopedPtr<AssetCache> _assets;
 	Common::ScopedPtr<Translation> _translation;
-	Console *_console; // raw pointer because Engine deletes the console itself
+	Console *_console = nullptr; // raw pointer because Engine deletes the console itself
 	Common::ScopedPtr<DB> _db;
 	Common::ScopedPtr<GameBase> _game;
 	Common::ScopedPtr<PathFinder> _pathFinder;

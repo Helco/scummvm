@@ -310,6 +310,10 @@ Npc::Npc(
 	_talkFont = _thinkFont = npc._font;
 }
 
+const char *Npc::displayName() const {
+	return _name;
+}
+
 void Npc::debugPrint() {
 	g_engine->getDebugger()->debugPrintf("NPC \"%s\" (%s)\n", _name, stateToString());
 }

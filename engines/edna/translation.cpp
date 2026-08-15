@@ -33,7 +33,9 @@ static constexpr const char *const kActionNamesDE[] = {
 	"Rede mit",
 	"Gehe zu",
 	"zu Harvey",
-	"zu Edna"
+	"zu Edna",
+	"Was ist",
+	"Rede mit Edna über",
 };
 static constexpr const char *const kActionNamesEN[] = {
 	"",
@@ -43,7 +45,9 @@ static constexpr const char *const kActionNamesEN[] = {
 	"Talk to",
 	"Walk to"
 	"to Harvey",
-	"to Edna"
+	"to Edna",
+	"What is",
+	"Talk to Edna about"
 };
 
 struct MiscTranslations {
@@ -73,7 +77,7 @@ Translation::Translation(Language language) : _language(language) {
 }
 
 const char *Translation::action(PlayerAction action) const {
-	assert(action >= PlayerAction::None && action <= PlayerAction::ToEdna);
+	assert(action >= PlayerAction::None && action <= PlayerAction::TalkAbout);
 	return _actionNames[(uint)action];
 }
 

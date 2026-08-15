@@ -27,6 +27,7 @@
 #include "edna/graphics.h"
 #include "edna/game/ednagirl.h"
 #include "edna/game/ednastd.h"
+#include "edna/game/harvey.h"
 #include "edna/game/intro.h"
 #include "edna/game/scriptonclick.h"
 #include "edna/input.h"
@@ -92,8 +93,10 @@ Error EdnaEngine::run() {
 		(void)loadGameState(saveSlot);
 
 	_transition = {};
-	_transition._room = 100101;
-	_transition._walkIn = { 260, 520 };
+	//_transition._room = 100101;
+	//_transition._walkIn = { 260, 520 };
+	_transition._room = 400101;
+	_transition._walkIn = { 400, 500 };
 	_transition._walkInDir = Direction::Left;
 
 	_timeLastFrame = getMillis();
@@ -140,6 +143,9 @@ void EdnaEngine::createRoom(const GameTransition &transition) {
 		break;
 	case GameMode::EdnaGirl:
 		new EdnaGirl(_game, transition);
+		break;
+	case GameMode::Harvey:
+		new Harvey(_game, transition);
 		break;
 	default:
 		error("Unimplemented game mode: %s", gameModeToString(room._gameMode));

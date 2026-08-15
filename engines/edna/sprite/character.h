@@ -119,6 +119,7 @@ public:
 		Common::Point baseLineStart,
 		Common::Point baseLineEnd);
 
+	const char *displayName() const override;
 	void debugPrint() override;
 
 private:

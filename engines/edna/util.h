@@ -63,17 +63,28 @@ const char *gameModeToString(GameMode mode);
 
 enum class PlayerAction : uint {
 	None = 0,
-	Look,
+
+	Look, // Used in EdnaStd and EdnaGirl
 	Use,
 	Pick,
 	Talk,
 	Walk,
 
-	ToHarvey,
-	ToEdna
+	ToHarvey, // Used in EdnaGirl
+	ToEdna, // Used in Harvey
+	WhatIs, // Used in Harvey
+	TalkAbout // Used in Harvey
 };
 bool parsePlayerAction(const char *text, PlayerAction &value);
 const char *playerActionToString(PlayerAction action);
+
+// used in multiple game types
+enum class DragStatus {
+	Dropped,
+	Dragging,
+	StartDrag,
+	StartDrop
+};
 
 enum class FontKind {
 	EdnaFont = 0,
@@ -210,6 +221,21 @@ struct PlayerCommand {
 
 	bool operator==(const PlayerCommand &command) const;
 	bool operator!=(const PlayerCommand &command) const;
+};
+
+// Harvey and EdnaGirl rooms are always pairs where the player controls one or the other
+// The room IDs and the object IDs follow a convention that we implement with this structure
+struct PastRoomIds {
+	RoomId _harveyRoom = 0;
+	RoomId _ednaRoom = 0;
+	RoomObjectId _harveyId = 0; ///< the NPC in Ednas room
+	RoomObjectId _ednaId = 0; ///< the NPC in Harveys room
+
+	static PastRoomIds fromHarveyRoom(RoomId harveyRoom);
+	static PastRoomIds fromEdnaRoom(RoomId ednaRoom);
+	PastRoomIds(const PastRoomIds &other) = default;
+private:
+	PastRoomIds() = default;
 };
 
 }

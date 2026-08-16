@@ -42,6 +42,7 @@ protected:
 
 	bool isTopic(Sprite *sprite) const;
 	bool isTopicRow(Sprite *sprite) const;
+	TopicId isTopicObject(Sprite *sprite);
 	Sprite *findSelection();
 	void invokeCompletedCommand();
 	void updateHover(Sprite *selection);
@@ -60,6 +61,7 @@ protected:
 	Button _buttonToEdna;
 	Sprite _inactiveButtonToEdna;
 	DragStatus _dragStatus = DragStatus::Dropped;
+	Topic *_dragTopic = nullptr;
 };
 
 }

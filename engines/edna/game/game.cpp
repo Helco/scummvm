@@ -199,7 +199,6 @@ void Game::update() {
 	if (!updateScript())
 		return;
 	CursorMan.showMouse(!script().isScriptRunning() && !script().isPerforming());
-	g_engine->assets().useStandardCursor();
 
 	GameBase::update(); // updates sprite groups
 	updateInput();
@@ -303,6 +302,28 @@ void Game::triggerChoiceList(ChoiceSetId setId) {
 }
 
 void Game::triggerInventoryUpdate() {
+}
+
+void Game::setCommandAndWalk(PlayerCommand &cmd, PlayerAction action, Sprite *sprite) {
+	setCommandAndWalk(cmd, action, sprite->id(), sprite);
+}
+
+void Game::setCommandAndWalk(PlayerCommand &cmd, PlayerAction action, uint32 target, Sprite *sprite) {
+	cmd = {};
+	cmd._isComplete = true;
+	cmd._action = action;
+	cmd._target = target;
+	cmd._targetPos = sprite->pos();
+
+	Direction standbyDir = Direction::None;
+	auto interactable = dynamic_cast<IInteractable *>(sprite);
+	if (interactable != nullptr) {
+		standbyDir = interactable->interactionDir();
+		if (interactable->interactionPos() != kInvalidPoint)
+			cmd._targetPos = interactable->interactionPos();
+	}
+
+	player().pathWalkTo(cmd._targetPos, standbyDir);
 }
 
 void Game::createDebugFloorTexture() {

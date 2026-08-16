@@ -33,6 +33,7 @@
 #include "common/ptr.h"
 #include "engines/engine.h"
 #include "engines/savestate.h"
+#include "graphics/managed_surface.h"
 
 #include "edna/detection.h"
 #include "edna/util.h"
@@ -95,6 +96,8 @@ public:
 	Audio::SoundHandle playMusic(const char *fileName, bool loop = true);
 	void stopMusic();
 	void pauseEngineIntern(bool pause) override;
+	void setExitCursor();
+	void setCustomCursor(const char *texturePath);
 
 	bool hasFeature(EngineFeature f) const override {
 		return
@@ -128,6 +131,7 @@ public:
 
 private:
 	void createRoom(const GameTransition &transition);
+	void updateCursor();
 
 	const ADGameDescription *_gameDescription;
 	Common::RandomSource _randomSource;
@@ -148,6 +152,14 @@ private:
 
 	Common::String _lastMusic;
 	Audio::SoundHandle _musicHandle;
+
+	enum class CursorMode {
+		Normal,
+		Exit,
+		Custom
+	} _nextCursorMode = CursorMode::Normal,
+	  _curCursorMode = CursorMode::Normal;
+	Graphics::ManagedSurface _customCursor;
 };
 
 extern EdnaEngine *g_engine;

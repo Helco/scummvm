@@ -94,6 +94,8 @@ protected:
 	bool updateScript();
 	void updateInput();
 	bool shutUp();
+	void setCommandAndWalk(PlayerCommand &cmd, PlayerAction action, Sprite *sprite);
+	void setCommandAndWalk(PlayerCommand &cmd, PlayerAction action, uint32 target, Sprite *sprite);
 
 private:
 	void createDebugFloorTexture();

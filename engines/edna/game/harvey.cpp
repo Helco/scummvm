@@ -19,7 +19,6 @@
  *
  */
 
-#include "edna/assetcache.h"
 #include "edna/db.h"
 #include "edna/edna.h"
 #include "edna/input.h"
@@ -64,6 +63,8 @@ void Harvey::update() {
 		return;
 
 	Sprite *selection = findSelection();
+	if (dynamic_cast<RoomExit *>(selection) != nullptr)
+		g_engine->setExitCursor();
 
 	if (_command._isComplete) {
 		if (player().state() == Character::kWaiting) {
@@ -78,14 +79,19 @@ void Harvey::update() {
 		onMouseLeftPressed(selection);
 	if (input.wasMouseLeftReleased())
 		onMouseLeftReleased(selection);
-	if (input.wasMouseRightPressed() && selection == nullptr)
-		_command = {}; // TODO: What about while dragging?
-	if (input.wasMouseRightReleased())
-		onMouseRightReleased(selection);
+	if (_dragStatus == DragStatus::Dropped) {
+		// ignoring clicks while dragging is not original, but resolves both original and ScummVM bugs
+		if (input.wasMouseRightPressed() && selection == nullptr)
+			_command = {};
+		if (input.wasMouseRightReleased())
+			onMouseRightReleased(selection);
+	}
 	if (input.isMouseLeftPressed() && _dragStatus == DragStatus::StartDrag)
 		onStartDrag(selection);
 	if (_dragStatus == DragStatus::StartDrop)
 		onStartDrop(selection);
+	if (_dragTopic != nullptr)
+		g_engine->setCustomCursor(nullptr);
 
 	_commandPrompt.setText(_command, selection);
 }
@@ -98,6 +104,14 @@ bool Harvey::isTopicRow(Sprite *sprite) const {
 	return sprite != nullptr && &sprite->group() == &_topicRow && sprite->id() == 0;
 }
 
+TopicId Harvey::isTopicObject(Sprite *sprite) {
+	if (sprite == nullptr || sprite->id() == 0 ||
+		(&sprite->group() != &objects() && &sprite->group() != &bgObjects()))
+		return 0;
+	const auto dbObject = g_engine->db().roomObject(sprite->id(), false);
+	return dbObject._toTopic;
+}
+
 Sprite *Harvey::findSelection() {
 	const Point mousePos = g_engine->input().mousePos();
 	Sprite *sprite = gui().checkClick(mousePos);
@@ -108,7 +122,7 @@ Sprite *Harvey::findSelection() {
 	if (sprite == nullptr)
 		sprite = bgObjects().checkClick(mousePos);
 
-	// While dragging selection only reacts to the topic row and Edna
+	// While dragging sprite only reacts to the topic row and Edna
 	if (sprite != nullptr && _dragStatus == DragStatus::Dragging &&
 		sprite->id() != _pastIds._ednaId && !isTopicRow(sprite))
 		sprite = nullptr;
@@ -171,10 +185,9 @@ void Harvey::updateHover(Sprite *selection) {
 		else
 			_buttonToEdna.setHovered();
 		_command._action = PlayerAction::ToEdna;
-	} else if (dynamic_cast<RoomExit *>(interactable) != nullptr) {
+	} else if (dynamic_cast<RoomExit *>(interactable) != nullptr)
 		_command._target = 0;
-		g_engine->assets().pushExitCursor();
-	} else if (interactable != nullptr)
+	else if (interactable != nullptr)
 		_command._target = selection->id();
 }
 
@@ -197,15 +210,7 @@ void Harvey::onMouseLeftPressed(Sprite *selection) {
 		// Edna is special, it both starts dragging the topic "Edna"
 		// and is the only object that Harvey walks to on press
 		// otherwise this is WALK TO <exit>
-		const auto interactable = dynamic_cast<IInteractable *>(selection);
-		_command = {};
-		_command._isComplete = true;
-		_command._action = PlayerAction::Walk;
-		_command._target = selection->id();
-		_command._targetPos = interactable->interactionPos();
-		if (_command._targetPos == kInvalidPoint)
-			_command._targetPos = selection->pos();
-		player().pathWalkTo(_command._targetPos, interactable->interactionDir());
+		setCommandAndWalk(_command, PlayerAction::Walk, selection);
 	}
 }
 
@@ -222,31 +227,46 @@ void Harvey::onMouseRightReleased(Sprite *selection) {
 	if (selection == nullptr)
 		_command = {};
 	else if (isTopic(selection)) {
-		if (g_engine->db().topic(selection->id())._inventoryPos > 0) { // WHAT IS <topic>
+		if (g_engine->db().topic(selection->id())._topicRowPos > 0) { // WHAT IS <topic>
 			_command = {};
 			_command._action = PlayerAction::WhatIs;
 			_command._target = selection->id();
 			_command._isComplete = true;
 		} else // topics outside the topic row *should* not happen
 			_command = {};
-	} else if (interactable != nullptr && exit == nullptr) { // LOOK AT <object>
-		_command = {};
-		_command._isComplete = true;
-		_command._action = PlayerAction::Look;
-		_command._target = selection->id();
-		_command._targetPos = interactable->interactionPos();
-		if (_command._targetPos == kInvalidPoint)
-			_command._targetPos = selection->pos();
-		player().pathWalkTo(_command._targetPos, interactable->interactionDir());
-	}
+	} else if (interactable != nullptr && exit == nullptr) // LOOK AT <object>
+		setCommandAndWalk(_command, PlayerAction::Look, selection);
 }
 
 void Harvey::onStartDrag(Sprite *selection) {
+	_dragTopic = dynamic_cast<Topic *>(selection);
+	TopicId topicId;
+	if (_dragTopic != nullptr) // owned topic
+		_topicRow.moveTopic(_dragTopic, 0);
+	else if ((topicId = isTopicObject(selection)) > 0 &&
+		g_engine->db().topic(topicId)._topicRowPos == 0) { // topic from object
+		_dragTopic = dynamic_cast<Topic *>(_topicRow.byId(topicId));
+		assert(_dragTopic != nullptr);
+	}
 
+	if (_dragTopic != nullptr)
+		g_engine->setCustomCursor(g_engine->db().topic(_dragTopic->id())._icon);
+	_dragStatus = DragStatus::Dragging;
 }
 
 void Harvey::onStartDrop(Sprite *selection) {
+	Topic *topic = _dragTopic;
+	_dragTopic = nullptr; // make sure it is null to reset the cursor on every drop
+	_dragStatus = DragStatus::Dropped;
+	if (topic == nullptr)
+		return;
 
+	// we have to reset mouse position as selection is not the same as hover during dragging
+	if (_topicRow.checkClick(g_engine->input().mousePos()) != nullptr) { // put topic into row
+		const uint slotI = g_engine->input().mousePos().x / 50 + 1;
+		_topicRow.moveTopic(topic, slotI);
+	} else if (selection != nullptr && selection->id() == _pastIds._ednaId) // TALK TO EDNA ABOUT <topic>
+		setCommandAndWalk(_command, PlayerAction::TalkAbout, topic->id(), selection);
 }
 
 void Harvey::switchToEdna() {

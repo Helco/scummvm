@@ -23,30 +23,29 @@
 #include "edna/edna.h"
 #include "edna/group/topicrow.h"
 #include "edna/sprite/object.h"
+#include "edna/translation.h"
 
 using namespace Common;
 
 namespace Edna {
 
 static Point topicPositionAt(uint slotI) {
-	return Point(555, 50 * slotI - 47);
+	return Point(50 * slotI - 47, 555);
 }
 
 TopicRow::TopicRow(RoomId roomId)
-	: Group("Topics") {
+	: Group("Topics")
+	, _frame(g_engine->translation().dropTopic()) {
 
 	_frame.immutable() = true;
 	_frame.pos() = Point(0, 551);
 	_frame.setTexture("gui/harvey/topicleiste.png");
 	add(&_frame, DisposeAfterUse::NO);
 
-	const auto dbObjects = g_engine->db().roomObjectsByRoom(roomId);
-	for (const auto &dbObjectId : dbObjects) {
-		const auto dbObject = g_engine->db().roomObject(dbObjectId);
-		if (dbObject._toTopicId == 0)
-			continue;
-		const auto dbTopic = g_engine->db().topic(dbObject._toTopicId);
-		Topic *topic = new Topic(dbTopic._id, dbTopic._roomObject);
+	const auto dbTopics = g_engine->db().topicsByChapter(roomId);
+	for (const auto topicId : dbTopics) {
+		const auto dbTopic = g_engine->db().topic(topicId);
+		Topic *topic = new Topic(topicId, dbTopic._roomObject);
 		topic->immutable() = true;
 		topic->pos() = topicPositionAt(dbTopic._topicRowPos);
 		topic->toggle(dbTopic._topicRowPos > 0);
@@ -58,7 +57,8 @@ TopicRow::TopicRow(RoomId roomId)
 static constexpr uint kMaxSlots = 14;
 void TopicRow::moveTopic(Topic *topic, uint slotI) {
 	assert(topic != nullptr && &topic->group() == this);
-	assert(slotI < kMaxSlots);
+	if (slotI > kMaxSlots)
+		return;
 	if (topic->active() && slotI == 0) {
 		topic->toggle(false);
 		g_engine->db().setTopicPos(topic->id(), 0);
@@ -74,6 +74,7 @@ void TopicRow::moveTopic(Topic *topic, uint slotI) {
 		if (itOtherSprite == _sprites.end()) {
 			// this slot is free
 			topic->pos() = topicPositionAt(newSlotI);
+			topic->toggle(true);
 			g_engine->db().setTopicPos(topic->id(), newSlotI);
 			sortTopics();
 			return;

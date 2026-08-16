@@ -40,6 +40,7 @@ public:
 
 	const char *action(PlayerAction action) const;
 	const char *actionWith() const; // for "Use <item> *with* <target>"
+	const char *dropTopic() const;
 
 private:
 	const Common::Language _language;

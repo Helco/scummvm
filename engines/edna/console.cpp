@@ -113,8 +113,8 @@ bool Console::cmdRoom(int argc, const char **argv) {
 		return true;
 
 	// Object summary
-	debugPrintf("  ID        Active Name                    Flags  Image\n");
-	char flags[7] = "IDTtNE";
+	debugPrintf("  ID        Active Name                    Flags Image\n");
+	char flags[6] = "IDTNE";
 	for (auto objectId : objects) {
 		DB::RoomObject obj = db.roomObject(objectId, false);
 		if (obj._id != objectId) {
@@ -123,11 +123,10 @@ bool Console::cmdRoom(int argc, const char **argv) {
 		}
 		flags[0] = obj._toInteraction ? 'I' : ' ';
 		flags[1] = obj._toDisplay ? 'D' : ' ';
-		flags[2] = obj._toTopicId ? 'T' : ' ';
-		flags[3] = obj._toTopicObject ? 't' : ' ';
-		flags[4] = obj._toNPC ? 'N' : ' ';
-		flags[5] = obj._toInteraction && g_engine->db().roomInteraction(obj._toInteraction, false)._toExit ? 'E' : ' ';
-		debugPrintf("  %9d %-6s%-24s%s %s\n", obj._id, obj._active ? "true" : "false", obj._name, flags, obj._image);
+		flags[2] = obj._toTopic ? 'T' : ' ';
+		flags[3] = obj._toNPC ? 'N' : ' ';
+		flags[4] = obj._toInteraction && g_engine->db().roomInteraction(obj._toInteraction, false)._toExit ? 'E' : ' ';
+		debugPrintf("  %9d %-7s%-24s%s %s\n", obj._id, obj._active ? "true" : "false", obj._name, flags, obj._image);
 	}
 	debugPrintf("\n");
 	return true;
@@ -202,7 +201,7 @@ bool Console::cmdObject(int argc, const char **argv) {
 	if (inter._object == objId) {
 		DB::RoomInteraction origInter;
 		if (g_engine->db()._roomInteractions._overlay.contains(obj._toInteraction))
-			origInter = g_engine->db()._roomInteractions._overlay[obj._toInteraction];
+			origInter = g_engine->db()._roomInteractions._map[obj._toInteraction];
 		debugPrintf("I Interaction %24u\n", inter._id);
 		debugPrintf("I Inter. Name %24s\n", inter._name);
 		debugPrintf("I Inter.  Pos        %8d,%8d\n", inter._walkTo.x, inter._walkTo.y);
@@ -236,10 +235,18 @@ bool Console::cmdObject(int argc, const char **argv) {
 		debugPrintf("N     Scale-Y     %8f -> %8f\n", npc._baseYAtZeroScale, npc._baseYAtFullScale);
 	}
 
-	if (obj._toTopicId != 0)
-		debugPrintf("T       Topic %24u (%s)\n", obj._toTopicId, g_engine->db().topic(obj._toTopicId)._name);
-	if (obj._toTopicObject != 0)
-		debugPrintf("T   Topic Obj %24u (%s)\n", obj._toTopicObject, g_engine->db().topic(obj._toTopicObject)._name);
+	const DB::Topic topic = g_engine->db().topic(obj._toTopic, false);
+	if (topic._roomObject == objId) {
+		DB::Topic origTopic;
+		if (g_engine->db()._topics._overlay.contains(obj._toTopic))
+			origTopic = g_engine->db()._topics._map[topic._id];
+		debugPrintf("T       Topic %24u\n", topic._id);
+		debugPrintf("T        Name %24s\n", topic._name);
+		debugPrintf("T        Icon %24s\n", topic._icon);
+		debugPrintf("T      Script %24u\n", topic._script);
+		debugPrintf(EDNA_OVERLAY(topic._id == origTopic._id, "T TopicRowPos %24u", " %24u\n"),
+			topic._topicRowPos, origTopic._topicRowPos);
+	}
 	return true;
 }
 

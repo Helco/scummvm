@@ -41,8 +41,8 @@ class AssetCache {
 public:
     AssetCache();
 
-	void useStandardCursor();
-	void pushExitCursor();
+	inline const Graphics::ManagedSurface &standardCursor() const { return _standardCursor; }
+	inline const Graphics::ManagedSurface &exitCursor() const { return _exitCursor; }
     const FontInfo font(FontKind kind) const;
 
     // We delay freeing textures until the room is loaded by keeping another
@@ -53,7 +53,6 @@ public:
 
 private:
 	Graphics::ManagedSurface _standardCursor, _exitCursor;
-	bool _isExitCursorPushed = false;
 
 	Common::ScopedPtr<Graphics::Font>
 		_fgFont14, _bgFont14,

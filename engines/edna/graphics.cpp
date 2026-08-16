@@ -98,7 +98,7 @@ public:
 		uint32 pixel = _surface.getPixel(pos.x, pos.y);
 		uint8 a, r, g, b;
 		_surface.format.colorToARGB(pixel, a, r, g, b);
-		return a > 25;
+		return a > 15;
 	}
 };
 

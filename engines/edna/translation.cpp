@@ -52,12 +52,15 @@ static constexpr const char *const kActionNamesEN[] = {
 
 struct MiscTranslations {
 	const char *_actionWith;
+	const char *_dropTopic;
 };
 static constexpr const MiscTranslations kMiscDE = {
-	"mit"
+	"mit",
+	"Ablegen"
 };
 static constexpr const MiscTranslations kMiscEN = {
-	"with"
+	"with",
+	"Discard"
 };
 
 Translation::Translation(Language language) : _language(language) {
@@ -83,6 +86,10 @@ const char *Translation::action(PlayerAction action) const {
 
 const char *Translation::actionWith() const {
 	return _misc->_actionWith;
+}
+
+const char *Translation::dropTopic() const {
+	return _misc->_dropTopic;
 }
 
 }

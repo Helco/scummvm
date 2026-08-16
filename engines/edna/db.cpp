@@ -247,7 +247,8 @@ DB::DB(const Path &path)
 	, _walkableAreas("walkable area")
 	, _timers("timer", syncTimer)
 	, _roomObjectsByRoom("room object by room", _roomObjects)
-	, _ownedItemsByGameMode("owned items by gamemode", _items) {
+	, _ownedItemsByGameMode("owned items by gamemode", _items)
+	, _topicsByChapter("topics by chapter", _topics) {
 	loadScripts();
 	loadAnimations();
 	loadAnimationFrames();
@@ -666,6 +667,10 @@ DB::Topic DB::topic(TopicId id, bool required) const {
 	return _topics.get(id, required);
 }
 
+Span<const TopicId> DB::topicsByChapter(RoomId roomId) const {
+	return _topicsByChapter.get(roomId / 100000, true);
+}
+
 void DB::loadTopics() {
 	char *full = loadFile(_topics._data, _path, "topic.csv");
 	skipWhitespace(full);
@@ -680,11 +685,14 @@ void DB::loadTopics() {
 		topic._script = nextUint(full, true);
 		_topics.set(topic._id, topic);
 
-		if (_roomObjects._map.contains(topic._id))
-			_roomObjects._map[topic._id]._toTopicId = topic._id;
 		if (_roomObjects._map.contains(topic._roomObject))
-			_roomObjects._map[topic._roomObject]._toTopicObject = topic._roomObject;
+			_roomObjects._map[topic._roomObject]._toTopic = topic._id;
 	}
+
+	_topicsByChapter.build(
+		[&](TopicId topicId) { return topicId; },
+		[&](TopicId topicId) { return _topics.get(topicId)._roomObject / 10000000; }
+	);
 }
 
 ScriptId DB::itemInteraction(ItemId item1, ItemId item2) const {

@@ -123,8 +123,7 @@ public:
 		// associations
 		RoomInteractionId _toInteraction = 0;
 		RoomObjectDisplayId _toDisplay = 0;
-		TopicId _toTopicId = 0;
-		TopicId _toTopicObject = 0;
+		TopicId _toTopic = 0;
 		NPCId _toNPC = 0;
 	};
 	RoomObject roomObject(RoomObjectId id, bool required = true) const;
@@ -191,6 +190,7 @@ public:
 		ScriptId _script = 0;
 	};
 	Topic topic(TopicId id, bool required = true) const;
+	Common::Span<const TopicId> topicsByChapter(RoomId roomId) const;
 	void setTopicPos(TopicId id, uint32 pos);
 
 	ScriptId itemInteraction(ItemId item1, ItemId item2) const; ///< can return 0
@@ -415,6 +415,7 @@ private:
 
 	SecondaryIndex<RoomObject> _roomObjectsByRoom;
 	SecondaryIndex<Item> _ownedItemsByGameMode;
+	SecondaryIndex<Topic> _topicsByChapter;
 };
 
 }

@@ -32,6 +32,7 @@ class Group;
 
 class Sprite {
 public:
+	Sprite(const char *displayName = "");
 	virtual ~Sprite();
 
 	inline uint32 &id() { return _id; }
@@ -59,6 +60,7 @@ public:
 private:
 	friend class AnimatedSprite;
 	friend class Group;
+	const char *const _displayName = "";
 	Group *_parent = nullptr;
 	bool _active = true, _immutable = false;
 	Common::Point _pos, _size;

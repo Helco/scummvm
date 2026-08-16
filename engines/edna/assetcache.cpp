@@ -25,7 +25,6 @@
 
 #include "common/file.h"
 #include "graphics/blit.h"
-#include "graphics/cursorman.h"
 #include "graphics/font.h"
 #include "graphics/fonts/ttf.h"
 #include "image/png.h"
@@ -59,10 +58,6 @@ static constexpr const StaticFontInfo kStaticFonts[] = {
     { 16, 255, 255, 255 } // MenuFont2
 };
 
-static void pushCursor(const Graphics::ManagedSurface &surface) {
-	CursorMan.pushCursor(surface, surface.w / 2,surface.h / 2, 0);
-}
-
 static Graphics::ManagedSurface loadPNG(const char *path) {
 	File file;
 	Image::PNGDecoder decoder;
@@ -92,29 +87,12 @@ static Graphics::Font *loadFont(int size, bool forBackground) {
 AssetCache::AssetCache()
 	: _standardCursor(loadPNG("gui/edna/cursor.png"))
 	, _exitCursor(loadPNG("gui/edna/cursor_ausgang_hinten.png")) {
-	CursorMan.showMouse(false);
-	pushCursor(_standardCursor);
-
 	_fgFont14.reset(loadFont(14, false));
 	_bgFont14.reset(loadFont(14, true));
 	_fgFont16.reset(loadFont(16, false));
 	_bgFont16.reset(loadFont(16, true));
 	_fgFont18.reset(loadFont(18, false));
 	_bgFont18.reset(loadFont(18, true));
-}
-
-void AssetCache::useStandardCursor() {
-	if (_isExitCursorPushed) {
-		CursorMan.popCursor();
-		_isExitCursorPushed = false;
-	}
-}
-
-void AssetCache::pushExitCursor() {
-	if (!_isExitCursorPushed) {
-		pushCursor(_exitCursor);
-		_isExitCursorPushed = true;
-	}
 }
 
 const FontInfo AssetCache::font(FontKind kind) const {

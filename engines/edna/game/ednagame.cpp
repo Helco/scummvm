@@ -19,7 +19,6 @@
  *
  */
 
-#include "edna/assetcache.h"
 #include "edna/db.h"
 #include "edna/edna.h"
 #include "edna/input.h"
@@ -91,10 +90,8 @@ void EdnaGame::updateHover(Sprite *selection, bool selectDefaultAction) {
 	if (selection == nullptr) {
 		_command._target = 0;
 	}
-	else if (dynamic_cast<RoomExit *>(interactable) != nullptr) {
+	else if (dynamic_cast<RoomExit *>(interactable) != nullptr)
 		_command._target = 0;
-		g_engine->assets().pushExitCursor();
-	}
 	else if (_command._action == PlayerAction::None) {
 		const auto defaultAction = selectDefaultAction && interactable != nullptr
 			? interactable->defaultAction()

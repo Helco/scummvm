@@ -54,6 +54,8 @@ void EdnaGirl::update() {
 		return;
 
 	Sprite *selection = findSelection();
+	if (dynamic_cast<RoomExit *>(selection) != nullptr)
+		g_engine->setExitCursor();
 
 	if (_command._isComplete) {
 		if (player().state() == Character::kWaiting) {

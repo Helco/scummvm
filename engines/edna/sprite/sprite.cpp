@@ -31,6 +31,8 @@ using namespace Common;
 
 namespace Edna {
 
+Sprite::Sprite(const char *displayName) : _displayName(displayName) {}
+
 Sprite::~Sprite() { }
 
 void Sprite::toggle(bool isActive) {
@@ -45,7 +47,7 @@ void Sprite::render() {
 }
 
 const char *Sprite::displayName() const {
-	return "";
+	return _displayName;
 }
 
 void Sprite::debugRender() {

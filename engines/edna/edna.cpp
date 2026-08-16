@@ -36,8 +36,9 @@
 
 #include "audio/decoders/vorbis.h"
 #include "audio/audiostream.h"
-#include "graphics/font.h"
+#include "graphics/cursorman.h"
 #include "graphics/framelimiter.h"
+#include "image/png.h"
 #include "common/scummsys.h"
 #include "common/config-manager.h"
 #include "common/debug-channels.h"
@@ -48,6 +49,10 @@
 using namespace Common;
 
 namespace Edna {
+
+static void pushCursor(const Graphics::ManagedSurface &surface) {
+	CursorMan.pushCursor(surface, surface.w / 2,surface.h / 2, 0);
+}
 
 EdnaEngine *g_engine;
 
@@ -85,6 +90,9 @@ Error EdnaEngine::run() {
 	_translation.reset(new Translation(_gameDescription->language));
 	_pathFinder.reset(new PathFinder());
 
+	CursorMan.showMouse(false);
+	pushCursor(_assets->standardCursor());
+
 	// If a savegame was selected from the launcher, load it
 	int saveSlot = ConfMan.getInt("save_slot");
 	if (saveSlot == -1)
@@ -107,6 +115,7 @@ Error EdnaEngine::run() {
 		_timeElapsed = now > _timeLastFrame ? now - _timeLastFrame : 1;
 		_timeLastFrame = now;
 		input().nextFrame();
+		_nextCursorMode = CursorMode::Normal;
 
 		// change room before handling events as we publish events to be processed by the next room
 		if (_transition.isPending()) {
@@ -120,6 +129,7 @@ Error EdnaEngine::run() {
 				continue;
 		}
 		_game->update();
+		updateCursor();
 
 		_renderer->begin();
 		_game->render();
@@ -133,6 +143,9 @@ Error EdnaEngine::run() {
 }
 
 void EdnaEngine::createRoom(const GameTransition &transition) {
+	_customCursor.free();
+	_nextCursorMode = CursorMode::Normal;
+
 	DB::Room room = db().room(transition._room);
 	switch (room._gameMode) {
 	case GameMode::ScriptOnClick:
@@ -231,6 +244,40 @@ void EdnaEngine::stopMusic() {
 	_mixer->stopHandle(_musicHandle);
 	_musicHandle = {};
 	_lastMusic.clear();
+}
+
+void EdnaEngine::setExitCursor() {
+	_nextCursorMode = CursorMode::Exit;
+}
+
+void EdnaEngine::setCustomCursor(const char *texturePath) {
+	assert(texturePath != nullptr || !_customCursor.empty());
+	if (texturePath != nullptr) {
+		File file;
+		Image::PNGDecoder decoder;
+		if (!file.open(texturePath) || !decoder.loadStream(file))
+			error("Could not read cursor image: %s", texturePath);
+		_customCursor.copyFrom(*decoder.getSurface());
+	}
+	_nextCursorMode = CursorMode::Custom;
+}
+
+void EdnaEngine::updateCursor() {
+	if (_nextCursorMode == _curCursorMode)
+		return;
+	if (_curCursorMode != CursorMode::Normal)
+		CursorMan.popCursor();
+
+	switch (_nextCursorMode) {
+	case CursorMode::Exit:
+		pushCursor(_assets->exitCursor());
+		break;
+	case CursorMode::Custom:
+		assert(!_customCursor.empty());
+		pushCursor(_customCursor);
+		break;
+	}
+	_curCursorMode = _nextCursorMode;
 }
 
 void Config::registerDefaults() {

@@ -76,11 +76,14 @@ void Sprite::setTexture(TexturePtr texture) {
 }
 
 bool Sprite::checkClick(Point screenPos) const {
-	return
-		_active &&
-		_texture != nullptr &&
-		bounds().contains(screenPos) &&
-		_texture->alphaCheck(screenPos - _pos);
+	if (!_active || _texture == nullptr || !bounds().contains(screenPos))
+		return false;
+	Point relPos = screenPos - _pos;
+	if (_texture->size() != _size) {
+		relPos.x = (int16)(relPos.x * _texture->size().x / _size.x);
+		relPos.y = (int16)(relPos.y * _texture->size().y / _size.y);
+	}
+	return _texture->alphaCheck(relPos);
 }
 
 void AnimatedSprite::update() {

@@ -320,10 +320,18 @@ void DB::toggleRoomObject(RoomObjectId id, bool active) {
 }
 
 void DB::syncRoomInteraction(RoomInteraction &value, Serializer &s) {
+	s.syncAsSint16LE(value._walkTo.x);
+	s.syncAsSint16LE(value._walkTo.y);
 	s.syncAsUint32LE(value._lookScript);
 	s.syncAsUint32LE(value._useScript);
 	s.syncAsUint32LE(value._pickScript);
 	s.syncAsUint32LE(value._talkScript);
+}
+
+void DB::setRoomInteractionPos(RoomInteractionId id, Point interactionPos) {
+	RoomInteraction interaction = roomInteraction(id);
+	interaction._walkTo = interactionPos;
+	_roomInteractions.overlay(interaction);
 }
 
 void DB::setRoomInteractionScript(RoomInteractionId id, PlayerAction action, ScriptId scriptId) {

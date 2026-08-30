@@ -34,8 +34,10 @@ static constexpr uint32 kButtonIdToHarvey = 14;
 
 EdnaGirl::EdnaGirl(ScopedPtr<GameBase> &myPtr, const GameTransition &transition)
 	: EdnaGame(myPtr, GameMode::EdnaGirl, transition, "ednajung")
+	, _pastIds(PastRoomIds::fromEdnaRoom(transition._room))
 	, _buttonToHarvey(kButtonIdToHarvey, Point(698, 525), "gui/ednajung/b_zuharvey") {
 
+	// The Harvey button is always interactable, but does nothing on press
 	const auto &translation = g_engine->translation();
 	_buttonToHarvey.setDisplayName(translation.action(PlayerAction::ToHarvey));
 	gui().add(&_buttonToHarvey, DisposeAfterUse::NO);
@@ -132,6 +134,8 @@ void EdnaGirl::onMouseLeftReleased(Sprite *selection) {
 	auto playerAction = isPlayerActionButton(selection);
 	if (playerAction != PlayerAction::None)
 		_command._action = playerAction;
+	if (selection == &_buttonToHarvey)
+		switchCharacter(_pastIds._harveyRoom, _pastIds._harveyId, _pastIds._ednaId);
 }
 
 void EdnaGirl::onMouseRightPressed(Sprite *selection) {

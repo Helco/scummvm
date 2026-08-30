@@ -51,7 +51,6 @@ protected:
 	void onMouseRightReleased(Sprite *selection);
 	void onStartDrag(Sprite *selection);
 	void onStartDrop(Sprite *selection);
-	void switchToEdna();
 
 	const PastRoomIds _pastIds;
 	PlayerCommand _command = {};

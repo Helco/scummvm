@@ -234,8 +234,8 @@ bool Script::opChangeInteraction(const ScriptCommand &line) {
 }
 
 bool Script::opChangeItemInteraction(const ScriptCommand &line) {
-	const auto &args = line._args._changeItemItemInteraction;
-	g_engine->db().setItemInteraction(args._item1, args._item2, args._newScript);
+	const auto &args = line._args._changeItemInteraction;
+	g_engine->db().setItemScript(args._item, args._action, args._newScript);
 	return true;
 }
 

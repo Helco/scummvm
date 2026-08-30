@@ -123,7 +123,7 @@ Sprite *Harvey::findSelection() {
 		sprite = bgObjects().checkClick(mousePos);
 
 	// While dragging sprite only reacts to the topic row and Edna
-	if (sprite != nullptr && _dragStatus == DragStatus::Dragging &&
+	if (sprite != nullptr && _dragStatus == DragStatus::Dragging && _dragTopic != nullptr &&
 		sprite->id() != _pastIds._ednaId && !isTopicRow(sprite))
 		sprite = nullptr;
 
@@ -217,7 +217,7 @@ void Harvey::onMouseLeftPressed(Sprite *selection) {
 void Harvey::onMouseLeftReleased(Sprite *selection) {
 	_dragStatus = DragStatus::StartDrop;
 	if (selection == &_buttonToEdna)
-		switchToEdna();
+		switchCharacter(_pastIds._ednaRoom, _pastIds._ednaId, _pastIds._harveyId);
 }
 
 void Harvey::onMouseRightReleased(Sprite *selection) {
@@ -267,10 +267,6 @@ void Harvey::onStartDrop(Sprite *selection) {
 		_topicRow.moveTopic(topic, slotI);
 	} else if (selection != nullptr && selection->id() == _pastIds._ednaId) // TALK TO EDNA ABOUT <topic>
 		setCommandAndWalk(_command, PlayerAction::TalkAbout, topic->id(), selection);
-}
-
-void Harvey::switchToEdna() {
-
 }
 
 }

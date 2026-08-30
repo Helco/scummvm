@@ -159,6 +159,9 @@ bool Console::cmdSprites(int argc, const char **argv) {
 	return true;
 }
 
+// to reduce duplication in format strings, used to show both current and original DB values
+#define EDNA_OVERLAY(cond, part1, part2) (cond) ? part1 part2 "\n" : part1 "\n"
+
 bool Console::cmdObject(int argc, const char **argv) {
 	if (argc != 2) {
 		debugPrintf("usage: object <id>\n");
@@ -181,7 +184,6 @@ bool Console::cmdObject(int argc, const char **argv) {
 	debugPrintf("     Property                  Current                 Original\n");
 	debugPrintf("O   Obj. Name %24s\n", obj._name);
 	debugPrintf("O        Room %24u\n", obj._room);
-#define EDNA_OVERLAY(cond, part1, part2) (cond) ? part1 part2 "\n" : part1 "\n"
 	debugPrintf(EDNA_OVERLAY(origObj._id == objId, "O      Active %24s", " %24s"),
 		obj._active ? "true" : "false", origObj._active ? "true" : "false");
 	debugPrintf(EDNA_OVERLAY(origObj._id == objId, "O    Position        %8d,%8d", "        %8d,%8d\n"),
@@ -204,16 +206,17 @@ bool Console::cmdObject(int argc, const char **argv) {
 			origInter = g_engine->db()._roomInteractions._map[obj._toInteraction];
 		debugPrintf("I Interaction %24u\n", inter._id);
 		debugPrintf("I Inter. Name %24s\n", inter._name);
-		debugPrintf("I Inter.  Pos        %8d,%8d\n", inter._walkTo.x, inter._walkTo.y);
+		debugPrintf(EDNA_OVERLAY(inter._id == origInter._id, "I Inter.  Pos        %8d,%8d", "        %8d,%8d"),
+			inter._walkTo.x, inter._walkTo.y, origInter._walkTo.x, origInter._walkTo.y);
 		debugPrintf("I Inter.  Dir %24s\n", directionToString(inter._lookDirection));
 		debugPrintf("I Def. Action %24s\n", playerActionToString(inter._defaultAction));
-		debugPrintf(EDNA_OVERLAY(inter._id == origInter._id, "I Look Script %24u", " %24u\n"),
+		debugPrintf(EDNA_OVERLAY(inter._id == origInter._id, "I Look Script %24u", " %24u"),
 			inter._lookScript, origInter._lookScript);
-		debugPrintf(EDNA_OVERLAY(inter._id == origInter._id, "I Pick Script %24u", " %24u\n"),
+		debugPrintf(EDNA_OVERLAY(inter._id == origInter._id, "I Pick Script %24u", " %24u"),
 			inter._pickScript, origInter._pickScript);
-		debugPrintf(EDNA_OVERLAY(inter._id == origInter._id, "I Talk Script %24u", " %24u\n"),
+		debugPrintf(EDNA_OVERLAY(inter._id == origInter._id, "I Talk Script %24u", " %24u"),
 			inter._talkScript, origInter._talkScript);
-		debugPrintf(EDNA_OVERLAY(inter._id == origInter._id, "I  Use Script %24u", " %24u\n"),
+		debugPrintf(EDNA_OVERLAY(inter._id == origInter._id, "I  Use Script %24u", " %24u"),
 			inter._useScript, origInter._useScript);
 	}
 
@@ -244,7 +247,7 @@ bool Console::cmdObject(int argc, const char **argv) {
 		debugPrintf("T        Name %24s\n", topic._name);
 		debugPrintf("T        Icon %24s\n", topic._icon);
 		debugPrintf("T      Script %24u\n", topic._script);
-		debugPrintf(EDNA_OVERLAY(topic._id == origTopic._id, "T TopicRowPos %24u", " %24u\n"),
+		debugPrintf(EDNA_OVERLAY(topic._id == origTopic._id, "T TopicRowPos %24u", " %24u"),
 			topic._topicRowPos, origTopic._topicRowPos);
 	}
 	return true;

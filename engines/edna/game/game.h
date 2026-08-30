@@ -96,6 +96,7 @@ protected:
 	bool shutUp();
 	void setCommandAndWalk(PlayerCommand &cmd, PlayerAction action, Sprite *sprite);
 	void setCommandAndWalk(PlayerCommand &cmd, PlayerAction action, uint32 target, Sprite *sprite);
+	void switchCharacter(RoomId targetRoomId, RoomObjectId targetObjectId, RoomObjectId sourceObjectId);
 
 private:
 	void createDebugFloorTexture();

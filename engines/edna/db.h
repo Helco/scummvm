@@ -157,6 +157,7 @@ public:
 		ScriptId scriptFor(PlayerAction action) const;
 	};
 	RoomInteraction roomInteraction(RoomInteractionId id, bool required = true) const;
+	void setRoomInteractionPos(RoomInteractionId id, Common::Point interactionPos);
 	void setRoomInteractionScript(RoomInteractionId id, PlayerAction action, ScriptId scriptId);
 
 	struct Item {

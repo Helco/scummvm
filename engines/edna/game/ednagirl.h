@@ -43,6 +43,7 @@ private:
 	void onMouseLeftReleased(Sprite *selection);
 	void onMouseRightPressed(Sprite *selection);
 
+	const PastRoomIds _pastIds;
 	Button _buttonToHarvey;
 	GirlInventory _inventory;
 };

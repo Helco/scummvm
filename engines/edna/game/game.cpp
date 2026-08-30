@@ -326,6 +326,28 @@ void Game::setCommandAndWalk(PlayerCommand &cmd, PlayerAction action, uint32 tar
 	player().pathWalkTo(cmd._targetPos, standbyDir);
 }
 
+void Game::switchCharacter(RoomId targetRoomId, RoomObjectId targetObjectId, RoomObjectId sourceObjectId) {
+	Point basePos(player().basePosX(), player().basePosY());
+	g_engine->db().setRoomObjectPos(sourceObjectId, basePos);
+
+	const auto dbSource = g_engine->db().roomObject(sourceObjectId);
+	g_engine->db().setRoomInteractionPos(dbSource._toInteraction, basePos - Point(110, 0));
+
+	const auto dbTarget = g_engine->db().roomObject(targetObjectId, false);
+	if (dbTarget._id == 0) {
+		// this *can* happen because the button is always interactable for EdnaGirl
+		// the original would try to play a hardcoded speech line for EdnaGirl
+		// but the sound does not exist, so the text only flickers shortly
+		// instead we use the established this-does-not-work signal (also used for Harvey)
+		g_engine->playSpeech("soundfx/huuup000.ogg");
+	}
+	else {
+		g_engine->next()._room = targetRoomId;
+		g_engine->next()._walkIn = dbTarget._pos;
+		g_engine->next()._walkInDir = Direction::Left;
+	}
+}
+
 void Game::createDebugFloorTexture() {
 	if (_debugFloorTexture != nullptr)
 		return;

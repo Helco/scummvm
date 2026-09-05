@@ -34,10 +34,6 @@ Animation::Animation(AnimationId id)  {
 
 void Animation::loadTextures(AnimationId id, TextureArray &targetTextures) {
     _textures = &targetTextures;
-	if (id == 0) {
-		_name = "";
-		return;
-	}
 
     const auto dbAnim = g_engine->db().animation(id);   
     _name = dbAnim._name;

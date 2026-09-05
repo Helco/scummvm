@@ -44,12 +44,7 @@ protected:
 	PlayerAction isPlayerActionButton(Sprite *selection) const;
 
 	void updateHover(Sprite *selection, bool selectDefaultAction);
-	void invokeObjectCommand();
-	void invokeItemCommand(Sprite *&selection);
-	void invokeDefaultCommand(Sprite *selection, bool isItem);
-	void invokeRoomInteraction(Sprite *object, PlayerAction action);
 
-	PlayerCommand _command = {};
 	CommandPrompt _commandPrompt;
 	ChoiceList _choiceList;
 	Button _buttonLook, _buttonPick, _buttonTalk, _buttonUse;

@@ -23,6 +23,8 @@
 #define EDNA_SCRIPTONCLICK_H
 
 #include "edna/game/game.h"
+#include "edna/group/choicelist.h"
+#include "edna/sprite/commandprompt.h"
 
 namespace Edna {
 
@@ -30,10 +32,17 @@ class ScriptOnClick : public Game {
 public:
 	ScriptOnClick(Common::ScopedPtr<GameBase> &myPtr, const GameTransition &transition);
 
+	void initGroups() override;
 	void update() override;
+	void triggerChoiceList(ChoiceSetId setId) override;
 
 private:
+	Sprite *findSelection();
+	void onMouseLeftPressed(Sprite *&selection);
+	void onMouseRightPressed(Sprite *selection);
 
+	CommandPrompt _commandPrompt;
+	ChoiceList _choiceList;
 };
 
 }

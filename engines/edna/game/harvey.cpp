@@ -210,7 +210,7 @@ void Harvey::onMouseLeftPressed(Sprite *selection) {
 		// Edna is special, it both starts dragging the topic "Edna"
 		// and is the only object that Harvey walks to on press
 		// otherwise this is WALK TO <exit>
-		setCommandAndWalk(_command, PlayerAction::Walk, selection);
+		setCommandAndWalk(PlayerAction::Walk, selection);
 	}
 }
 
@@ -235,7 +235,7 @@ void Harvey::onMouseRightReleased(Sprite *selection) {
 		} else // topics outside the topic row *should* not happen
 			_command = {};
 	} else if (interactable != nullptr && exit == nullptr) // LOOK AT <object>
-		setCommandAndWalk(_command, PlayerAction::Look, selection);
+		setCommandAndWalk(PlayerAction::Look, selection);
 }
 
 void Harvey::onStartDrag(Sprite *selection) {
@@ -266,7 +266,7 @@ void Harvey::onStartDrop(Sprite *selection) {
 		const uint slotI = g_engine->input().mousePos().x / 50 + 1;
 		_topicRow.moveTopic(topic, slotI);
 	} else if (selection != nullptr && selection->id() == _pastIds._ednaId) // TALK TO EDNA ABOUT <topic>
-		setCommandAndWalk(_command, PlayerAction::TalkAbout, topic->id(), selection);
+		setCommandAndWalk(PlayerAction::TalkAbout, topic->id(), selection);
 }
 
 }

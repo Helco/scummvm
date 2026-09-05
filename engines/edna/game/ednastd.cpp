@@ -93,7 +93,7 @@ Sprite *EdnaStd::findSelection() {
 
 void EdnaStd::onMouseLeftPressed(Sprite *&selection) {
 	if (selection == nullptr) {
-		if (_inventory.isClosed()) {
+		if (_inventory.isClosed()) { // WALK TO <arbitrary point>
 			_command = {};
 			_command._action = PlayerAction::Walk;
 			_command._targetPos = g_engine->input().mousePos();

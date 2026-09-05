@@ -47,7 +47,7 @@ public:
 	virtual void render();
 	virtual void debugRender();
 
-	void add(Sprite *sprite, DisposeAfterUse::Flag dispose = DisposeAfterUse::YES);
+	void add(Sprite *sprite, DisposeAfterUse::Flag dispose);
 	Sprite *byId(uint32 id) const;
 	Sprite *firstActive() const;
 	Sprite *checkClick(Common::Point screenPos) const;

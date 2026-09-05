@@ -90,7 +90,7 @@ void EdnaGame::updateHover(Sprite *selection, bool selectDefaultAction) {
 	if (selection == nullptr) {
 		_command._target = 0;
 	}
-	else if (dynamic_cast<RoomExit *>(interactable) != nullptr)
+	else if (dynamic_cast<RoomExit *>(selection) != nullptr)
 		_command._target = 0;
 	else if (_command._action == PlayerAction::None) {
 		const auto defaultAction = selectDefaultAction && interactable != nullptr
@@ -113,134 +113,6 @@ void EdnaGame::updateHover(Sprite *selection, bool selectDefaultAction) {
 	}
 	else if (interactable != nullptr)
 		_command._target = selection->id();
-}
-
-void EdnaGame::invokeObjectCommand() {
-	// this method only handles interaction with objects as it is called
-	// after the player character walked to the object and then interacts with it
-	assert(_command._isComplete);
-	PlayerCommand cmd = _command;
-	_command = {}; // early lest we forget to reset it
-
-	const auto findInteractable = [&](const uint32 id) -> IInteractable &{
-		assert(id != 0);
-		Sprite *sprite = objectById(id);
-		auto interactable = dynamic_cast<IInteractable *>(sprite);
-		assert(interactable != nullptr);
-		return *interactable;
-		};
-
-	switch (cmd._action) {
-	case PlayerAction::Pick: // PICK <object>
-	case PlayerAction::Look: // LOOK AT <object>
-	case PlayerAction::Talk: // TALK WITH <object>
-		script().runNew(findInteractable(cmd._target).scriptFor(cmd._action));
-		break;
-	case PlayerAction::Walk: { // WALK TO <object>
-		auto *exit = dynamic_cast<RoomExit *>(objectById(cmd._target));
-		if (exit == nullptr)
-			break; // nothing to do, the player arrived at their target
-
-		const auto scriptId = exit->scriptFor(PlayerAction::Use);
-		if (scriptId == 0)
-			triggerExit(exit->exitId());
-		else
-			script().runNew(scriptId);
-		break;
-	}
-	case PlayerAction::Use:
-		if (cmd._item != 0) // USE ... WITH <object> (item-item-interaction is not handled here)
-			script().runNew(g_engine->db().roomItemInteraction(cmd._item, cmd._target));
-		else // USE <object>
-			script().runNew(findInteractable(cmd._target).scriptFor(cmd._action));
-		break;
-	default:
-		assert(false && "Unhandled player action in invokeCommand");
-		break;
-	}
-}
-
-void EdnaGame::invokeItemCommand(Sprite *&selection) {
-	auto item = dynamic_cast<Item *>(selection);
-	assert(item != nullptr); // we technically only need IInteractable
-
-	switch (_command._action) {
-	case PlayerAction::None:
-	case PlayerAction::Pick:
-	case PlayerAction::Use: {
-		if (_command._item == 0) { // USE <item> (also default)
-			ScriptId scriptId = item->scriptFor(PlayerAction::Use);
-			if (scriptId == 0) {
-				_command._action = PlayerAction::Use;
-				_command._item = item->id();
-			}
-			else {
-				_command = {};
-				selection = nullptr;
-				script().runNew(scriptId);
-			}
-		}
-		else { // USE <item> WITH <item>
-			ScriptId scriptId = g_engine->db().itemInteraction(_command._item, _command._target);
-			if (scriptId == 0)
-				scriptId = g_engine->db().itemInteraction(_command._target, _command._item);
-			_command = {};
-			selection = nullptr;
-			script().runNew(scriptId);
-		}
-		break;
-	}
-	case PlayerAction::Talk: // TALK WITH <item>
-	case PlayerAction::Look: { // LOOK AT <item>
-		ScriptId scriptId = item->scriptFor(_command._action);
-		if (scriptId != 0)
-			script().runNew(scriptId);
-		_command = {};
-		selection = nullptr;
-		break;
-	}
-	}
-}
-
-void EdnaGame::invokeDefaultCommand(Sprite *selection, bool isItem) {
-	auto *interactable = dynamic_cast<IInteractable *>(selection);
-
-	if (selection == nullptr)
-		_command = {};
-	else if (isItem) {
-		// Interact by default action with some item
-		assert(interactable != nullptr);
-		const auto defaultAction = interactable->defaultAction();
-		ScriptId scriptId = interactable->scriptFor(defaultAction);
-		if (scriptId != 0)
-			script().runNew(scriptId);
-		else if (defaultAction == PlayerAction::Use) {
-			// or setup interaction of item with something else
-			_command._action = PlayerAction::Use;
-			_command._item = selection->id();
-		}
-	}
-	else if (interactable != nullptr) {
-		// Interact by default action with some object or NPC
-		const auto defaultAction = interactable->defaultAction();
-		if (_command._action != PlayerAction::None)
-			_command = {}; // or just cancel if we were building some other command
-		else if (defaultAction != PlayerAction::None)
-			invokeRoomInteraction(selection, defaultAction);
-	}
-}
-
-
-void EdnaGame::invokeRoomInteraction(Sprite *object, PlayerAction action) {
-	auto *interactable = dynamic_cast<IInteractable *>(object);
-	assert(object != nullptr && interactable != nullptr);
-	_command._action = action;
-	_command._target = object->id();
-	_command._isComplete = true;
-	_command._targetPos = interactable->interactionPos();
-	if (_command._targetPos == kInvalidPoint)
-		_command._targetPos = object->pos();
-	player().pathWalkTo(_command._targetPos, interactable->interactionDir());
 }
 
 }

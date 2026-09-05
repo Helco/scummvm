@@ -94,9 +94,16 @@ protected:
 	bool updateScript();
 	void updateInput();
 	bool shutUp();
-	void setCommandAndWalk(PlayerCommand &cmd, PlayerAction action, Sprite *sprite);
-	void setCommandAndWalk(PlayerCommand &cmd, PlayerAction action, uint32 target, Sprite *sprite);
+	void setCommandAndWalk(PlayerAction action, Sprite *sprite);
+	void setCommandAndWalk(PlayerAction action, uint32 target, Sprite *sprite);
+	void invokeObjectCommand();
+	void invokeItemCommand(Sprite *&selection);
+	void invokeDefaultCommand(Sprite *selection, bool isItem);
+	void invokeRoomInteraction(Sprite *object, PlayerAction action);
 	void switchCharacter(RoomId targetRoomId, RoomObjectId targetObjectId, RoomObjectId sourceObjectId);
+
+protected:
+	PlayerCommand _command = {};
 
 private:
 	void createDebugFloorTexture();

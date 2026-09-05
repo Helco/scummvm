@@ -53,7 +53,6 @@ protected:
 	void onStartDrop(Sprite *selection);
 
 	const PastRoomIds _pastIds;
-	PlayerCommand _command = {};
 	CommandPrompt _commandPrompt;
 	ChoiceList _choiceList;
 	TopicRow _topicRow;

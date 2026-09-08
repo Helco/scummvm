@@ -251,7 +251,7 @@ bool Script::opChangeRoomItemInteraction(const ScriptCommand &line) {
 	return true;
 }
 
-bool Script::opChangeInvOBMScript(const ScriptCommand &line) {
+bool Script::opChangeItemItemInteraction(const ScriptCommand &line) {
 	const auto &args = line._args._changeItemItemInteraction;
 	g_engine->db().setItemInteraction(args._item1, args._item2, args._newScript);
 	return true;

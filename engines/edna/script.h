@@ -62,7 +62,7 @@ private:
 	bool opChangeItemInteraction(const ScriptCommand &line);
 	bool opChangeItemImage(const ScriptCommand &line);
 	bool opChangeRoomItemInteraction(const ScriptCommand &line);
-	bool opChangeInvOBMScript(const ScriptCommand &line);
+	bool opChangeItemItemInteraction(const ScriptCommand &line);
 	bool opChangeChoiceScript(const ScriptCommand &line);
 	bool opScript(const ScriptCommand &line);
 	bool opExit(const ScriptCommand &line);

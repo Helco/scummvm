@@ -232,7 +232,7 @@ ScriptCommand::ScriptCommand(char *line) : _fullLength(strlen(line)) {
 			getNextArgument(params, _args._changeItemItemInteraction._item2) &&
 			getNextArgument(params, _args._changeItemItemInteraction._newScript) &&
 			!*params)
-			_handler = &Script::opChangeItemInteraction;
+			_handler = &Script::opChangeItemItemInteraction;
 	} else if (!scumm_stricmp(_function, "changeCLSkript")) {
 		if (getNextArgument(params, _args._changeChoiceScript._set) &&
 			getNextArgument(params, _args._changeChoiceScript._line) &&

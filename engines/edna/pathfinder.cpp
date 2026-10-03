@@ -295,9 +295,7 @@ void PathFinder::reduceWaypoints(Array<Point> &waypoints) const {
 }
 
 bool PathFinder::isWalkable(Point pos) const {
-    return pos.x < 0 || pos.y < 0 || pos.x >= kScreenWidth || pos.y >= kScreenHeight
-        ? false
-        : _map[pos.x * kScreenHeight + pos.y] != 0;
+	return _bounds.contains(pos) && _map[pos.x * kScreenHeight + pos.y] != 0;
 }
 
 uint32 &PathFinder::distance(Point pos) {

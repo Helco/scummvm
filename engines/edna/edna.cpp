@@ -30,6 +30,7 @@
 #include "edna/game/harvey.h"
 #include "edna/game/intro.h"
 #include "edna/game/scriptonclick.h"
+#include "edna/game/startmenu.h"
 #include "edna/input.h"
 #include "edna/pathfinder.h"
 #include "edna/translation.h"
@@ -87,7 +88,7 @@ Error EdnaEngine::run() {
 	_renderer.reset(createSoftwareRenderer());
 	_input.reset(new Input());
 	_assets.reset(new AssetCache());
-	_translation.reset(new Translation(_gameDescription->language));
+	_translation.reset(new Translation());
 	_pathFinder.reset(new PathFinder());
 
 	CursorMan.showMouse(false);
@@ -103,7 +104,7 @@ Error EdnaEngine::run() {
 	_transition = {};
 	//_transition._room = 100101;
 	//_transition._walkIn = { 260, 520 };
-	_transition._room = 400101;
+	_transition._room = 1;
 	_transition._walkIn = { 400, 500 };
 	_transition._walkInDir = Direction::Left;
 
@@ -159,6 +160,9 @@ void EdnaEngine::createRoom(const GameTransition &transition) {
 		break;
 	case GameMode::Harvey:
 		new Harvey(_game, transition);
+		break;
+	case GameMode::StartMenu:
+		new StartMenu(_game);
 		break;
 	default:
 		error("Unimplemented game mode: %s", gameModeToString(room._gameMode));
@@ -221,10 +225,13 @@ Audio::SoundHandle EdnaEngine::playSpeech(const char *fileName) {
 Audio::SoundHandle EdnaEngine::playMusic(const char *fileName, bool loop) {
 	assert(fileName != nullptr);
 	if (_mixer->isSoundHandleActive(_musicHandle)) {
-		if (_lastMusic == fileName)
+		if (_lastMusic == fileName && config().music())
 			return _musicHandle; // the same music is already playing
 		_mixer->stopHandle(_musicHandle);
+		_musicHandle = {};
 	}
+	if (!config().music())
+		return _musicHandle;
 
 	File *file = new File();
 	if (!file->open(Path(String(fileName) + ".ogg"))) {
@@ -278,29 +285,6 @@ void EdnaEngine::updateCursor() {
 		break;
 	}
 	_curCursorMode = _nextCursorMode;
-}
-
-void Config::registerDefaults() {
-	Config c;
-	ConfMan.registerDefault("subtitles", c._subtitles);
-	ConfMan.registerDefault("speech_mute", !c._speech);
-	ConfMan.registerDefault("music_mute", !c._music);
-	ConfMan.registerDefault("talkspeed", c._subtitleSpeed);
-}
-
-void Config::loadFromScummVM() {
-	_subtitles = ConfMan.getBool("subtitles");
-	_speech = !ConfMan.getBool("speech_mute");
-	_music = !ConfMan.getBool("music_mute");
-	_subtitleSpeed = (byte)CLIP(ConfMan.getInt("talkspeed"), 0, 255);
-}
-
-void Config::saveToScummVM() {
-	ConfMan.setBool("subtitles", _subtitles);
-	ConfMan.setBool("speech_mute", !_speech);
-	ConfMan.setBool("music_mute", !_music);
-	ConfMan.setInt("talkspeed", _subtitleSpeed);
-	ConfMan.flushToDisk();
 }
 
 } // End of namespace Edna

@@ -22,7 +22,7 @@
 #include "edna/edna.h"
 #include "edna/util.h"
 
-#include "common/intrinsics.h"
+#include "common/config-manager.h"
 
 namespace Edna {
 
@@ -228,6 +228,29 @@ PastRoomIds PastRoomIds::fromHarveyRoom(RoomId harveyRoom) {
 PastRoomIds PastRoomIds::fromEdnaRoom(RoomId ednaRoom) {
 	assert(ednaRoom >= 100050);
 	return fromHarveyRoom(ednaRoom - 50);
+}
+
+void Config::registerDefaults() {
+	Config c;
+	ConfMan.registerDefault("subtitles", c._subtitles);
+	ConfMan.registerDefault("speech_mute", !c._speech);
+	ConfMan.registerDefault("music_mute", !c._music);
+	ConfMan.registerDefault("talkspeed", c._subtitleSpeed);
+}
+
+void Config::loadFromScummVM() {
+	_subtitles = ConfMan.getBool("subtitles");
+	_speech = !ConfMan.getBool("speech_mute");
+	_music = !ConfMan.getBool("music_mute");
+	_subtitleSpeed = (byte)CLIP(ConfMan.getInt("talkspeed"), 0, 255);
+}
+
+void Config::saveToScummVM() {
+	ConfMan.setBool("subtitles", _subtitles);
+	ConfMan.setBool("speech_mute", !_speech);
+	ConfMan.setBool("music_mute", !_music);
+	ConfMan.setInt("talkspeed", _subtitleSpeed);
+	ConfMan.flushToDisk();
 }
 
 }

@@ -21,75 +21,80 @@
 
 #include "edna/translation.h"
 
+#include "common/translation.h"
+
 using namespace Common;
 
 namespace Edna {
 
-static constexpr const char *const kActionNamesDE[] = {
+
+static constexpr const char *const kActionNames[] = {
 	"",
-	"Schaue an",
-	"Benutze",
-	"Nimm",
-	"Rede mit",
-	"Gehe zu",
-	"zu Harvey",
-	"zu Edna",
-	"Was ist",
-	"Rede mit Edna über",
-};
-static constexpr const char *const kActionNamesEN[] = {
-	"",
-	"Look at",
-	"Use",
-	"Pick up",
-	"Talk to",
-	"Walk to"
-	"to Harvey",
-	"to Edna",
-	"What is",
-	"Talk to Edna about"
+	_s("Look at"),
+	_s("Use"),
+	_s("Pick up"),
+	_s("Talk to"),
+	_s("Walk to"),
+	_s("to Harvey"),
+	_s("to Edna"),
+	_s("What is"),
+	_s("Talk to Edna about")
 };
 
-struct MiscTranslations {
-	const char *_actionWith;
-	const char *_dropTopic;
-};
-static constexpr const MiscTranslations kMiscDE = {
-	"mit",
-	"Ablegen"
-};
-static constexpr const MiscTranslations kMiscEN = {
-	"with",
-	"Discard"
+static constexpr const char *const kInfoJokes[] = {
+	_s("Ahhh!"),
+	_s("Hey!"),
+	_s("Stop it!"),
+	_s("Well, click somewhere else!")
 };
 
-Translation::Translation(Language language) : _language(language) {
-	switch (language) {
-	default:
-		warning("Unimplemented edna language: %s", Common::getLanguageDescription(language));
-		// fall through
-	case Language::EN_ANY:
-		_actionNames = kActionNamesEN;
-		_misc = &kMiscEN;
-		break;
-	case Language::DE_DEU:
-		_actionNames = kActionNamesDE;
-		_misc = &kMiscDE;
-		break;
-	}
+Translation::Translation()
+	: _dropTopic(_("Discord")) // used as display name for the topic row
+	, _toggleMusic(_("Music on / off")) // used in the options menu
+	, _toggleSound(_("Sound on / off"))
+	, _toggleSubtitles(_("Text on / off"))
+	, _textSpeed(_("Text velocity")) {
+	for (uint i = 0; i < kPlayerActionCount; i++)
+		_actionNames[i] = _(kActionNames[i]).encode();
 }
 
 const char *Translation::action(PlayerAction action) const {
-	assert(action >= PlayerAction::None && action <= PlayerAction::TalkAbout);
-	return _actionNames[(uint)action];
+	assert((uint)action < kPlayerActionCount);
+	return _actionNames[(uint)action].c_str();
 }
 
-const char *Translation::actionWith() const {
-	return _misc->_actionWith;
+U32String Translation::actionWith() const {
+	return _("with");
 }
 
-const char *Translation::dropTopic() const {
-	return _misc->_dropTopic;
+U32String Translation::infoTextOffSoundOn() const {
+	return _("Text off / Sound on");
+}
+
+U32String Translation::infoTextOnSoundOff() const {
+	return _("Sound off / Text on");
+}
+
+U32String Translation::infoTextOn() const {
+	return _("Text on");
+}
+
+U32String Translation::infoSoundOn() const {
+	return _("Sound on");
+}
+
+U32String Translation::infoMusicOn() const {
+	return _("Music on");
+}
+
+U32String Translation::infoMusicOff() const {
+	return _("Music off");
+}
+
+U32String Translation::infoJoke(int index) const {
+	return index < 0 || index >= ARRAYSIZE(kInfoJokes)
+		? U32String()
+		: _(kInfoJokes[index]);
 }
 
 }

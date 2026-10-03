@@ -111,12 +111,11 @@ public:
 	Graphics::ManagedSurface _surface;
 	U32String _text;
 
-	SoftwareRenderedText(const FontInfo &fontInfo, const char *textBegin, const char *textEnd)
+	SoftwareRenderedText(const FontInfo &fontInfo, const U32String &text)
 		: _bgFont(fontInfo._bgFont)
 		, _fgFont(fontInfo._fgFont)
 		, _color(fontInfo._color) {
-		if (textBegin != nullptr)
-			setText(textBegin, textEnd);
+		setText(text);
 	}
 
 	Common::Point size() const override {
@@ -134,6 +133,10 @@ public:
 		if (textEnd == nullptr)
 			textEnd = textBegin + strlen(textBegin);
 		U32String newText(textBegin, textEnd, kUtf8);
+		setText(newText);
+	}
+
+	void setText(const U32String &newText) override {
 		if (_text == newText)
 			return;
 		_text = newText;
@@ -189,7 +192,13 @@ public:
 	}
 
 	IRenderedText *createText(const FontInfo &fontInfo, const char *textBegin, const char *textEnd) override {
-		return new SoftwareRenderedText(fontInfo, textBegin, textEnd);
+		return textEnd == nullptr
+			? new SoftwareRenderedText(fontInfo, U32String(textBegin))
+			: new SoftwareRenderedText(fontInfo, U32String(textBegin, textEnd));
+	}
+
+	IRenderedText *createText(const FontInfo &fontInfo, const U32String &text) override {
+		return new SoftwareRenderedText(fontInfo, text);
 	}
 
 	void begin() override { }

@@ -129,6 +129,9 @@ SharedPtr<ITexture> AssetCache::texture(const String &fileName) {
         return texture;
 
     texture = g_engine->renderer().loadTexture(fileName.c_str());
+	if (texture == nullptr)
+		warning("Could not open texture: %s", fileName.c_str());
+
     if (texture != nullptr)
         _textureCaches[_nextTextureCache][fileName] = texture;
     return texture;

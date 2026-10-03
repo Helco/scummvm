@@ -104,6 +104,8 @@ void Text::debugPrint() {
 }
 
 void Text::render() {
+	if (!active())
+		return;
 	for (uint i = 0; i < _lines.size(); i++)
 		g_engine->renderer().text(_lines[i].get(), getLineRenderPos(i));
 }

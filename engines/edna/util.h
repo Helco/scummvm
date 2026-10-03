@@ -75,6 +75,7 @@ enum class PlayerAction : uint {
 	WhatIs, // Used in Harvey
 	TalkAbout // Used in Harvey
 };
+constexpr const uint kPlayerActionCount = (uint)PlayerAction::TalkAbout + 1;
 bool parsePlayerAction(const char *text, PlayerAction &value);
 const char *playerActionToString(PlayerAction action);
 
@@ -236,6 +237,25 @@ struct PastRoomIds {
 	PastRoomIds(const PastRoomIds &other) = default;
 private:
 	PastRoomIds() = default;
+};
+
+class Config {
+public:
+	inline bool &subtitles() { return _subtitles; }
+	inline bool &speech() { return _speech; }
+	inline bool &music() { return _music; }
+	inline uint8 &subtitleSpeed() { return _subtitleSpeed; }
+
+	static void registerDefaults();
+	void loadFromScummVM();
+	void saveToScummVM();
+
+private:
+	bool
+		_subtitles = true,
+		_speech = true,
+		_music = true;
+	uint8 _subtitleSpeed = 255 - 74;
 };
 
 }

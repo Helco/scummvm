@@ -36,9 +36,12 @@ public:
 	void setPressed();
 	void setDisplayName(const char *name);
 
+	inline bool &isDisabled() { return _isDisabled; }
+
 private:
 	const char *_displayName = "";
-	TexturePtr _normal, _hovered, _pressed;
+	TexturePtr _normal, _hovered, _pressed, _disabled;
+	bool _isDisabled = false;
 };
 
 }

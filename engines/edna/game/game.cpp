@@ -69,6 +69,10 @@ void GameBase::debugRender() {
 	}
 }
 
+void GameBase::triggerMusicToggle() {
+	// GameBase does not know about music
+}
+
 void GameBase::add(Group *group, DisposeAfterUse::Flag dispose) {
 	_groups.emplace_back(group, dispose);
 }
@@ -218,6 +222,15 @@ void Game::debugRender() {
 		createDebugFloorTexture();
 		g_engine->renderer().sprite(_debugFloorTexture.get(), Point());
 	}
+}
+
+void Game::triggerMusicToggle() {
+	if (g_engine->config().music()) {
+		const auto room = g_engine->db().room(_roomId);
+		g_engine->playMusic(room._music);
+	}
+	else
+		g_engine->stopMusic();
 }
 
 void Game::updateFade() {

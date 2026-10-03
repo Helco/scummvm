@@ -19,31 +19,47 @@
  *
  */
 
-#ifndef EDNA_BUTTON_H
-#define EDNA_BUTTON_H
+#ifndef EDNA_STARTMENU_H
+#define EDNA_STARTMENU_H
 
-#include "edna/sprite/sprite.h"
+#include "edna/game/game.h"
+#include "edna/sprite/button.h"
 
 namespace Edna {
 
-class Button : public Sprite {
+class IRenderedText;
+class StartOptionsMenu;
+
+class StartMenu : public GameBase {
 public:
-	Button(uint32 id, Common::Point pos, const Common::String &path);
+	StartMenu(Common::ScopedPtr<GameBase> &myPtr);
 
 	void update() override;
-	const char *displayName() const override;
-	void setHovered();
-	void setPressed();
-	void setDisplayName(const char *name);
-
-	inline bool &isDisabled() { return _isDisabled; }
+	void render() override;
+	void triggerMusicToggle() override;
 
 private:
-	const char *_displayName = "";
-	TexturePtr _normal, _hovered, _pressed, _disabled;
-	bool _isDisabled = false;
+	template<class TSubMenu>
+	void openSubMenu(Common::ScopedPtr<TSubMenu> &group, Button &button);
+	void toggleButtons(bool active);
+	void startNewGame();
+
+	Common::ScopedPtr<Group> _loadGroup;
+	Common::ScopedPtr<StartOptionsMenu> _optionsGroup;
+	Common::ScopedPtr<Group> _achievementGroup;
+	Common::ScopedPtr<IRenderedText> _versionText;
+
+	Group _group;
+	Sprite _background;
+	Button
+		_btnContinue,
+		_btnAchievements,
+		_btnNewGame,
+		_btnOptions,
+		_btnLoad,
+		_btnExit;
 };
 
 }
 
-#endif // EDNA_BUTTON_H
+#endif // EDNA_STARTMENU_H

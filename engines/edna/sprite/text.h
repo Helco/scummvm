@@ -27,6 +27,7 @@
 namespace Edna {
 
 enum TextFlags {
+	kTextNone = 0,
 	kTextWrapLines = 1 << 0,
 	kTextMoveIntoScreen = 1 << 1,
 	kTextAlignCenter = 1 << 2,

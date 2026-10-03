@@ -25,27 +25,42 @@
 #include "edna/util.h"
 
 #include "common/language.h"
+#include "common/ustr.h"
 
 namespace Edna {
 
-// The game has some hardcoded translated strings that we keep here
-// eventually we will want to support arbitrary translation lookups
-// e.g. to support the Anniversary Edition data or fan-made translations
-
-struct MiscTranslations;
-
 class Translation {
 public:
-	Translation(Common::Language language);
+	Translation();
 
-	const char *action(PlayerAction action) const;
-	const char *actionWith() const; // for "Use <item> *with* <target>"
-	const char *dropTopic() const;
+	// We reencode some of the strings into UTF8 because most text sources are natively UTF8
+	// Reallocating them is much more work than reencoding these few static one.
+
+	const char  *action(PlayerAction action) const;
+	Common::U32String actionWith() const; // for "Use <item> *with* <target>"
+	const char *dropTopic() const { return _dropTopic.c_str(); }
+
+	inline const char *toggleMusic() const { return _toggleMusic.c_str(); }
+	const char *toggleSound() const { return _toggleSound.c_str(); }
+	const char *toggleSubtitles() const { return _toggleSubtitles.c_str(); }
+	const char *textSpeed() const { return _textSpeed.c_str(); }
+	Common::U32String infoTextOffSoundOn() const;
+	Common::U32String infoTextOnSoundOff() const;
+	Common::U32String infoTextOn() const;
+	Common::U32String infoSoundOn() const;
+	Common::U32String infoMusicOn() const;
+	Common::U32String infoMusicOff() const;
+
+	Common::U32String infoJoke(int index) const;
 
 private:
-	const Common::Language _language;
-	const char *const *_actionNames = nullptr;
-	const MiscTranslations *_misc = nullptr;
+	Common::String
+		_actionNames[kPlayerActionCount],
+		_dropTopic,
+		_toggleMusic,
+		_toggleSound,
+		_toggleSubtitles,
+		_textSpeed;
 };
 
 }

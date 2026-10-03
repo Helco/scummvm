@@ -19,31 +19,63 @@
  *
  */
 
-#ifndef EDNA_BUTTON_H
-#define EDNA_BUTTON_H
+#ifndef EDNA_OPTIONSMENU_H
+#define EDNA_OPTIONSMENU_H
 
-#include "edna/sprite/sprite.h"
+#include "edna/group/group.h"
+#include "edna/sprite/button.h"
+#include "edna/sprite/text.h"
 
 namespace Edna {
 
-class Button : public Sprite {
+class OptionsMenu : public Group {
 public:
-	Button(uint32 id, Common::Point pos, const Common::String &path);
-
 	void update() override;
-	const char *displayName() const override;
-	void setHovered();
-	void setPressed();
-	void setDisplayName(const char *name);
+	void render() override;
 
-	inline bool &isDisabled() { return _isDisabled; }
+	void open();
+
+protected:
+	OptionsMenu();
+	void toggleChecks();
+
+	Config _previousConfig;
+	Sprite
+		_background,
+		_textSpeedBg,
+		_textSpeedSlider;
+	AnimatedSprite
+		_checkMusic,
+		_checkSound,
+		_checkSubtitles;
+	Button
+		_btnConfirm,
+		_btnCancel;
+	Text
+		_textMusic,
+		_textSound,
+		_textSubtitles,
+		_textTextSpeed;
+	Common::ScopedPtr<IRenderedText> _infoText;
+	Common::Point _infoTextPos;
+	int _infoJokeIndex = 0;
+	int16 _sliderMinX = 0, _sliderMaxX = 0;
+	bool _isMovingSlider = false;
+};
+
+class InGameOptionsMenu : public OptionsMenu {
+public:
+	InGameOptionsMenu();
+};
+
+class StartOptionsMenu : public OptionsMenu {
+public:
+	StartOptionsMenu();
 
 private:
-	const char *_displayName = "";
-	TexturePtr _normal, _hovered, _pressed, _disabled;
-	bool _isDisabled = false;
+	Sprite _infoTextBg;
 };
 
 }
 
-#endif // EDNA_BUTTON_H
+#endif // EDNA_OPTIONSMENU_H

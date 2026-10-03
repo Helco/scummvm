@@ -30,14 +30,18 @@ namespace Edna {
 Button::Button(uint32 id, Point pos, const String &path) {
 	this->id() = id;
 	this->pos() = pos;
+	immutable() = true;
 	_normal = g_engine->assets().texture(path + ".png");
 	_hovered = g_engine->assets().texture(path + "_a.png");
 	_pressed = g_engine->assets().texture(path + "_p.png");
+	_disabled = g_engine->assets().texture(path + "_i.png");
+	if (_pressed == nullptr)
+		_pressed = _hovered;
 	setTexture(_normal);
 }
 
 void Button::update() {
-	setTexture(_normal);
+	setTexture(_isDisabled ? _disabled : _normal);
 }
 
 const char *Button::displayName() const {
@@ -50,11 +54,13 @@ void Button::setDisplayName(const char *name) {
 }
 
 void Button::setHovered() {
-	setTexture(_hovered);
+	if (!_isDisabled)
+		setTexture(_hovered);
 }
 
 void Button::setPressed() {
-	setTexture(_pressed);
+	if (!_isDisabled)
+		setTexture(_pressed);
 }
 
 }

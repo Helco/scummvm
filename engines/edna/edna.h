@@ -50,25 +50,6 @@ class Console;
 class AssetCache;
 class Translation;
 
-class Config {
-public:
-	inline bool &subtitles() { return _subtitles; }
-	inline bool &speech() { return _speech; }
-	inline bool &music() { return _music; }
-	inline uint8 &subtitleSpeed() { return _subtitleSpeed; }
-
-	static void registerDefaults();
-	void loadFromScummVM();
-	void saveToScummVM();
-
-private:
-	bool
-		_subtitles = true,
-		_speech = true,
-		_music = true;
-	uint8 _subtitleSpeed = 255 - 74;
-};
-
 class EdnaEngine : public Engine {
 protected:
 	Common::Error run() override;
@@ -78,6 +59,7 @@ public:
 
 	inline GameTransition &next() { return _transition; }
 	inline const char *language() const { return getLanguageCode(_gameDescription->language); }
+	inline const char *versionExtra() const { return _gameDescription->extra; }
 	inline Config &config() { return _config; }
 	inline IRenderer &renderer() { assert(_renderer != nullptr); return *_renderer; }
 	inline Input &input() { assert(_input != nullptr); return *_input; }

@@ -32,7 +32,7 @@ namespace Edna {
 class Player;
 class ITexture;
 
-// Everything except Intro inherits from Game
+// Everything except Intro and StartMenu inherit from Game
 
 class GameBase {
 public:
@@ -47,6 +47,7 @@ public:
 	virtual void update();
 	virtual void render();
 	virtual void debugRender();
+	virtual void triggerMusicToggle(); ///< Called when music is muted/unmuted
 
 protected:
 	void add(Group *group, DisposeAfterUse::Flag dispose = DisposeAfterUse::NO);
@@ -73,6 +74,7 @@ public:
 	void update() override;
 	void render() override;
 	void debugRender() override;
+	void triggerMusicToggle() override;
 	Sprite *objectById(RoomObjectId id) const;
 
 	void fade(byte color, float target, uint32 duration);

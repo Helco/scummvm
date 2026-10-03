@@ -15,9 +15,11 @@ MODULE_OBJS = \
 	game/harvey.o \
 	game/intro.o \
 	game/scriptonclick.o \
+	game/startmenu.o \
 	group/choicelist.o \
 	group/group.o \
 	group/inventory.o \
+	group/optionsmenu.o \
 	group/topicrow.o \
 	input.o \
 	metaengine.o \

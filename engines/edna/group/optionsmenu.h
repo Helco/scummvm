@@ -58,6 +58,7 @@ protected:
 		_textTextSpeed;
 	Common::ScopedPtr<IRenderedText> _infoText;
 	Common::Point _infoTextPos;
+	Common::Rect _infoTextRect; ///< for the joke interaction
 	int _infoJokeIndex = 0;
 	int16 _sliderMinX = 0, _sliderMaxX = 0;
 	bool _isMovingSlider = false;

@@ -122,7 +122,7 @@ void StartMenu::openSubMenu(Common::ScopedPtr<TSubMenu> &group, Button &button) 
 		group.reset(new TSubMenu());
 		add(group.get(), DisposeAfterUse::NO);
 	}
-	group->active() = true;
+	group->open();
 
 	toggleButtons(false);
 	button.toggle(true);

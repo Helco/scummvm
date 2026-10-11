@@ -95,7 +95,9 @@ InGameOptionsMenu::InGameOptionsMenu() : OptionsMenu() {
 	toggleChecks();
 }
 
-StartOptionsMenu::StartOptionsMenu() : OptionsMenu() {
+StartOptionsMenu::StartOptionsMenu()
+	: OptionsMenu()
+	, _infoTextBg("InfoTextBg") {
 	_background.pos() = Point(120, 230);
 	_textSpeedBg.pos() = Point(150, 450);
 	_textSpeedSlider.pos() = Point(148, 440);
@@ -111,6 +113,12 @@ StartOptionsMenu::StartOptionsMenu() : OptionsMenu() {
 	_infoTextPos = Point(135, 203);
 	_sliderMinX = 148;
 	_sliderMaxX = 450;
+
+	_infoTextBg.setTexture("gui/hauptmenue/infoleiste380.png");
+	_infoTextBg.pos() = Point(125, 200);
+	_infoTextBg.immutable() = true;
+	add(&_infoTextBg, DisposeAfterUse::NO);
+	_infoTextRect = _infoTextBg.bounds();
 
 	toggleChecks();
 }
@@ -131,43 +139,53 @@ void OptionsMenu::update() {
 		}
 	}
 
-	const Rect infoTextRect(_infoTextPos, _infoTextPos + _infoText->size());
 	const bool clicked = g_engine->input().wasMouseLeftPressed();
 	Sprite *selection = checkClick(g_engine->input().mousePos());
-	if (selection == &_btnConfirm) {
-		if (clicked) {
+	if (selection == &_btnConfirm)
+		_btnConfirm.setHovered();
+	else if (selection == &_btnCancel)
+		_btnCancel.setHovered();
+
+	if (clicked) {
+		if (selection == &_btnConfirm) {
 			active() = false;
 			g_engine->config().saveToScummVM();
-		} else
-			_btnConfirm.setHovered();
-	} else if (selection == &_btnCancel) {
-		if (clicked) {
+		} else if (selection == &_btnCancel) {
 			g_engine->config() = _previousConfig;
 			active() = false;
+			toggleChecks();
 			g_engine->config().saveToScummVM();
 			g_engine->game().triggerMusicToggle();
-		} else
-			_btnCancel.setHovered();
-	} else if (selection == &_checkMusic && clicked) {
-		g_engine->config().music() = !g_engine->config().music();
-		toggleChecks();
-		g_engine->game().triggerMusicToggle();
-	} else if (selection == &_checkSound && clicked) {
-		g_engine->config().speech() = !g_engine->config().speech();
-		toggleChecks();
-	} else if (selection == &_checkSubtitles && clicked) {
-		g_engine->config().subtitles() = !g_engine->config().subtitles();
-		toggleChecks();
-	} else if (clicked && infoTextRect.contains(g_engine->input().mousePos())) {
-		U32String joke = g_engine->translation().infoJoke(_infoJokeIndex++);
-		if (joke.empty()) {
-			_infoJokeIndex = 0;
-			joke = g_engine->translation().infoJoke(_infoJokeIndex);
-		}
-		assert(!joke.empty());
-		_infoText->setText(joke);
-	} else if (selection == &_textSpeedSlider && clicked)
-		_isMovingSlider = true;
+		} else if (selection == &_checkMusic) {
+			g_engine->config().music() = !g_engine->config().music();
+			toggleChecks();
+			g_engine->game().triggerMusicToggle();
+			_infoText->setText(g_engine->config().music()
+				? g_engine->translation().infoMusicOn()
+				: g_engine->translation().infoMusicOff());
+		} else if (selection == &_checkSound) {
+			g_engine->config().speech() = !g_engine->config().speech();
+			toggleChecks();
+			_infoText->setText(g_engine->config().speech()
+				? g_engine->translation().infoSoundOn()
+				: g_engine->translation().infoTextOnSoundOff());
+		} else if (selection == &_checkSubtitles) {
+			g_engine->config().subtitles() = !g_engine->config().subtitles();
+			toggleChecks();
+			_infoText->setText(g_engine->config().subtitles()
+				? g_engine->translation().infoTextOn()
+				: g_engine->translation().infoTextOffSoundOn());
+		} else if (_infoTextRect.contains(g_engine->input().mousePos())) {
+			U32String joke = g_engine->translation().infoJoke(_infoJokeIndex++);
+			if (joke.empty()) {
+				_infoJokeIndex = 0;
+				joke = g_engine->translation().infoJoke(_infoJokeIndex);
+			}
+			assert(!joke.empty());
+			_infoText->setText(joke);
+		} else if (selection == &_textSpeedSlider)
+			_isMovingSlider = true;
+	}
 }
 
 void OptionsMenu::render() {
@@ -182,6 +200,7 @@ void OptionsMenu::open() {
 	_previousConfig = g_engine->config();
 	toggleChecks();
 	active() = true;
+	_infoText->setText(U32String());
 }
 
 void OptionsMenu::toggleChecks() {

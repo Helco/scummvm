@@ -27,13 +27,13 @@
 namespace Edna {
 
 bool Timer::update() {
-    if (!_active)
-        return false;
+	if (!_active)
+		return false;
 	_curDelay += g_engine->getElapsed();
-    if (_curDelay < _delay)
-        return false;
-    _curDelay -= _delay;
-    return true;
+	if (_curDelay < _delay)
+		return false;
+	_curDelay -= _delay;
+	return true;
 }
 
 void Timer::reset() {
@@ -41,8 +41,8 @@ void Timer::reset() {
 }
 
 void Timer::toggle(bool active) {
-    _active = active;
-    reset();
+	_active = active;
+	reset();
 }
 
 static constexpr const char *const DirectionNames[] = {

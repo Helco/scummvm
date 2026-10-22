@@ -38,17 +38,22 @@ enum TextFlags {
 class Text final : public Sprite {
 public:
 	Text(Common::Point pos, FontKind font, const char *text, TextFlags flags);
+	Text(Common::Point pos, FontKind font, const Common::U32String &text, TextFlags flags);
 
 	void render() override;
 	void debugPrint() override;
 	bool checkClick(Common::Point screenPos) const override;
 	void setColor(FontKind font);
+	void setText(const char *text, TextFlags flags = kTextNone);
+	void setText(const Common::U32String &text, TextFlags flags = kTextNone);
+	void setPos(Common::Point basePos);
 
 private:
 	Common::Point getLineRenderPos(uint lineI) const;
 
 	static constexpr uint kDebugTextSize = 32;
-	const TextFlags _flags;
+	TextFlags _flags;
+	FontKind _font;
 	Common::Array<Common::ScopedPtr<IRenderedText>> _lines;
 	char _debugText[kDebugTextSize] = { };
 };

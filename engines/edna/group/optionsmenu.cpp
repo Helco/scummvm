@@ -57,7 +57,7 @@ OptionsMenu::OptionsMenu()
 	_checkMusic.setTextures(checkBoxTextures);
 	_checkSound.setTextures(checkBoxTextures);
 	_checkSubtitles.setTextures(checkBoxTextures);
-	_infoText.reset(g_engine->renderer().createText(g_engine->assets().font(FontKind::MenuFont), ""));
+	_infoText.reset(g_engine->renderer().createText(g_engine->assets().font(FontKind::MenuFont)));
 
 	add(&_background, DisposeAfterUse::NO);
 	add(&_textSpeedBg, DisposeAfterUse::NO);

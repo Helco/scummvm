@@ -36,32 +36,69 @@ static constexpr const int16 kTextMargin = 10;
 static constexpr const int16 kTextOffsetY = 26; ///< to be subtracted
 static constexpr const int kMaxLineLength = 40;
 
-static const char *skipSpace(const char *text) {
+static const u32char_type_t *strchr(const u32char_type_t *str, u32char_type_t chr) {
+	assert(str != nullptr);
+	while (*str && *str != chr)
+		str++;
+	return *str ? str : nullptr;
+}
+
+static size_t strlen(const u32char_type_t *str) {
+	assert(str != nullptr);
+	size_t len = 0;
+	while (*str)
+		len++;
+	return len;
+}
+
+static const u32char_type_t *skipSpace(const u32char_type_t *text) {
 	assert(text != nullptr);
 	while (*text == ' ')
 		text++;
 	return text;
 }
 
-static const char *skipNonSpace(const char *text) {
+static const u32char_type_t *skipNonSpace(const u32char_type_t *text) {
 	assert(text != nullptr);
-	const char *space = strchr(text, ' ');
+	const u32char_type_t *space = strchr(text, ' ');
 	if (space == nullptr)
 		space = text + strlen(text);
 	return space;
 }
 
-Text::Text(Point pos, FontKind font, const char *text, TextFlags flags) : _flags(flags) {
+Text::Text(Point pos, FontKind font, const char *text, TextFlags flags)
+	: _flags(flags)
+	, _font(font) {
 	assert(text != nullptr);
-	const FontInfo fontInfo = g_engine->assets().font(font);
-	strncpy(_debugText, text, kDebugTextSize - 1);
-	_debugText[Common::strnlen(_debugText, kDebugTextSize - 1)] = 0;
+	setText(text, flags);
+	setPos(pos);
+}
 
+Text::Text(Point pos, FontKind font, const U32String &text, TextFlags flags)
+	: _flags(flags)
+	, _font(font) {
+	setText(text, flags);
+	setPos(pos);
+}
+
+void Text::setText(const char *text, TextFlags flags) {
+	setText(U32String(text), flags);
+}
+
+void Text::setText(const U32String &fullText, TextFlags flags) {
+	_flags = flags;
+	const FontInfo fontInfo = g_engine->assets().font(_font);
+
+	size_t i = 0;
+	for (; i < kDebugTextSize - 1 && i < fullText.size(); i++)
+		_debugText[i] = fullText[i] < 0x80 ? fullText[i] : '#';
+	_debugText[i] = 0;
+
+	const auto *text = skipSpace(fullText.begin());
 	if (flags & kTextWrapLines) {
-		text = skipSpace(text);
-		const char *textEnd = text + strlen(text);
+		const auto *textEnd = text + strlen(text);
 		while (textEnd - text > kMaxLineLength) {
-			const char *lineEnd = text + kMaxLineLength;
+			const auto *lineEnd = text + kMaxLineLength;
 			while (lineEnd > text && *lineEnd != ' ')
 				lineEnd--;
 
@@ -85,14 +122,17 @@ Text::Text(Point pos, FontKind font, const char *text, TextFlags flags) : _flags
 	for (const auto &line : _lines)
 		size.x = MAX(size.x, line->size().x);
 	this->size() = size;
+}
 
-	if (flags & kTextAlignCenter) {
-		pos.x -= size.x / 2;
+void Text::setPos(Common::Point pos) {
+	const FontInfo fontInfo = g_engine->assets().font(_font);
+	if (_flags & kTextAlignCenter) {
+		pos.x -= size().x / 2;
 		pos.y -= kTextOffsetY + (fontInfo._fgFont->getFontHeight() - kTextLineHeight) * _lines.size();
 	}
-	if (flags & kTextMoveIntoScreen) {
-		if (pos.x + size.x + kTextMargin > kScreenWidth)
-			pos.x = kScreenWidth - kTextMargin - size.x;
+	if (_flags & kTextMoveIntoScreen) {
+		if (pos.x + size().x + kTextMargin > kScreenWidth)
+			pos.x = kScreenWidth - kTextMargin - size().x;
 		if (pos.x < kTextMargin)
 			pos.x = kTextMargin;
 	}

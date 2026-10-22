@@ -60,10 +60,8 @@ StartMenu::StartMenu(Common::ScopedPtr<GameBase> &myPtr)
 	_group.add(&_btnExit, DisposeAfterUse::NO);
 	add(&_group, DisposeAfterUse::NO);
 
-	_versionText.reset(g_engine->renderer().createText(
-		g_engine->assets().font(Edna::FontKind::MenuFont),
-		String::format("Edna %s (ScummVM %s)", g_engine->versionExtra(), gScummVMVersion).c_str()
-	));
+	_versionText.reset(g_engine->renderer().createText(g_engine->assets().font(Edna::FontKind::MenuFont)));
+	_versionText->setText(String::format("Edna %s (ScummVM %s)", g_engine->versionExtra(), gScummVMVersion).c_str());
 
 	CursorMan.showMouse(true);
 }

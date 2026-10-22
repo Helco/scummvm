@@ -111,11 +111,10 @@ public:
 	Graphics::ManagedSurface _surface;
 	U32String _text;
 
-	SoftwareRenderedText(const FontInfo &fontInfo, const U32String &text)
+	SoftwareRenderedText(const FontInfo &fontInfo)
 		: _bgFont(fontInfo._bgFont)
 		, _fgFont(fontInfo._fgFont)
 		, _color(fontInfo._color) {
-		setText(text);
 	}
 
 	Common::Point size() const override {
@@ -127,19 +126,18 @@ public:
 		_color = info._color;
 	}
 
-	void setText(const char *textBegin, const char *textEnd) override {
-		assert(textBegin != nullptr);
-		assert(textEnd == nullptr || textBegin <= textEnd);
-		if (textEnd == nullptr)
-			textEnd = textBegin + strlen(textBegin);
-		U32String newText(textBegin, textEnd, kUtf8);
-		setText(newText);
+	void setText(const char *text) override {
+		assert(text != nullptr);
+		setText(U32String(text).c_str(), nullptr);
 	}
 
-	void setText(const U32String &newText) override {
-		if (_text == newText)
+	void setText(const u32char_type_t *textBegin, const u32char_type_t *textEnd) override {
+		assert(textBegin != nullptr);
+		assert(textEnd == nullptr || textBegin <= textEnd);
+		if (_text.size() == textEnd - textBegin && !memcmp(_text.begin(), textBegin, sizeof(u32char_type_t) * _text.size()))
 			return;
-		_text = newText;
+		
+		_text.assign(textBegin, textEnd - textBegin);
 		if (_text.empty()) {
 			_surface.free(); // TODO: We might want to keep a super surface and reduce allocations here
 			return;
@@ -191,14 +189,10 @@ public:
 		return TexturePtr(new SoftwareTexture(Common::move(converted)));
 	}
 
-	IRenderedText *createText(const FontInfo &fontInfo, const char *textBegin, const char *textEnd) override {
-		return textEnd == nullptr
-			? new SoftwareRenderedText(fontInfo, U32String(textBegin))
-			: new SoftwareRenderedText(fontInfo, U32String(textBegin, textEnd));
-	}
-
-	IRenderedText *createText(const FontInfo &fontInfo, const U32String &text) override {
-		return new SoftwareRenderedText(fontInfo, text);
+	IRenderedText *createText(const FontInfo &fontInfo, const u32char_type_t *textBegin, const u32char_type_t *textEnd) override {
+		auto text = new SoftwareRenderedText(fontInfo);
+		text->setText(textBegin, textEnd);
+		return text;
 	}
 
 	void begin() override { }

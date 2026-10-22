@@ -226,7 +226,7 @@ void DB::syncDBString(DBString &value, Serializer &s) {
 			value = DBString::ownerOf(newString);
 		}
 		if (s.isSaving()) // double cast needed for compiler warning
-			s.syncBytes((byte *)(const byte *)value.get(), length);
+			s.syncBytes(const_cast<byte *>((const byte *)value.get()), length);
 	}
 }
 

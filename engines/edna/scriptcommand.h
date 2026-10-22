@@ -50,7 +50,8 @@ struct ScriptCommand {
 	Common::SharedPtr<const ScriptCommand> _thenLine = nullptr; ///< only for ifActive / ifItemActive
 	// using an allocation for _thenLine saves around 2MiB of memory
 
-	union {
+	union Args {
+		constexpr Args() {}
 		// TODO: AchievementKind _achievement;
 		RoomObjectId _ifActive;
 		ItemId _ifItemActive;

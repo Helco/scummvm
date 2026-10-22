@@ -64,9 +64,9 @@ TexturePtr IRenderer::loadTexture(const char *fileName) {
 static Graphics::AlphaType getAlphaType(const Graphics::ManagedSurface &surface) {
 	assert(surface.format.bytesPerPixel == 4); // this should be true for BlendBlit::getSupportedPixelFormat 
 	Graphics::AlphaType type = Graphics::ALPHA_OPAQUE;
-	byte *line = (byte*)surface.getPixels();
+	const byte *line = (const byte*)surface.getPixels();
 	for (int16 y = 0; y < surface.h; y++) {
-		uint32 *pixel = (uint32 *)line;
+		const uint32 *pixel = (const uint32 *)line;
 		for (int16 x = 0; x < surface.w; x++, pixel++) {
 			auto alpha = (*pixel >> surface.format.aShift) & 255;
 			if (alpha == 0)

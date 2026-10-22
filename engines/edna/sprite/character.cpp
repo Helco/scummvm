@@ -62,7 +62,6 @@ void Character::debugRender() {
 			g_engine->renderer().debugLine(basePos, nearestToBase, 255, 0, 255);
 
 		if (_state == kWalking) {
-			const Point curPos = scaleSpritePosToBasePos(pos());
 			const Point targetPos = scaleSpritePosToBasePos(_walkTarget);
 			g_engine->renderer().debugLine(basePos, targetPos, 255, 0, 0);
 
@@ -198,8 +197,8 @@ void Character::updateWalking() {
 
 	Vector2d delta = asVec(_walkTarget) - _floatPos;
 	Vector2d move = delta.getNormalized() * _cSpeed * g_engine->getElapsed();
-	const auto absmin = [](float delta, float move) {
-		return ABS(delta) < ABS(move) ? delta : move;
+	const auto absmin = [](float cdelta, float cmove) {
+		return ABS(cdelta) < ABS(cmove) ? cdelta : cmove;
 	};
 	_floatPos += Vector2d(absmin(delta.getX(), move.getX()), absmin(delta.getY(), move.getY()));
 	pos() = asPoint(_floatPos);

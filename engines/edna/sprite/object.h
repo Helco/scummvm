@@ -28,6 +28,7 @@ namespace Edna {
 
 class IInteractable {
 public:
+	virtual ~IInteractable() {}
 	virtual PlayerAction defaultAction() const = 0;
 	virtual ScriptId scriptFor(PlayerAction action) const = 0;
 	virtual Common::Point interactionPos() const = 0;

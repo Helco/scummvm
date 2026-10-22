@@ -328,8 +328,8 @@ bool DB::DBString::operator!=(const DBString &other) const {
 }
 
 template<class TValue>
-DB::SimpleDataSet<TValue>::SimpleDataSet(const char *typeName, RecordSyncFn<TValue> sync)
-	: _typeName(typeName), _sync(sync) { }
+DB::SimpleDataSet<TValue>::SimpleDataSet(const char *typeName, RecordSyncFn<TValue> syncFn)
+	: _typeName(typeName), _sync(syncFn) { }
 
 template<class TValue>
 void DB::SimpleDataSet<TValue>::set(uint32 key, const TValue &value) {
@@ -348,8 +348,8 @@ TValue DB::SimpleDataSet<TValue>::get(uint32 key, bool required) const {
 }
 
 template<class TValue>
-DB::TwoKeyDataSet<TValue>::TwoKeyDataSet(const char *typeName, RecordSyncFn<TValue> sync)
-	: _typeName(typeName), _sync(sync) { }
+DB::TwoKeyDataSet<TValue>::TwoKeyDataSet(const char *typeName, RecordSyncFn<TValue> syncFn)
+	: _typeName(typeName), _sync(syncFn) { }
 
 template<class TValue>
 void DB::TwoKeyDataSet<TValue>::set(uint32 key1, uint32 key2, const TValue &value) {
@@ -371,8 +371,8 @@ constexpr DB::Range::Range(uint32 begin, uint32 count)
 	: _begin(begin), _count(count) {}
 
 template<class TValue>
-DB::SequenceSet<TValue>::SequenceSet(const char *typeName, RecordSyncFn<TValue> sync)
-	: _typeName(typeName), _sync(sync) { }
+DB::SequenceSet<TValue>::SequenceSet(const char *typeName, RecordSyncFn<TValue> syncFn)
+	: _typeName(typeName), _sync(syncFn) { }
 
 template<class TValue>
 Span<const TValue> DB::SequenceSet<TValue>::get(uint32 key, bool required) const {
@@ -393,7 +393,7 @@ template<class TValue>
 TValue DB::SequenceSet<TValue>::get(uint32 key1, uint32 key2) const {
 	const Span<const TValue> range = get(key1);
 	const auto itValue = lowerBound(range.begin(), range.end(), key2,
-		[](const TValue &value, uint32 key2) { return value._line < key2; });
+		[](const TValue &value, uint32 key) { return value._line < key; });
 	if (itValue == range.end() || itValue->_line != key2)
 		error("Missing %s: %u %u", _typeName, key1, key2);
 	return *itValue;

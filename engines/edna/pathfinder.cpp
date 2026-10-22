@@ -46,29 +46,29 @@ static constexpr const byte kWamHeader[] = {
 static constexpr const uint32 kWamHeaderSize = ARRAYSIZE(kWamHeader);
 static constexpr const uint32 kWamDelimiterSize = 10;
 static constexpr const uint32 kWamTotalSize =
-    kWamHeaderSize +
-    (kScreenWidth - 1) * kWamDelimiterSize +
-    kScreenWidth * kScreenHeight;
+	kWamHeaderSize +
+	(kScreenWidth - 1) * kWamDelimiterSize +
+	kScreenWidth * kScreenHeight;
 
 void PathFinder::loadArea(const char *fileName) {
-    assert(fileName != nullptr);
-    File file;
-    if (!file.open(fileName) && !file.open(Path(String("data/map/") + fileName)))
-        error("Could not open walkable area: %s", fileName);
-    if (file.size() != kWamTotalSize)
-        error("Unexpected total size of walkable area: %s (%u instead of %u)", fileName, (uint)file.size(), (uint)kWamTotalSize);
-    byte header[kWamHeaderSize];
-    if (file.read(header, kWamHeaderSize) != kWamHeaderSize ||
-        memcmp(kWamHeader, header, kWamHeaderSize) != 0)
-        error("Invalid header in walkable area: %s", fileName);
+	assert(fileName != nullptr);
+	File file;
+	if (!file.open(fileName) && !file.open(Path(String("data/map/") + fileName)))
+		error("Could not open walkable area: %s", fileName);
+	if (file.size() != kWamTotalSize)
+		error("Unexpected total size of walkable area: %s (%u instead of %u)", fileName, (uint)file.size(), (uint)kWamTotalSize);
+	byte header[kWamHeaderSize];
+	if (file.read(header, kWamHeaderSize) != kWamHeaderSize ||
+		memcmp(kWamHeader, header, kWamHeaderSize) != 0)
+		error("Invalid header in walkable area: %s", fileName);
 
 	Point max(-1, -1), min(10000, 10000);
-    for (int16 x = 0; x < kScreenWidth; x++) {
-        if (x > 0 && !file.skip(kWamDelimiterSize))
-            error("Could not skip walkable area delimiter: %s", fileName);
+	for (int16 x = 0; x < kScreenWidth; x++) {
+		if (x > 0 && !file.skip(kWamDelimiterSize))
+			error("Could not skip walkable area delimiter: %s", fileName);
 		byte *line = _map + x * kScreenHeight;
-        if (file.read(line, kScreenHeight) != kScreenHeight)
-            error("Could not read walkable area column: %s", fileName);
+		if (file.read(line, kScreenHeight) != kScreenHeight)
+			error("Could not read walkable area column: %s", fileName);
 
 		for (int16 y = 0; y < kScreenHeight; y++) {
 			if (!line[y])
@@ -78,17 +78,17 @@ void PathFinder::loadArea(const char *fileName) {
 			min.x = MIN(min.x, x);
 			min.y = MIN(min.y, y);
 		}
-    }
+	}
 	max += Point(1, 1);
 	_bounds = min.x < max.x && min.y < max.y ? Rect(min, max) : Rect();
 }
 
 bool PathFinder::findPath(Point fromOrig, Point toOrig, Array<Point> &waypoints) {
-    waypoints.clear();
+	waypoints.clear();
 	if (fromOrig == toOrig || _bounds.isEmpty())
 		return false;
 
-    Point from = nearestWalkablePoint(fromOrig);
+	Point from = nearestWalkablePoint(fromOrig);
 	Point to = nearestWalkablePoint(toOrig);
 	if (debugChannelSet(0, kDebugPathFinder) && (from != fromOrig || to != toOrig))
 		debug("Path corrected from (%d,%d)->(%d,%d) to (%d,%d)->(%d,%d)",
@@ -99,29 +99,29 @@ bool PathFinder::findPath(Point fromOrig, Point toOrig, Array<Point> &waypoints)
 	if (ABS(delta.x) < 2 && ABS(delta.y) < 2)
 		return false;
 
-    if (from == kInvalidPoint ||
-        to == kInvalidPoint ||
-        !dijkstraDistances(from, to))
-        return false;
-    dijkstraPath(from, to, waypoints);
+	if (from == kInvalidPoint ||
+		to == kInvalidPoint ||
+		!dijkstraDistances(from, to))
+		return false;
+	dijkstraPath(from, to, waypoints);
 	uint beforeReduction = waypoints.size();
-    reduceWaypoints(waypoints);
+	reduceWaypoints(waypoints);
 
 	debugC(kDebugPathFinder, "Path (%d,%d) -> (%d,%d), distance=%u, before=%u, after=%u, queueCap=%u",
 		from.x, from.y, to.x, to.y, distance(to) >> 4, beforeReduction, waypoints.size(), _queue.capacity());
-    return true;
+	return true;
 }
 
 Point PathFinder::nearestWalkablePoint(Point pos) const {
-    // The original game used Euclidian distance and just iterated over 
-    // the entire 800x600 map to find the nearest point
+	// The original game used Euclidian distance and just iterated over 
+	// the entire 800x600 map to find the nearest point
 	// Instead we go in Chebyshev order and break as soon as there cannot
 	// be any better solution.
 	// This should have optimal precision but reduced runtime
-    if (isWalkable(pos))
-        return pos;
+	if (isWalkable(pos))
+		return pos;
 	const auto relPos = pos - _bounds.origin();
-    const int maxRadius = MAX<int>(
+	const int maxRadius = MAX<int>(
 		MAX(relPos.x, relPos.y) + 1,
 		MAX(_bounds.width() - relPos.x - 1, _bounds.height() - relPos.y - 1));
 
@@ -135,35 +135,35 @@ Point PathFinder::nearestWalkablePoint(Point pos) const {
 		}
 	};
 
-    for (int r = 1; r <= maxRadius; r++) {
-        // top/bottom edges
-        int minX = MAX((int)_bounds.left, pos.x - r);
-        int maxX = MIN(_bounds.right - 1, pos.x + r);
-        for (int x = minX; x <= maxX; x++) {
+	for (int r = 1; r <= maxRadius; r++) {
+		// top/bottom edges
+		int minX = MAX((int)_bounds.left, pos.x - r);
+		int maxX = MIN(_bounds.right - 1, pos.x + r);
+		for (int x = minX; x <= maxX; x++) {
 			if (pos.y - r >= _bounds.top && isWalkable(Point(x, pos.y - r)))
 				evaluate(Point(x, pos.y - r));
-            if (pos.y + r < _bounds.bottom && isWalkable(Point(x, pos.y + r)))
+			if (pos.y + r < _bounds.bottom && isWalkable(Point(x, pos.y + r)))
 				evaluate(Point(x, pos.y + r));
-        }
+		}
 
-        // left/right edges
-        int minY = MAX((int)_bounds.top, pos.y - r) + 1;
-        int maxY = MIN(_bounds.bottom - 1, pos.y + r) - 1;
-        for (int y = minY; y <= maxY; y++) {
+		// left/right edges
+		int minY = MAX((int)_bounds.top, pos.y - r) + 1;
+		int maxY = MIN(_bounds.bottom - 1, pos.y + r) - 1;
+		for (int y = minY; y <= maxY; y++) {
 			if (pos.x - r >= _bounds.left && isWalkable(Point(pos.x - r, y)))
 				evaluate(Point(pos.x - r, y));
-            if (pos.x + r < _bounds.right && isWalkable(Point(pos.x + r, y)))
+			if (pos.x + r < _bounds.right && isWalkable(Point(pos.x + r, y)))
 				evaluate(Point(pos.x + r, y));
-        }
+		}
 
 		if ((uint)(r * r) >= bestDistanceSqr)
 			return bestPoint;
-    }
+	}
 	if (bestDistanceSqr < UINT_MAX)
 		return bestPoint;
 
 	warning("Could not find any walkable point (%d, %d), this should not have happened", pos.x, pos.y);
-    return kInvalidPoint;
+	return kInvalidPoint;
 }
 
 // A range-for-compatible neighborhood that already filters out-of-screen points
@@ -181,36 +181,36 @@ static constexpr const Point kNeighborOffsets[] = {
 	Point(-1000, -1000), // end sentinel
 };
 struct Neighbors {
-    struct Iterator {
-        Point _pos;
-        int _step = 0;
+	struct Iterator {
+		Point _pos;
+		int _step = 0;
 
-        Iterator(Point center, int step) : _step(step) {
-            _pos = center;
+		Iterator(Point center, int step) : _step(step) {
+			_pos = center;
 			++*this;
-        }
+		}
 
-        Iterator &operator++() {
-            do
-            {
-                _pos += kNeighborOffsets[_step++];
-            } while (_step < 9 && !Rect(kScreenWidth, kScreenHeight).contains(_pos));
-            return *this;
-        }
+		Iterator &operator++() {
+			do
+			{
+				_pos += kNeighborOffsets[_step++];
+			} while (_step < 9 && !Rect(kScreenWidth, kScreenHeight).contains(_pos));
+			return *this;
+		}
 
-        const Point &operator*() const {
-            assert(_step > 0 && _step < 9);
-            return _pos;
-        }
+		const Point &operator*() const {
+			assert(_step > 0 && _step < 9);
+			return _pos;
+		}
 
-        bool operator==(const Iterator &o) const { return _step == o._step; }
-        bool operator!=(const Iterator &o) const { return _step != o._step; }
-    };
+		bool operator==(const Iterator &o) const { return _step == o._step; }
+		bool operator!=(const Iterator &o) const { return _step != o._step; }
+	};
 
-    Point _center;
-    Neighbors(Point center) : _center(center) {}
-    Iterator begin() const { return Iterator(_center, 0); }
-    Iterator end() const { return Iterator(_center, 8); }
+	Point _center;
+	Neighbors(Point center) : _center(center) {}
+	Iterator begin() const { return Iterator(_center, 0); }
+	Iterator end() const { return Iterator(_center, 8); }
 };
 
 bool PathFinder::dijkstraDistances(Point from, Point to) {
@@ -223,32 +223,32 @@ bool PathFinder::dijkstraDistances(Point from, Point to) {
 		fill(line + fillBounds.top, line + fillBounds.bottom, UINT32_MAX);
 	}
 
-    _queue.clear();
+	_queue.clear();
 	_queue.enqueue(from);
-    distance(from) = 0;
-    Point cur;
-    while (_queue.tryDequeue(cur)) {
-        if (cur == to)
-            return true;
-        auto oldDist = distance(cur);
+	distance(from) = 0;
+	Point cur;
+	while (_queue.tryDequeue(cur)) {
+		if (cur == to)
+			return true;
+		auto oldDist = distance(cur);
 		assert(oldDist > 0 || cur == from);
-        for (const auto &neighbor : Neighbors(cur)) {
-            if (isWalkable(neighbor) && distance(neighbor) == UINT32_MAX) {
+		for (const auto &neighbor : Neighbors(cur)) {
+			if (isWalkable(neighbor) && distance(neighbor) == UINT32_MAX) {
 				distance(neighbor) = oldDist + 1;
-                _queue.enqueue(neighbor);
-            }
-        }
-    }
+				_queue.enqueue(neighbor);
+			}
+		}
+	}
 	return false;
 }
 
 void PathFinder::dijkstraPath(Point from, Point to, Array<Point> &waypoints) {
-    // we do not reserve the waypoints to distance(to) because we already reduce 
-    // the waypoints quite a lot here, no need to always overallocate
+	// we do not reserve the waypoints to distance(to) because we already reduce 
+	// the waypoints quite a lot here, no need to always overallocate
 
-    Point cur = to;
+	Point cur = to;
 	Point lastDelta(1000, 1000), curDelta(-1000, -1000);
-    while (cur != from) {
+	while (cur != from) {
 		if (lastDelta == curDelta)
 			waypoints.back() = cur;
 		else {
@@ -256,21 +256,21 @@ void PathFinder::dijkstraPath(Point from, Point to, Array<Point> &waypoints) {
 			lastDelta = curDelta;
 		}
 
-        Point bestNeighbor;
+		Point bestNeighbor;
 		uint32 bestDistance = distance(cur);
-        for (const auto &neighbor : Neighbors(cur)) {
+		for (const auto &neighbor : Neighbors(cur)) {
 			if (!isWalkable(neighbor))
 				continue;
 			uint32 curDistance = distance(neighbor);
-            if (curDistance < bestDistance) {
+			if (curDistance < bestDistance) {
 				bestDistance = curDistance;
-                bestNeighbor = neighbor;
-            }
-        }
+				bestNeighbor = neighbor;
+			}
+		}
 		assert(bestDistance < distance(cur));
 		curDelta = bestNeighbor - cur;
-        cur = bestNeighbor;
-    }
+		cur = bestNeighbor;
+	}
 }
 
 static Math::Vector2d asVec(Point point) {
@@ -278,12 +278,12 @@ static Math::Vector2d asVec(Point point) {
 }
 
 void PathFinder::reduceWaypoints(Array<Point> &waypoints) const {
-    // For reduction we find triples of points that lie approximately on the same line
-    // for such triples we can remove the center point
-    if (waypoints.size() < 3)
-        return;
+	// For reduction we find triples of points that lie approximately on the same line
+	// for such triples we can remove the center point
+	if (waypoints.size() < 3)
+		return;
 
-    for (uint32 i = waypoints.size() - 1; i >= 2; i--) {
+	for (uint32 i = waypoints.size() - 1; i >= 2; i--) {
 		auto edgeDir = asVec(waypoints[i - 2] - waypoints[i]).getNormalized();
 		Math::Vector2d edgeNormal(-edgeDir.getY(), edgeDir.getX());
 		float dist = fabsf(
@@ -291,7 +291,7 @@ void PathFinder::reduceWaypoints(Array<Point> &waypoints) const {
 			edgeNormal.dotProduct(asVec(waypoints[i])));
 		if (dist < 2.0f)
 			waypoints.remove_at(i - 1);
-    }
+	}
 }
 
 bool PathFinder::isWalkable(Point pos) const {

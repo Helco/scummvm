@@ -109,6 +109,8 @@ void EdnaGame::updateHover(Sprite *selection, bool selectDefaultAction) {
 		case PlayerAction::Use:
 			_buttonUse.setHovered();
 			break;
+		default:
+			break;
 		}
 	}
 	else if (interactable != nullptr)

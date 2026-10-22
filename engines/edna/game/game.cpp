@@ -423,6 +423,8 @@ void Game::invokeItemCommand(Sprite *&selection) {
 		selection = nullptr;
 		break;
 	}
+	default:
+		break;
 	}
 }
 

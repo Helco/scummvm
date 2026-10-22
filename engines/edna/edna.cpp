@@ -283,6 +283,8 @@ void EdnaEngine::updateCursor() {
 		assert(!_customCursor.empty());
 		pushCursor(_customCursor);
 		break;
+	default:
+		break;
 	}
 	_curCursorMode = _nextCursorMode;
 }

@@ -23,6 +23,9 @@
 #include "edna/util.h"
 
 #include "common/config-manager.h"
+#include "common/serializer.h"
+
+using namespace Common;
 
 namespace Edna {
 
@@ -191,6 +194,26 @@ int compare(const TwoKey &a, const TwoKey &b) {
 
 bool less(const TwoKey &a, const TwoKey &b) {
 	return a.first < b.first || (a.first == b.first && a.second < b.second);
+}
+
+void GameTransition::sync(Serializer &s) {
+	s.syncAsUint32LE(_room);
+	s.syncAsSint16LE(_walkIn.x);
+	s.syncAsSint16LE(_walkIn.y);
+	byte dir = (byte)_walkInDir;
+	s.syncAsByte(dir);
+	_walkInDir = (Direction)dir;
+	s.syncAsUint32LE(_script);
+	s.syncAsUint32LE(_scriptLine);
+	s.syncAsUint32LE(_choiceSet);
+}
+
+GameTransition GameTransition::newGame() {
+	GameTransition t;
+	t._room = 2;
+	t._walkIn = Point(400, 520);
+	t._walkInDir = Direction::Left;
+	return t;
 }
 
 bool PlayerCommand::operator==(const PlayerCommand &other) const {

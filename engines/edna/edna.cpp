@@ -170,12 +170,28 @@ void EdnaEngine::createRoom(const GameTransition &transition) {
 }
 
 Error EdnaEngine::syncGame(Serializer &s) {
-	// The Serializer has methods isLoading() and isSaving()
-	// if you need to specific steps; for example setting
-	// an array size after reading it's length, whereas
-	// for saving it would write the existing array's length
-	int dummy = 0;
-	s.syncAsUint32LE(dummy);
+	if (!s.syncVersion(kCurrentSaveVersion))
+		return { kUnknownError, "Gamestate version is higher than expected" };
+
+	GameTransition transition;
+	if (s.isSaving()) {
+		const auto *game = dynamic_cast<const Game *>(_game.get());
+		assert(game != nullptr);
+		transition = game ? game->saveState() : GameTransition::newGame();
+	}
+	transition.sync(s);
+	if (s.isLoading())
+		next() = transition;
+
+	db().syncOverlay(s);
+
+	// temporary placeholders for future development without save version change
+	uint32 dummy = 0;
+	s.syncAsUint32LE(dummy); // comments
+	assert(dummy == 0);
+	dummy = 0;
+	s.syncAsUint32LE(dummy); // partial achievements sets
+	assert(dummy == 0);
 
 	return kNoError;
 }

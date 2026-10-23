@@ -40,6 +40,11 @@
 
 namespace Edna {
 
+namespace SaveVersion {
+	static constexpr const Common::Serializer::Version kInitial = 0;
+}
+static constexpr const Common::Serializer::Version kCurrentSaveVersion = SaveVersion::kInitial;
+
 struct EdnaGameDescription;
 class IRenderer;
 class Input;
@@ -96,12 +101,8 @@ public:
 		return false;
 	}
 
-	/**
-	 * Uses a serializer to allow implementing savegame
-	 * loading and saving using a single method
-	 */
-	Common::Error syncGame(Common::Serializer &s);
 
+	Common::Error syncGame(Common::Serializer &s);
 	Common::Error saveGameStream(Common::WriteStream *stream, bool isAutosave = false) override {
 		Common::Serializer s(nullptr, stream);
 		return syncGame(s);

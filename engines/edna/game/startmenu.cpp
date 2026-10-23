@@ -142,9 +142,7 @@ void StartMenu::toggleButtons(bool active) {
 
 void StartMenu::startNewGame() {
 	// TODO: Trigger dejavu achievement
-	g_engine->next()._room = 2;
-	g_engine->next()._walkIn = Point(400, 520);
-	g_engine->next()._walkInDir = Direction::Left;
+	g_engine->next() = GameTransition::newGame();
 	g_engine->db().resetOverlay();
 }
 

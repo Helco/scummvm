@@ -26,6 +26,10 @@
 #include "common/span.h"
 #include "common/hashmap.h"
 
+namespace Common {
+	class Serializer;
+}
+
 namespace Graphics {
 	class Font;
 }
@@ -208,8 +212,11 @@ struct GameTransition {
 	Direction _walkInDir = Direction::None;
 	ScriptId _script = 0;
 	uint32 _scriptLine = 0;
+	ChoiceSetId _choiceSet = 0; ///< only used for saving/loading 
 
 	inline bool isPending() const { return _room != 0; }
+	void sync(Common::Serializer &serializer);
+	static GameTransition newGame();
 };
 
 struct PlayerCommand {

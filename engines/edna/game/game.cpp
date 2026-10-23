@@ -506,4 +506,18 @@ void Game::createDebugFloorTexture() {
 	_debugFloorTexture = g_engine->renderer().loadTexture(dst);
 }
 
+GameTransition Game::saveState() const {
+	GameTransition state;
+	state._room = _roomId;
+	if (_player != nullptr) {
+		state._walkIn = Point((int16)_player->basePosX(), (int16)_player->basePosY());
+		state._walkInDir = _player->direction();
+	}
+	if (_script.isScriptRunning()) {
+		state._script = _script.scriptId();
+		state._scriptLine = _script.scriptLine();
+	}
+	return state;
+}
+
 }

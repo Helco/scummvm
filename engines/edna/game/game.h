@@ -81,6 +81,7 @@ public:
 	void triggerExit(RoomExitId exitId, ScriptId scriptId = 0, uint32 scriptLine = 1);
 	virtual void triggerChoiceList(ChoiceSetId setId);
 	virtual void triggerInventoryUpdate();
+	GameTransition saveState() const;
 
 protected:
 	void init(const GameTransition &transition);

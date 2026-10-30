@@ -111,6 +111,7 @@ public:
 		Common::Serializer s(stream, nullptr);
 		return syncGame(s);
 	}
+	bool getSavegameThumbnail(Graphics::Surface &thumb);
 
 private:
 	void createRoom(const GameTransition &transition);

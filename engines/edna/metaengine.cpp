@@ -19,11 +19,13 @@
  *
  */
 
-#include "common/translation.h"
-
-#include "edna/metaengine.h"
 #include "edna/detection.h"
 #include "edna/edna.h"
+#include "edna/game/game.h"
+#include "edna/metaengine.h"
+
+#include "common/translation.h"
+#include "graphics/scaler.h"
 
 namespace Edna {
 
@@ -50,6 +52,15 @@ const char *EdnaMetaEngine::getName() const {
 
 const ADExtraGuiOptionsMap *EdnaMetaEngine::getAdvancedExtraGuiOptions() const {
 	return Edna::optionsList;
+}
+
+void EdnaMetaEngine::getSavegameThumbnail(Graphics::Surface &thumb) {
+	if (Edna::g_engine == nullptr || !Edna::g_engine->getSavegameThumbnail(thumb)) {
+		// even if we cannot create a thumbnail, callers expect thumb to be created
+		// we create it in size and format that ScummVM later expects to avoid conversions
+		thumb.create(kThumbnailWidth, kThumbnailHeight2, Graphics::PixelFormat(2, 5, 6, 5, 0, 11, 5, 0, 0));
+		thumb.fillRect(thumb.getRect(), 0);
+	}
 }
 
 Common::Error EdnaMetaEngine::createInstance(OSystem *syst, Engine **engine, const ADGameDescription *desc) const {

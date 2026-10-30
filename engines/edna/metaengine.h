@@ -38,6 +38,8 @@ public:
 	bool hasFeature(MetaEngineFeature f) const override;
 
 	const ADExtraGuiOptionsMap *getAdvancedExtraGuiOptions() const override;
+
+	void getSavegameThumbnail(Graphics::Surface &thumb) override;
 };
 
 #endif // EDNA_METAENGINE_H

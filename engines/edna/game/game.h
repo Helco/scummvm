@@ -73,6 +73,7 @@ public:
 
 	void update() override;
 	void render() override;
+	virtual void thumbnailRender();
 	void debugRender() override;
 	void triggerMusicToggle() override;
 	Sprite *objectById(RoomObjectId id) const;

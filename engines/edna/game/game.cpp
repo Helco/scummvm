@@ -216,6 +216,12 @@ void Game::render() {
 	}
 }
 
+void Game::thumbnailRender() {
+	_background.render();
+	_bgObjects.render();
+	_objects.render();
+}
+
 void Game::debugRender() {
 	GameBase::debugRender();
 	if (g_engine->console().debugFloor()) {

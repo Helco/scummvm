@@ -196,6 +196,21 @@ Error EdnaEngine::syncGame(Serializer &s) {
 	return kNoError;
 }
 
+bool EdnaEngine::getSavegameThumbnail(Graphics::Surface &thumb) {
+	Game *game = dynamic_cast<Game *>(_game.get());
+	if (game == nullptr)
+		return false;
+
+	_renderer->beginOffScreen();
+	game->thumbnailRender();
+	_renderer->end();
+
+	// we already convert to save copying in BlendBlit format now
+	// and converting to thumbnail format immediately after
+	thumb.convertFrom(_renderer->offScreen(), Graphics::PixelFormat(2, 5, 6, 5, 0, 11, 5, 0, 0));
+	return true;
+}
+
 uint32 EdnaEngine::getMillis() const {
 	// We modify system time in order to simplify timing calculations
 	// and pauses (including pauses by in-game menus)

@@ -176,6 +176,7 @@ public:
 class SoftwareRenderer final : public IRenderer {
 	ScopedPtr<Graphics::Screen> _screen;
 	const Graphics::Font *_debugFont = nullptr;
+	bool _isInRender = false, _wasOffScreen = false;
 public:
 	SoftwareRenderer() {
 		const auto format = Graphics::BlendBlit::getSupportedPixelFormat();
@@ -195,14 +196,33 @@ public:
 		return text;
 	}
 
-	void begin() override { }
+	void begin() override {
+		assert(!_isInRender);
+		_isInRender = true;
+		_wasOffScreen = false;
+	}
+
+	void beginOffScreen() override {
+		begin();
+		_wasOffScreen = true;
+	}
 
 	void end() override {
-		_screen->markAllDirty();
-		_screen->update();
+		assert(_isInRender);
+		_isInRender = false;
+		if (!_wasOffScreen) {
+			_screen->markAllDirty();
+			_screen->update();
+		}
+	}
+
+	const Graphics::Surface &offScreen() override {
+		assert(!_isInRender && _wasOffScreen);
+		return _screen->rawSurface();
 	}
 
 	void sprite(ITexture *textureRaw, Point pos, Point size = {}) override {
+		assert(_isInRender);
 		auto texture = dynamic_cast<SoftwareTexture *>(textureRaw);
 		assert(texture != nullptr);
 		if (size == Point())
@@ -222,6 +242,7 @@ public:
 	}
 
 	void text(IRenderedText *textRaw, Point pos) override {
+		assert(_isInRender);
 		auto text = dynamic_cast<SoftwareRenderedText *>(textRaw);
 		assert(text != nullptr);
 		if (text->_text.empty())
@@ -239,6 +260,7 @@ public:
 	}
 
 	void rect(Rect rect, uint8 r, uint8 g, uint8 b, uint8 a) override {
+		assert(_isInRender);
 		rect.clip(kScreenWidth, kScreenHeight);
 		if (rect.isEmpty())
 			return;
@@ -253,6 +275,7 @@ public:
 	}
 
 	void debugPoints(Span<const Point> points, uint8 r, uint8 g, uint8 b) override {
+		assert(_isInRender);
 		uint32 color = _screen->format.RGBToColor(r, g, b);
 		auto bounds = _screen->getBounds();
 		for (const auto &point : points) {
@@ -262,16 +285,19 @@ public:
 	}
 
 	void debugRect(Rect rect, uint8 r, uint8 g, uint8 b) override {
+		assert(_isInRender);
 		uint32 color = _screen->format.RGBToColor(r, g, b);
 		_screen->frameRect(rect, color);
 	}
 
 	void debugLine(Point pos1, Point pos2, uint8 r, uint8 g, uint8 b) override {
+		assert(_isInRender);
 		uint32 color = _screen->format.RGBToColor(r, g, b);
 		_screen->drawLine(pos1.x, pos1.y, pos2.x, pos2.y, color);
 	}
 
 	void debugText(Point pos, const String &text, uint8 r, uint8 g, uint8 b, Graphics::TextAlign align) override {
+		assert(_isInRender);
 		if (text.empty())
 			return;
 		if (_debugFont == nullptr)

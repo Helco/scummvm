@@ -91,6 +91,18 @@ U32String Translation::infoMusicOff() const {
 	return _("Music off");
 }
 
+U32String Translation::infoLoadEmptySlot() const {
+	return _("Slot %d is empty. You don't want to load it.");
+}
+
+U32String Translation::infoLoadSlot() const {
+	return _("Do you want to load game from slot %d?");
+}
+
+U32String Translation::infoSaveSlot() const {
+	return _("Do you want to save the game into slot %d?");
+}
+
 U32String Translation::infoJoke(int index) const {
 	return index < 0 || index >= ARRAYSIZE(kInfoJokes)
 		? U32String()

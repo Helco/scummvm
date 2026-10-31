@@ -39,6 +39,7 @@ public:
 	inline uint32 id() const { return _id; }
 	inline bool active() const { return _active; }
 	inline bool &immutable() { return _immutable; } ///< An immutable sprite is not deleted if inactive
+	inline bool &clickable() { return _clickable; }
 	inline Group &group() { assert(_parent != nullptr); return *_parent; }
 	inline Common::Point &pos() { return _pos; }
 	inline Common::Point pos() const { return _pos; }
@@ -62,7 +63,7 @@ private:
 	friend class Group;
 	const char *const _displayName = "";
 	Group *_parent = nullptr;
-	bool _active = true, _immutable = false;
+	bool _active = true, _immutable = false, _clickable = true;
 	Common::Point _pos, _size;
 	TexturePtr _texture;
 	uint32 _id = 0;

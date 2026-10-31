@@ -29,6 +29,7 @@ namespace Edna {
 
 class IRenderedText;
 class StartOptionsMenu;
+class StartSaveMenu;
 
 class StartMenu : public GameBase {
 public:
@@ -44,7 +45,7 @@ private:
 	void toggleButtons(bool active);
 	void startNewGame();
 
-	Common::ScopedPtr<Group> _loadGroup;
+	Common::ScopedPtr<StartSaveMenu> _loadGroup;
 	Common::ScopedPtr<StartOptionsMenu> _optionsGroup;
 	Common::ScopedPtr<Group> _achievementGroup;
 	Common::ScopedPtr<IRenderedText> _versionText;

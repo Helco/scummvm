@@ -94,6 +94,7 @@ void Text::setText(const U32String &fullText, TextFlags flags) {
 		_debugText[i] = fullText[i] < 0x80 ? fullText[i] : '#';
 	_debugText[i] = 0;
 
+	_lines.resize(0);
 	const auto *text = skipSpace(fullText.begin());
 	if (flags & kTextWrapLines) {
 		const auto *textEnd = text + strlen(text);

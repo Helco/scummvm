@@ -132,12 +132,22 @@ public:
 	}
 
 	void setText(const u32char_type_t *textBegin, const u32char_type_t *textEnd) override {
-		assert(textBegin != nullptr);
+		assert(textBegin != nullptr || textEnd == nullptr);
 		assert(textEnd == nullptr || textBegin <= textEnd);
-		if (_text.size() == textEnd - textBegin && !memcmp(_text.begin(), textBegin, sizeof(u32char_type_t) * _text.size()))
-			return;
-		
-		_text.assign(textBegin, textEnd - textBegin);
+		if (textBegin == nullptr) {
+			static const u32char_type_t empty = 0;
+			textBegin = &empty;
+			textEnd = textBegin + 1;
+		}
+		if (textEnd == nullptr) {
+			if (_text.equals(textBegin))
+				return;
+			_text.assign(textBegin);
+		} else {
+			if (_text.size() == textEnd - textBegin && !memcmp(_text.begin(), textBegin, sizeof(u32char_type_t) * _text.size()))
+				return;
+			_text.assign(textBegin, textEnd - textBegin);
+		}
 		if (_text.empty()) {
 			_surface.free(); // TODO: We might want to keep a super surface and reduce allocations here
 			return;

@@ -20,6 +20,7 @@ MODULE_OBJS = \
 	group/group.o \
 	group/inventory.o \
 	group/optionsmenu.o \
+	group/savemenu.o \
 	group/topicrow.o \
 	input.o \
 	metaengine.o \

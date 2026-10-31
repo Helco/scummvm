@@ -76,7 +76,7 @@ void Sprite::setTexture(TexturePtr texture) {
 }
 
 bool Sprite::checkClick(Point screenPos) const {
-	if (!_active || _texture == nullptr || !bounds().contains(screenPos))
+	if (!_clickable || !_active || _texture == nullptr || !bounds().contains(screenPos))
 		return false;
 	Point relPos = screenPos - _pos;
 	if (_texture->size() != _size) {

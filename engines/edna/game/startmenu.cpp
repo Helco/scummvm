@@ -25,6 +25,7 @@
 #include "edna/game/startmenu.h"
 #include "edna/graphics.h"
 #include "edna/group/optionsmenu.h"
+#include "edna/group/savemenu.h"
 #include "edna/input.h"
 
 #include "base/version.h"
@@ -88,7 +89,7 @@ void StartMenu::update() {
 			} else if (selection == &_btnOptions) {
 				openSubMenu(_optionsGroup, _btnOptions);
 			} else if (selection == &_btnLoad) {
-				warning("Unimplemented startmenu button: load");
+				openSubMenu(_loadGroup, _btnLoad);
 			} else if (selection == &_btnExit) {
 				g_engine->quitGame();
 			}

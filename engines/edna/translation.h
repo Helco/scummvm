@@ -50,6 +50,9 @@ public:
 	Common::U32String infoSoundOn() const;
 	Common::U32String infoMusicOn() const;
 	Common::U32String infoMusicOff() const;
+	Common::U32String infoLoadEmptySlot() const;
+	Common::U32String infoLoadSlot() const;
+	Common::U32String infoSaveSlot() const;
 
 	Common::U32String infoJoke(int index) const;
 

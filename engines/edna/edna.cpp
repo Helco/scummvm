@@ -202,7 +202,7 @@ bool EdnaEngine::getSavegameThumbnail(Graphics::Surface &thumb) {
 		return false;
 
 	_renderer->beginOffScreen();
-	game->thumbnailRender();
+	game->screenshotRender();
 	_renderer->end();
 
 	// we already convert to save copying in BlendBlit format now

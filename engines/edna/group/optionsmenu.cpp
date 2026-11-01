@@ -75,7 +75,7 @@ OptionsMenu::OptionsMenu()
 	_previousConfig = g_engine->config();
 }
 
-InGameOptionsMenu::InGameOptionsMenu() : OptionsMenu() {
+PauseOptionsMenu::PauseOptionsMenu() : OptionsMenu() {
 	_background.pos() = Point(225, 150);
 	_textSpeedBg.pos() = Point(240, 400);
 	_textSpeedSlider.pos() = Point(238, 390);

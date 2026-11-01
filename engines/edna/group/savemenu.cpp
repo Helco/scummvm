@@ -91,7 +91,7 @@ void SaveMenu::addRemainingSprites() {
 	add(&_infoText, DisposeAfterUse::NO);
 }
 
-InGameSaveMenu::InGameSaveMenu(bool isForLoading)
+PauseSaveMenu::PauseSaveMenu(bool isForLoading)
 	: SaveMenu(isForLoading, Point(220, 150)) {
 	addRemainingSprites();
 

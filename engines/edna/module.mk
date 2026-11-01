@@ -20,6 +20,7 @@ MODULE_OBJS = \
 	group/group.o \
 	group/inventory.o \
 	group/optionsmenu.o \
+	group/pausemenu.o \
 	group/savemenu.o \
 	group/topicrow.o \
 	input.o \

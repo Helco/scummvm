@@ -25,6 +25,7 @@
 #include "common/rect.h"
 #include "common/span.h"
 #include "common/hashmap.h"
+#include "graphics/managed_surface.h"
 
 namespace Common {
 	class Serializer;
@@ -264,6 +265,8 @@ private:
 		_music = true;
 	uint8 _subtitleSpeed = 255 - 74;
 };
+
+Graphics::ManagedSurface loadPNG(const char *path);
 
 }
 

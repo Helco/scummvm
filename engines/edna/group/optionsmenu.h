@@ -64,9 +64,9 @@ protected:
 	bool _isMovingSlider = false;
 };
 
-class InGameOptionsMenu : public OptionsMenu {
+class PauseOptionsMenu : public OptionsMenu {
 public:
-	InGameOptionsMenu();
+	PauseOptionsMenu();
 };
 
 class StartOptionsMenu : public OptionsMenu {

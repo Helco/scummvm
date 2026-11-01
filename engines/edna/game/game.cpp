@@ -216,7 +216,7 @@ void Game::render() {
 	}
 }
 
-void Game::thumbnailRender() {
+void Game::screenshotRender() {
 	_background.render();
 	_bgObjects.render();
 	_objects.render();

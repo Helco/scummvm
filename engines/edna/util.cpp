@@ -24,6 +24,7 @@
 
 #include "common/config-manager.h"
 #include "common/serializer.h"
+#include "image/png.h"
 
 using namespace Common;
 
@@ -274,6 +275,16 @@ void Config::saveToScummVM() {
 	ConfMan.setBool("music_mute", !_music);
 	ConfMan.setInt("talkspeed", _subtitleSpeed);
 	ConfMan.flushToDisk();
+}
+
+Graphics::ManagedSurface loadPNG(const char *path) {
+	File file;
+	Image::PNGDecoder decoder;
+	if (!file.open(path) || !decoder.loadStream(file))
+		error("Could not load image: %s", path);
+	Graphics::ManagedSurface surface;
+	surface.copyFrom(*decoder.getSurface());
+	return surface;
 }
 
 }

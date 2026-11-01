@@ -54,9 +54,9 @@ protected:
 	const bool _isForLoading;
 };
 
-class InGameSaveMenu : public SaveMenu {
+class PauseSaveMenu : public SaveMenu {
 public:
-	InGameSaveMenu(bool isForLoading);
+	PauseSaveMenu(bool isForLoading);
 };
 
 class StartSaveMenu : public SaveMenu {

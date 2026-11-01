@@ -39,6 +39,7 @@ public:
 
 	inline const char *name() const { return _name; } ///< only for debugging
 	inline bool &active() { return _active; }
+	inline bool active() const { return _active; }
 	inline Common::Span<const Common::DisposablePtr<Sprite>> sprites() const {
 		return { _sprites.data(), _sprites.size() };
 	}

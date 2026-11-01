@@ -49,7 +49,6 @@ public:
 	virtual void debugRender();
 	virtual void triggerMusicToggle(); ///< Called when music is muted/unmuted
 
-protected:
 	void add(Group *group, DisposeAfterUse::Flag dispose = DisposeAfterUse::NO);
 
 private:
@@ -73,7 +72,7 @@ public:
 
 	void update() override;
 	void render() override;
-	virtual void thumbnailRender();
+	virtual void screenshotRender();
 	void debugRender() override;
 	void triggerMusicToggle() override;
 	Sprite *objectById(RoomObjectId id) const;

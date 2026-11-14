@@ -83,6 +83,8 @@ PauseMenu::PauseMenu()
 	_loadGroup.reset(new PauseSaveMenu(true));
 	_optionsGroup.reset(new PauseOptionsMenu());
 	_achievementGroup.reset(new Group("Achievements"));
+
+	active() = false;
 }
 
 void PauseMenu::open() {
@@ -110,16 +112,25 @@ void PauseMenu::open() {
 	_background.setTexture(renderer.loadTexture(_backgroundTemp));
 
 	toggleButtons(true);
-	close(); // to close all submenus
+	_saveGroup->active() = false;
+	_loadGroup->active() = false;
+	_optionsGroup->active() = false;
+	_achievementGroup->active() = false;
 	active() = true;
+	_lastGame->onPauseMenu(true);
 }
 
 void PauseMenu::close() {
+	assert(_lastGame != nullptr);
 	_saveGroup->active() = false;
 	_loadGroup->active() = false;
 	_optionsGroup->active() = false;
 	_achievementGroup->active() = false;
 	active() = false;
+
+	// some input triggered the close, that should not bleed into the next state
+	g_engine->input().nextFrame();
+	_lastGame->onPauseMenu(false);
 }
 
 void PauseMenu::update() {
@@ -146,7 +157,7 @@ void PauseMenu::update() {
 		} else if (selection == &_btnSave) {
 			openSubmenu(_saveGroup, _btnSave);
 		} else if (selection == &_btnContinue) {
-			active() = false;
+			close();
 		} else if (selection == &_btnExit) {
 			warning("Unimplemented pausemenu button: exit");
 		}

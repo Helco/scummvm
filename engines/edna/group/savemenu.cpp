@@ -23,6 +23,7 @@
 #include "edna/assetcache.h"
 #include "edna/edna.h"
 #include "edna/game/game.h"
+#include "edna/group/pausemenu.h"
 #include "edna/group/savemenu.h"
 #include "edna/input.h"
 #include "edna/translation.h"
@@ -161,10 +162,15 @@ void SaveMenu::update() {
 			active() = false;
 		} else if (selection == &_btnConfirm) {
 			assert(_selectedI >= 0);
-			if (_isForLoading)
-				g_engine->loadGameState(_selectedI);
-			else
-				g_engine->saveGameState(_selectedI, "");
+			const auto error = _isForLoading
+				? g_engine->loadGameState(_selectedI)
+				: g_engine->saveGameState(_selectedI, "");
+			if (error.getCode() == kNoError)
+				onSuccess();
+			else {
+				GUI::MessageDialog dialog(error.getTranslatedDesc());
+				dialog.runModal();
+			}
 		} else if (selection == &_btnDelete) {
 			assert(_selectedI >= 0);
 
@@ -193,6 +199,14 @@ void SaveMenu::changeSelection(uint32 slotI) {
 	_btnConfirm.toggle(!_isForLoading || _isAvailable[slotI]);
 	_btnDelete.toggle(_isAvailable[slotI]);
 	_selectedI = (int)slotI;
+}
+
+void PauseSaveMenu::onSuccess() {
+	g_engine->pauseMenu().close();
+}
+
+void StartSaveMenu::onSuccess() {
+	// nothing to do here
 }
 
 }

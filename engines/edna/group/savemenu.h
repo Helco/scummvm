@@ -30,6 +30,7 @@ namespace Edna {
 
 class SaveMenu : public Group {
 public:
+	virtual ~SaveMenu() {}
 	void open();
 	void update() override;
 
@@ -40,6 +41,7 @@ protected:
 	SaveMenu(bool isForLoading, Common::Point gridPos);
 	void addRemainingSprites();
 	void changeSelection(uint32 slotI);
+	virtual void onSuccess() = 0;
 
 	Button
 		_btnConfirm,
@@ -54,16 +56,21 @@ protected:
 	const bool _isForLoading;
 };
 
-class PauseSaveMenu : public SaveMenu {
+class PauseSaveMenu final : public SaveMenu {
 public:
 	PauseSaveMenu(bool isForLoading);
+
+protected:
+	void onSuccess() override;
 };
 
-class StartSaveMenu : public SaveMenu {
+class StartSaveMenu final : public SaveMenu {
 public:
 	StartSaveMenu();
 
-private:
+protected:
+	void onSuccess() override;
+
 	Sprite _infoTextBg;
 };
 

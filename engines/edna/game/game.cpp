@@ -278,9 +278,7 @@ void Game::updateInput() {
 		auto &pauseMenu = g_engine->pauseMenu();
 		if (pauseMenu.active()) {
 			pauseMenu.close();
-			onPauseMenu(false);
 		} else if (canOpenPauseMenu()) {
-			onPauseMenu(true);
 			pauseMenu.open();
 		} else if (roomId() != kIntroRoomId)
 			g_engine->playSpeech("soundfx/huuup000.ogg");

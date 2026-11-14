@@ -126,7 +126,8 @@ void SaveMenu::open() {
 
 	auto *saveFileMgr = g_system->getSavefileManager();
 	const auto saveFiles = saveFileMgr->listSavefiles(
-		g_engine->getMetaEngine()->getSavegameFilePattern());
+		g_engine->getMetaEngine()->getSavegameFilePattern(
+			g_engine->targetName().c_str()));
 	for (const auto &saveFileName : saveFiles) {
 		if (saveFileName.size() < 3)
 			continue; // somehow not adhering to the pattern

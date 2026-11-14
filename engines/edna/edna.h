@@ -64,6 +64,7 @@ public:
 	~EdnaEngine() override;
 
 	inline GameTransition &next() { return _transition; }
+	inline const Common::String &targetName() const { return _targetName; }
 	inline const char *language() const { return getLanguageCode(_gameDescription->language); }
 	inline const char *versionExtra() const { return _gameDescription->extra; }
 	inline Config &config() { return _config; }

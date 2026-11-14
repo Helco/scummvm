@@ -79,7 +79,7 @@ public:
 	virtual void rect(Common::Rect rect, uint8 r, uint8 g, uint8 b, uint8 a) = 0;
 	virtual void end() = 0;
 
-	virtual const Graphics::Surface &offScreen() = 0; ///< only permitted after rendering off-screen and before the next begin
+	virtual const Graphics::ManagedSurface &offScreen() = 0; ///< only permitted after rendering off-screen and before the next begin
 
 	virtual void debugPoints(Common::Span<const Common::Point> points, uint8 r, uint8 g, uint8 b) = 0;
 	virtual void debugRect(Common::Rect rect, uint8 r, uint8 g, uint8 b) = 0;

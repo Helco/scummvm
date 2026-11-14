@@ -197,8 +197,8 @@ void StdInventory::updateItems() {
 	uint maxScroll = (dbItems.size() + kStdSlotsPerLine - 1) / kStdSlotsPerLine;
 	maxScroll = maxScroll < kStdLineCount ? 0 : maxScroll - kStdLineCount;
 	_scroll = MIN(_scroll, maxScroll);
-	_buttonUp.toggle(_scroll < maxScroll);
-	_buttonDown.toggle(_scroll > 0);
+	_buttonUp.toggle(_state == State::Open && _scroll < maxScroll);
+	_buttonDown.toggle(_state == State::Open && _scroll > 0);
 
 	Inventory::updateItems();
 }

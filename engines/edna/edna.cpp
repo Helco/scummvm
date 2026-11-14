@@ -40,6 +40,7 @@
 #include "audio/audiostream.h"
 #include "graphics/cursorman.h"
 #include "graphics/framelimiter.h"
+#include "graphics/scaler.h"
 #include "image/png.h"
 #include "common/scummsys.h"
 #include "common/config-manager.h"
@@ -207,10 +208,7 @@ bool EdnaEngine::getSavegameThumbnail(Graphics::Surface &thumb) {
 	game->screenshotRender();
 	_renderer->end();
 
-	// we already convert to save copying in BlendBlit format now
-	// and converting to thumbnail format immediately after
-	thumb.convertFrom(_renderer->offScreen(), Graphics::PixelFormat(2, 5, 6, 5, 0, 11, 5, 0, 0));
-	return true;
+	return createThumbnail(&thumb, &_renderer->offScreen());
 }
 
 uint32 EdnaEngine::getMillis() const {

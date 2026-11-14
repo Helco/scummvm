@@ -144,7 +144,7 @@ void Game::initPlayer(const GameTransition &transition) {
 	_player = new Player(*this, transition._walkIn, g_engine->db().room(_roomId));
 	_player->immutable() = true;
 	if (transition._walkInDir != Direction::None)
-		_player->direction() = transition._walkInDir;
+		_player->lookIn(transition._walkInDir);
 	_objects.add(_player, DisposeAfterUse::YES);
 }
 

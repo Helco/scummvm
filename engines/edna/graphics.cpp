@@ -226,9 +226,9 @@ public:
 		}
 	}
 
-	const Graphics::Surface &offScreen() override {
+	const Graphics::ManagedSurface &offScreen() override {
 		assert(!_isInRender && _wasOffScreen);
-		return _screen->rawSurface();
+		return *_screen;
 	}
 
 	void sprite(ITexture *textureRaw, Point pos, Point size = {}) override {

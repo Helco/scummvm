@@ -32,7 +32,6 @@ namespace Edna {
 Harvey::Harvey(ScopedPtr<GameBase> &myPtr, const GameTransition &transition)
 	: Game(myPtr, GameMode::Harvey, transition)
 	, _commandPrompt(*this)
-	, _choiceList(*this)
 	, _topicRow(transition._room)
 	, _buttonToEdna(1, Point(698, 534), "gui/harvey/b_zuedna")
 	, _pastIds(PastRoomIds::fromHarveyRoom(transition._room)) {
@@ -49,17 +48,12 @@ Harvey::Harvey(ScopedPtr<GameBase> &myPtr, const GameTransition &transition)
 }
 
 void Harvey::initGroups() {
-	Game::initGroups(&_topicRow, &_choiceList);
-}
-
-void Harvey::triggerChoiceList(ChoiceSetId setId) {
-	_choiceList.openSet(setId);
+	Game::initGroups(&_topicRow);
 }
 
 void Harvey::update() {
 	Game::update();
-
-	if (script().isScriptRunning() || script().isPerforming() || _choiceList.active())
+	if (!canPlayerInteract())
 		return;
 
 	Sprite *selection = findSelection();

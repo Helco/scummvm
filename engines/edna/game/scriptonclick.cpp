@@ -31,8 +31,7 @@ namespace Edna {
 
 ScriptOnClick::ScriptOnClick(ScopedPtr<GameBase> &myPtr, const GameTransition &transition)
 	: Game(myPtr, GameMode::ScriptOnClick, transition)
-	, _commandPrompt(*this)
-	, _choiceList(*this) {
+	, _commandPrompt(*this) {
 
 	texts().add(&_commandPrompt, DisposeAfterUse::NO);
 
@@ -40,13 +39,19 @@ ScriptOnClick::ScriptOnClick(ScopedPtr<GameBase> &myPtr, const GameTransition &t
 }
 
 void ScriptOnClick::initGroups() {
-	Game::initGroups(nullptr, &_choiceList);
+	Game::initGroups(nullptr);
 }
 
 void ScriptOnClick::update() {
 	Game::update();
+	// original special case: skipping intro
+	const auto &input = g_engine->input();
+	if (roomId() == kIntroRoomId && input.wasMenuPressed()) {
+		g_engine->next() = GameTransition::afterIntro();
+		return;
+	}
 
-	if (script().isScriptRunning() || script().isPerforming() || _choiceList.active())
+	if (!canPlayerInteract())
 		return;
 
 	Sprite *selection = findSelection();
@@ -65,7 +70,6 @@ void ScriptOnClick::update() {
 			_command._target = selection->id();
 	}
 
-	const auto &input = g_engine->input();
 	if (input.wasMouseLeftPressed())
 		onMouseLeftPressed(selection);
 	if (input.wasMouseRightPressed())
@@ -76,8 +80,8 @@ void ScriptOnClick::update() {
 	_commandPrompt.setText(_command, selection);
 }
 
-void ScriptOnClick::triggerChoiceList(ChoiceSetId setId) {
-	_choiceList.openSet(setId);
+bool ScriptOnClick::canOpenPauseMenu() const {
+	return roomId() != kIntroRoomId && Game::canOpenPauseMenu();
 }
 
 Sprite *ScriptOnClick::findSelection() {

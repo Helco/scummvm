@@ -23,7 +23,6 @@
 #define EDNA_SCRIPTONCLICK_H
 
 #include "edna/game/game.h"
-#include "edna/group/choicelist.h"
 #include "edna/sprite/commandprompt.h"
 
 namespace Edna {
@@ -34,7 +33,7 @@ public:
 
 	void initGroups() override;
 	void update() override;
-	void triggerChoiceList(ChoiceSetId setId) override;
+	bool canOpenPauseMenu() const override;
 
 private:
 	Sprite *findSelection();
@@ -42,7 +41,6 @@ private:
 	void onMouseRightPressed(Sprite *selection);
 
 	CommandPrompt _commandPrompt;
-	ChoiceList _choiceList;
 };
 
 }

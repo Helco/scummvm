@@ -211,7 +211,15 @@ void GameTransition::sync(Serializer &s) {
 
 GameTransition GameTransition::newGame() {
 	GameTransition t;
-	t._room = 2;
+	t._room = kIntroRoomId;
+	t._walkIn = Point(400, 520);
+	t._walkInDir = Direction::Left;
+	return t;
+}
+
+GameTransition GameTransition::afterIntro() {
+	GameTransition t;
+	t._room = kAfterIntroRoomId;
 	t._walkIn = Point(400, 520);
 	t._walkInDir = Direction::Left;
 	return t;

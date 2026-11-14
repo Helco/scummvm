@@ -38,6 +38,7 @@ public:
 	PauseMenu();
 
 	void open();
+	void close();
 	void update() override;
 
 private:

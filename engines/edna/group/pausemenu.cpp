@@ -110,11 +110,16 @@ void PauseMenu::open() {
 	_background.setTexture(renderer.loadTexture(_backgroundTemp));
 
 	toggleButtons(true);
+	close(); // to close all submenus
+	active() = true;
+}
+
+void PauseMenu::close() {
 	_saveGroup->active() = false;
 	_loadGroup->active() = false;
 	_optionsGroup->active() = false;
 	_achievementGroup->active() = false;
-	active() = true;
+	active() = false;
 }
 
 void PauseMenu::update() {
@@ -171,6 +176,9 @@ void PauseMenu::toggleButtons(bool enable) {
 	_btnSave.toggle(enable);
 	_btnSave.isDisabled() = false;
 	_btnSave.pos() = kSaveBtnPos;
+
+	_btnContinue.toggle(enable);
+	_btnExit.toggle(enable);
 }
 
 }

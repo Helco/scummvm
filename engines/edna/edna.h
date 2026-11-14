@@ -54,6 +54,7 @@ class PathFinder;
 class Console;
 class AssetCache;
 class Translation;
+class PauseMenu;
 
 class EdnaEngine : public Engine {
 protected:
@@ -74,6 +75,7 @@ public:
 	inline DB &db() { assert(_db != nullptr); return *_db; }
 	inline GameBase &game() { assert(_game != nullptr); return *_game; }
 	inline PathFinder &pathFinder() { assert(_pathFinder != nullptr); return *_pathFinder; }
+	inline PauseMenu &pauseMenu() { assert(_pauseMenu != nullptr); return *_pauseMenu; }
 
 	inline uint32 getElapsed() const { return _timeElapsed; }
 	inline float getElapsedF() const { return _timeElapsed / 1000.0f; }
@@ -127,6 +129,7 @@ private:
 	Common::ScopedPtr<DB> _db;
 	Common::ScopedPtr<GameBase> _game;
 	Common::ScopedPtr<PathFinder> _pathFinder;
+	Common::ScopedPtr<PauseMenu> _pauseMenu;
 	Config _config;
 
 	uint32 _timeNegOffset = 0, _timePosOffset = 0;

@@ -23,7 +23,6 @@
 #define EDNA_HARVEY_H
 
 #include "edna/game/game.h"
-#include "edna/group/choicelist.h"
 #include "edna/group/topicrow.h"
 #include "edna/sprite/button.h"
 #include "edna/sprite/commandprompt.h"
@@ -35,7 +34,6 @@ public:
 	Harvey(Common::ScopedPtr<GameBase> &myPtr, const GameTransition &transition);
 
 	void update() override;
-	void triggerChoiceList(ChoiceSetId setId) override;
 
 protected:
 	void initGroups() override;
@@ -54,7 +52,6 @@ protected:
 
 	const PastRoomIds _pastIds;
 	CommandPrompt _commandPrompt;
-	ChoiceList _choiceList;
 	TopicRow _topicRow;
 	Button _buttonToEdna;
 	Sprite _inactiveButtonToEdna;

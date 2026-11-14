@@ -30,6 +30,14 @@ Group::Group(const char *name) : _name(name) { }
 
 Group::~Group() { }
 
+void Group::setPaused(bool paused) {
+	if (paused) {
+		_pausedActive = _active;
+		_active = false;
+	} else
+		_active = _pausedActive;
+}
+
 void Group::update() {
 	if (!_active)
 		return;

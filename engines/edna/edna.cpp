@@ -25,6 +25,7 @@
 #include "edna/detection.h"
 #include "edna/db.h"
 #include "edna/graphics.h"
+#include "edna/group/pausemenu.h"
 #include "edna/game/ednagirl.h"
 #include "edna/game/ednastd.h"
 #include "edna/game/harvey.h"
@@ -90,6 +91,7 @@ Error EdnaEngine::run() {
 	_assets.reset(new AssetCache());
 	_translation.reset(new Translation());
 	_pathFinder.reset(new PathFinder());
+	_pauseMenu.reset(new PauseMenu());
 
 	CursorMan.showMouse(false);
 	pushCursor(_assets->standardCursor());

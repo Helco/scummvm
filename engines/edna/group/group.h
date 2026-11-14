@@ -52,11 +52,13 @@ public:
 	Sprite *byId(uint32 id) const;
 	Sprite *firstActive() const;
 	Sprite *checkClick(Common::Point screenPos) const;
+	void setPaused(bool paused);
 
 protected:
 	const char *const _name;
 	Common::Array<Common::DisposablePtr<Sprite>> _sprites;
-	bool _active = true;
+	bool _active = true,
+		_pausedActive = true; ///< used for disabling GUI/choice list during pause menu
 };
 
 class ObjectGroup : public Group {

@@ -24,7 +24,6 @@
 #define EDNA_EDNAGAME_H
 
 #include "edna/game/game.h"
-#include "edna/group/choicelist.h"
 #include "edna/sprite/button.h"
 #include "edna/sprite/commandprompt.h"
 
@@ -38,15 +37,12 @@ public:
 		const GameTransition &transition,
 		const char *guiBasePath); ///< for the buttons
 
-	void triggerChoiceList(ChoiceSetId setId) override;
-
 protected:
 	PlayerAction isPlayerActionButton(Sprite *selection) const;
 
 	void updateHover(Sprite *selection, bool selectDefaultAction);
 
 	CommandPrompt _commandPrompt;
-	ChoiceList _choiceList;
 	Button _buttonLook, _buttonPick, _buttonTalk, _buttonUse;
 };
 

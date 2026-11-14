@@ -24,23 +24,17 @@
 #include "edna/game/game.h"
 #include "edna/metaengine.h"
 
+#include "backends/keymapper/keymapper.h"
+#include "backends/keymapper/action.h"
+#include "backends/keymapper/standard-actions.h"
 #include "common/translation.h"
 #include "graphics/scaler.h"
+
+using namespace Common;
 
 namespace Edna {
 
 static const ADExtraGuiOptionsMap optionsList[] = {
-	{
-		GAMEOPTION_ORIGINAL_SAVELOAD,
-		{
-			_s("Use original save/load screens"),
-			_s("Use the original save/load screens instead of the ScummVM ones"),
-			"original_menus",
-			false,
-			0,
-			0
-		}
-	},
 	AD_EXTRA_GUI_OPTIONS_TERMINATOR
 };
 
@@ -63,7 +57,7 @@ void EdnaMetaEngine::getSavegameThumbnail(Graphics::Surface &thumb) {
 	}
 }
 
-Common::Error EdnaMetaEngine::createInstance(OSystem *syst, Engine **engine, const ADGameDescription *desc) const {
+Error EdnaMetaEngine::createInstance(OSystem *syst, Engine **engine, const ADGameDescription *desc) const {
 	*engine = new Edna::EdnaEngine(syst, desc);
 	return Common::kNoError;
 }
@@ -71,6 +65,31 @@ Common::Error EdnaMetaEngine::createInstance(OSystem *syst, Engine **engine, con
 bool EdnaMetaEngine::hasFeature(MetaEngineFeature f) const {
 	return checkExtendedSaves(f) ||
 		(f == kSupportsLoadingDuringStartup);
+}
+
+KeymapArray EdnaMetaEngine::initKeymaps(const char *target) const {
+	Keymap *keymap = new Keymap(Keymap::kKeymapTypeGame, "edna-default", _("Default keymappings"));
+	Action *act;
+
+	act = new Action(kStandardActionLeftClick, _("Walk To"));
+	act->setLeftClickEvent();
+	act->addDefaultInputMapping("MOUSE_LEFT");
+	act->addDefaultInputMapping("JOY_A");
+	keymap->addAction(act);
+
+	act = new Action(kStandardActionRightClick, _("Activate"));
+	act->setRightClickEvent();
+	act->addDefaultInputMapping("MOUSE_RIGHT");
+	act->addDefaultInputMapping("JOY_B");
+	keymap->addAction(act);
+
+	act = new Action("MENU", _("Menu"));
+	act->setCustomEngineActionEvent((CustomEventType)Edna::EventAction::InputMenu);
+	act->addDefaultInputMapping("ESCAPE");
+	act->addDefaultInputMapping("JOY_START");
+	keymap->addAction(act);
+
+	return Keymap::arrayOf(keymap);
 }
 
 #if PLUGIN_ENABLED_DYNAMIC(EDNA)

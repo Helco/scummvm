@@ -206,7 +206,9 @@ inline void stable_sort(Iterator begin, Iterator end, Comp comp) {
 	}
 }
 
-
+static constexpr const RoomId kStartMenuRoomId = 1;
+static constexpr const RoomId kIntroRoomId = 2;
+static constexpr const RoomId kAfterIntroRoomId = 100101;
 struct GameTransition {
 	RoomId _room = 0;
 	Common::Point _walkIn;
@@ -218,6 +220,7 @@ struct GameTransition {
 	inline bool isPending() const { return _room != 0; }
 	void sync(Common::Serializer &serializer);
 	static GameTransition newGame();
+	static GameTransition afterIntro();
 };
 
 struct PlayerCommand {

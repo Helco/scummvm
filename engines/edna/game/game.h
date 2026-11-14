@@ -22,7 +22,7 @@
 #ifndef EDNA_GAME_H
 #define EDNA_GAME_H
 
-#include "edna/group/group.h"
+#include "edna/group/choicelist.h"
 #include "edna/script.h"
 
 #include "common/span.h"
@@ -30,6 +30,7 @@
 namespace Edna {
 
 class Player;
+class ChoiceList;
 class ITexture;
 
 // Everything except Intro and StartMenu inherit from Game
@@ -69,6 +70,7 @@ public:
 	inline ObjectGroup &objects() { return _objects; }
 	inline Group &texts() { return _texts; }
 	inline Group &gui() { return _gui; }
+	inline ChoiceList &choiceList() { return _choiceList; }
 
 	void update() override;
 	void render() override;
@@ -79,8 +81,9 @@ public:
 
 	void fade(byte color, float target, uint32 duration);
 	void triggerExit(RoomExitId exitId, ScriptId scriptId = 0, uint32 scriptLine = 1);
-	virtual void triggerChoiceList(ChoiceSetId setId);
 	virtual void triggerInventoryUpdate();
+	virtual bool canOpenPauseMenu() const;
+	virtual void onPauseMenu(bool isOpening);
 	GameTransition saveState() const;
 
 protected:
@@ -88,7 +91,7 @@ protected:
 	void initBackground(const char *background);
 	void initTimer(TimerId timerId);
 	virtual void initGroups();
-	void initGroups(Group *specialObjects, Group *specialGui);
+	void initGroups(Group *specialObjects);
 	void initPathFinder(WalkableAreaId areaId);
 	void initPlayer(const GameTransition &transition);
 	void initObjects();
@@ -104,8 +107,8 @@ protected:
 	void invokeDefaultCommand(Sprite *selection, bool isItem);
 	void invokeRoomInteraction(Sprite *object, PlayerAction action);
 	void switchCharacter(RoomId targetRoomId, RoomObjectId targetObjectId, RoomObjectId sourceObjectId);
+	bool canPlayerInteract(); ///< does not check game-specific groups (e.g. choice list)
 
-protected:
 	PlayerCommand _command = {};
 
 private:
@@ -119,11 +122,13 @@ private:
 	ObjectGroup _objects;
 	Group _texts;
 	Group _gui;
-	// missing due to custom type: comment, mainMenu, choiceList
+	ChoiceList _choiceList;
 
 	bool _pendingTimerInvoke = false;
 	ScriptId _timerScript = 0;
 	Timer _timer;
+
+	bool _wasGuiActiveBeforePause = false;
 
 	struct {
 		bool _active = false;

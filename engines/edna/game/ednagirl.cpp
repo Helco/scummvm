@@ -46,13 +46,12 @@ EdnaGirl::EdnaGirl(ScopedPtr<GameBase> &myPtr, const GameTransition &transition)
 }
 
 void EdnaGirl::initGroups() {
-	Game::initGroups(&_inventory, &_choiceList);
+	Game::initGroups(&_inventory);
 }
 
 void EdnaGirl::update() {
 	Game::update();
-
-	if (script().isScriptRunning() || script().isPerforming() || _choiceList.active())
+	if (!canPlayerInteract())
 		return;
 
 	Sprite *selection = findSelection();

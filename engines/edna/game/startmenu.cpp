@@ -35,8 +35,6 @@ using namespace Common;
 
 namespace Edna {
 
-static constexpr const RoomId StartMenuRoomId = 1;
-
 StartMenu::StartMenu(Common::ScopedPtr<GameBase> &myPtr)
 	: GameBase(myPtr, GameMode::StartMenu)
 	, _group("StartMenu")
@@ -48,7 +46,7 @@ StartMenu::StartMenu(Common::ScopedPtr<GameBase> &myPtr)
 	, _btnLoad(5, { 20, 360 }, String::format("gui/hauptmenue/%s/b_laden", g_engine->language()))
 	, _btnExit(6, { 20, 390 }, String::format("gui/hauptmenue/%s/b_beenden", g_engine->language())) {
 
-	const auto dbRoom = g_engine->db().room(StartMenuRoomId);
+	const auto dbRoom = g_engine->db().room(kStartMenuRoomId);
 	g_engine->playMusic(dbRoom._music);
 	_background.setTexture(dbRoom._background);
 
@@ -108,7 +106,7 @@ void StartMenu::render() {
 
 void StartMenu::triggerMusicToggle() {
 	if (g_engine->config().music()) {
-		const auto room = g_engine->db().room(StartMenuRoomId);
+		const auto room = g_engine->db().room(kStartMenuRoomId);
 		g_engine->playMusic(room._music);
 	}
 	else

@@ -20,6 +20,7 @@
  */
 
 #include "edna/input.h"
+#include "edna/metaengine.h"
 
 using namespace Common;
 
@@ -30,6 +31,7 @@ void Input::nextFrame() {
 	_wasMouseRightPressed = false;
 	_wasMouseLeftReleased = false;
 	_wasMouseRightReleased = false;
+	_wasMenuPressed = false;
 }
 
 bool Input::handleEvent(const Common::Event &event) {
@@ -53,6 +55,14 @@ bool Input::handleEvent(const Common::Event &event) {
 	case EVENT_MOUSEMOVE:
 		_mousePos = event.mouse;
 		return true;
+	case EVENT_CUSTOM_ENGINE_ACTION_START:
+		switch ((EventAction)event.customType) {
+		case EventAction::InputMenu:
+			_wasMenuPressed = true;
+			return true;
+		default:
+			return false;
+		}
 	default:
 		return false;
 	}

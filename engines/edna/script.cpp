@@ -216,7 +216,7 @@ bool Script::opSaySound(const ScriptCommand &line) {
 }
 
 bool Script::opChoice(const ScriptCommand &line) {
-	_game.triggerChoiceList(line._args._choiceSet);
+	_game.choiceList().openSet(line._args._choiceSet);
 	return false;
 }
 

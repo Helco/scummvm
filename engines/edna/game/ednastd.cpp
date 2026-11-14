@@ -35,7 +35,7 @@ EdnaStd::EdnaStd(ScopedPtr<GameBase> &myPtr, const GameTransition &transition)
 }
 
 void EdnaStd::initGroups() {
-	Game::initGroups(&_inventory, &_choiceList);
+	Game::initGroups(&_inventory);
 }
 
 bool EdnaStd::isItem(Sprite *selection) const {
@@ -46,7 +46,7 @@ void EdnaStd::update() {
 	Game::update();
 	_inventory.active() = gui().active();
 
-	if (script().isScriptRunning() || script().isPerforming() || _choiceList.active()) {
+	if (!canPlayerInteract()) {
 		_inventory.close();
 		return;
 	}

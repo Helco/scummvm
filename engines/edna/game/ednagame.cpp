@@ -42,7 +42,6 @@ static String getButtonPath(const char *guiBasePath, const char *buttonName) {
 
 EdnaGame::EdnaGame(ScopedPtr<GameBase> &myPtr, GameMode mode, const GameTransition &transition, const char *guiBasePath)
 	: Game(myPtr, mode, transition)
-	, _choiceList(*this)
 	, _commandPrompt(*this)
 	, _buttonLook(kButtonIdLook, Point(0, 565), getButtonPath(guiBasePath, "ansehen"))
 	, _buttonPick(kButtonIdPick, Point(100, 565), getButtonPath(guiBasePath, "nehmen"))
@@ -59,10 +58,6 @@ EdnaGame::EdnaGame(ScopedPtr<GameBase> &myPtr, GameMode mode, const GameTransiti
 	gui().add(&_buttonTalk, DisposeAfterUse::NO);
 	gui().add(&_buttonUse, DisposeAfterUse::NO);
 	texts().add(&_commandPrompt, DisposeAfterUse::NO);
-}
-
-void EdnaGame::triggerChoiceList(ChoiceSetId setId) {
-	_choiceList.openSet(setId);
 }
 
 PlayerAction EdnaGame::isPlayerActionButton(Sprite *selection) const {

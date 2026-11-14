@@ -46,7 +46,7 @@ static const u32char_type_t *strchr(const u32char_type_t *str, u32char_type_t ch
 static size_t strlen(const u32char_type_t *str) {
 	assert(str != nullptr);
 	size_t len = 0;
-	while (*str)
+	while (*str++)
 		len++;
 	return len;
 }

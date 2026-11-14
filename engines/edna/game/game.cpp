@@ -25,6 +25,7 @@
 #include "edna/db.h"
 #include "edna/game/game.h"
 #include "edna/graphics.h"
+#include "edna/group/pausemenu.h"
 #include "edna/input.h"
 #include "edna/pathfinder.h"
 #include "edna/sprite/animation.h"
@@ -85,7 +86,8 @@ Game::Game(ScopedPtr<GameBase> &myPtr, GameMode mode, const GameTransition &tran
 	, _bgObjects("bgObjects")
 	, _objects("objects")
 	, _texts("texts")
-	, _gui("gui") {
+	, _gui("gui")
+	, _choiceList(*this) {
 	assert(mode != GameMode::Intro);
 }
 
@@ -118,10 +120,10 @@ void Game::initTimer(TimerId timerId) {
 }
 
 void Game::initGroups() {
-	initGroups(nullptr, nullptr);
+	initGroups(nullptr);
 }
 
-void Game::initGroups(Group *specialObjects, Group *specialGui) {
+void Game::initGroups(Group *specialObjects) {
 	add(&_background);
 	add(&_bgObjects);
 	add(&_objects);
@@ -130,9 +132,7 @@ void Game::initGroups(Group *specialObjects, Group *specialGui) {
 	add(&_texts);
 	add(&_gui);
 	// TODO: comment
-	if (specialGui != nullptr)
-		add(specialGui);
-	// TODO: start menu
+	add(&_choiceList);
 }
 
 void Game::initPathFinder(WalkableAreaId areaId) {
@@ -250,9 +250,7 @@ void Game::updateFade() {
 }
 
 bool Game::updateScript() {
-	// TODO: Missing continue after savegame load
 	// TODO: Missing continue choice list after savegame load
-	// TODO: Missing continue script across rooms
 
 	if (_script.isScriptRunning()) {
 		if (!_script.isPerforming())
@@ -275,6 +273,28 @@ bool Game::updateScript() {
 void Game::updateInput() {
 	if (g_engine->input().wasMouseRightReleased() && shutUp())
 		g_engine->input().nextFrame(); // otherwise the click triggers the next default action
+
+	if (g_engine->input().wasMenuPressed()) {
+		auto &pauseMenu = g_engine->pauseMenu();
+		if (pauseMenu.active()) {
+			pauseMenu.close();
+			onPauseMenu(false);
+		} else if (canOpenPauseMenu()) {
+			onPauseMenu(true);
+			pauseMenu.open();
+		} else if (roomId() != kIntroRoomId)
+			g_engine->playSpeech("soundfx/huuup000.ogg");
+	}
+}
+
+bool Game::canOpenPauseMenu() const {
+	return !_script.isScriptRunning();
+}
+
+void Game::onPauseMenu(bool isOpening) {
+	gui().setPaused(isOpening);
+	choiceList().setPaused(isOpening);
+	// TODO: Toggle comment group
 }
 
 bool Game::shutUp() {
@@ -314,10 +334,6 @@ void Game::triggerExit(RoomExitId exitId, ScriptId scriptId, uint32 scriptLine) 
 	next._walkInDir = dbExit._lookDirection;
 	next._script = scriptId;
 	next._scriptLine = scriptLine;
-}
-
-void Game::triggerChoiceList(ChoiceSetId setId) {
-	warning("Triggered choice list %u in unsupported game mode %s", setId, gameModeToString(gameMode()));
 }
 
 void Game::triggerInventoryUpdate() {
@@ -495,6 +511,14 @@ void Game::switchCharacter(RoomId targetRoomId, RoomObjectId targetObjectId, Roo
 		g_engine->next()._walkIn = dbTarget._pos;
 		g_engine->next()._walkInDir = Direction::Left;
 	}
+}
+
+bool Game::canPlayerInteract() {
+	return
+		!_script.isScriptRunning() &&
+		!_script.isPerforming() &&
+		!_choiceList.active() &&
+		!g_engine->pauseMenu().active();
 }
 
 void Game::createDebugFloorTexture() {

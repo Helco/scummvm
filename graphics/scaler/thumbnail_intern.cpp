@@ -260,8 +260,8 @@ bool createThumbnail(Graphics::Surface *surf, const uint8 *pixels, int w, int h,
 	return createThumbnail(*surf, screen);
 }
 
-bool createThumbnail(Graphics::Surface *surf, Graphics::ManagedSurface *in) {
-	assert(surf);
+bool createThumbnail(Graphics::Surface *surf, const Graphics::ManagedSurface *in) {
+	assert(surf && in);
 
 	Graphics::Surface screen;
 

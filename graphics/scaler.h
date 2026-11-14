@@ -63,6 +63,6 @@ extern bool createThumbnail(Graphics::Surface *surf, const uint8 *pixels, int w,
  * @param surf	destination surface (will always have 16 bpp after this for now)
  * @param in	source surface to create thumbnail from
  */
-extern bool createThumbnail(Graphics::Surface *surf, Graphics::ManagedSurface *in);
+extern bool createThumbnail(Graphics::Surface *surf, const Graphics::ManagedSurface *in);
 
 #endif

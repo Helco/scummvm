@@ -111,22 +111,41 @@ const FontInfo AssetCache::font(FontKind kind) const {
     return info;
 }
 
-SharedPtr<ITexture> AssetCache::texture(const String &fileName) {
+SharedPtr<ITexture> AssetCache::texture(const String &fileName, bool required) {
     SharedPtr<ITexture> texture;
-    if (_textureCaches[0].tryGetVal(fileName, texture) ||
-        _textureCaches[1].tryGetVal(fileName, texture))
-        return texture;
+	if (_textureCaches[_nextTextureCache].tryGetVal(fileName, texture))
+		return texture;
+	if (_textureCaches[!_nextTextureCache].tryGetVal(fileName, texture)) {
+		_textureCaches[_nextTextureCache][fileName] = texture;
+		_reused++;
+		return texture;
+	}
 
     texture = g_engine->renderer().loadTexture(fileName.c_str());
-	if (texture == nullptr)
-		warning("Could not open texture: %s", fileName.c_str());
+	if (texture == nullptr) {
+		if (required)
+			warning("Could not open texture: %s", fileName.c_str());
+		else
+			debugC(3, kDebugGraphics, "Could not open texture: %s", fileName.c_str());
+	}
 
     if (texture != nullptr)
         _textureCaches[_nextTextureCache][fileName] = texture;
     return texture;
 }
 
+void AssetCache::startNextLoad() {
+	// this is the number of loads after a level has loaded 
+	_duringGame = _textureCaches[_nextTextureCache].size();
+	_reused = 0;
+}
+
 void AssetCache::finishNextLoad() {
+	const uint oldTextures = _textureCaches[!_nextTextureCache].size();
+	const uint newTextures = _textureCaches[_nextTextureCache].size();
+	debugC(1, kDebugGraphics, "AssetCache. Prev:%u Now:%u New:%u Reused:%u",
+		oldTextures, newTextures, newTextures - _reused, _reused);
+
     _nextTextureCache = !_nextTextureCache;
     _textureCaches[_nextTextureCache].clear();
 }

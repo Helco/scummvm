@@ -48,7 +48,8 @@ public:
     // We delay freeing textures until the room is loaded by keeping another
     // shared pointer to them. After loading everything that was only used
     // in the last is freed.
-    Common::SharedPtr<ITexture> texture(const Common::String &filename);
+    Common::SharedPtr<ITexture> texture(const Common::String &filename, bool required = true);
+	void startNextLoad();
     void finishNextLoad();
 
 private:
@@ -61,6 +62,7 @@ private:
 
     Common::HashMap<Common::String, Common::SharedPtr<ITexture>> _textureCaches[2];
     int _nextTextureCache = 0;
+	uint _duringGame = 0, _reused = 0;
 };
 
 }

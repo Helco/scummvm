@@ -33,8 +33,8 @@ Button::Button(uint32 id, Point pos, const String &path) {
 	immutable() = true;
 	_normal = g_engine->assets().texture(path + ".png");
 	_hovered = g_engine->assets().texture(path + "_a.png");
-	_pressed = g_engine->assets().texture(path + "_p.png");
-	_disabled = g_engine->assets().texture(path + "_i.png");
+	_pressed = g_engine->assets().texture(path + "_p.png", false);
+	_disabled = g_engine->assets().texture(path + "_i.png", false);
 	if (_pressed == nullptr)
 		_pressed = _hovered;
 	setTexture(_normal);

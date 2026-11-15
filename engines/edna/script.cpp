@@ -208,7 +208,10 @@ bool Script::opSaySound(const ScriptCommand &line) {
 		Point pos = line._args._saySound._pos;
 		if (pos == kInvalidPoint)
 			pos = { (int16)(_game.player().basePosX()) , (int16)(_game.player().pos().y - 10) };
+		if (_soundText != nullptr)
+			_soundText->toggle(false);
 		_soundText = new Text(pos, FontKind::InactiveFont, line._args._saySound._text, (TextFlags)(kTextWrapLines | kTextMoveIntoScreen));
+		_soundText->id() = _scriptId; // for debugging
 		_game.texts().add(_soundText, DisposeAfterUse::YES);
 	}
 

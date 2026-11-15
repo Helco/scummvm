@@ -142,6 +142,7 @@ void Game::initPathFinder(WalkableAreaId areaId) {
 
 void Game::initPlayer(const GameTransition &transition) {
 	_player = new Player(*this, transition._walkIn, g_engine->db().room(_roomId));
+	_player->id() = 42; // for debugging
 	_player->immutable() = true;
 	if (transition._walkInDir != Direction::None)
 		_player->lookIn(transition._walkInDir);

@@ -120,11 +120,14 @@ void Character::sayOrThink(const char *text, const char *soundFile, State newSta
 		_talkSound = g_engine->playSpeech(soundFile);
 
 	if (*text && (config.subtitles() || !config.speech())) {
+		if (_talkText != nullptr)
+			_talkText->toggle(false);
 		_talkText = new Text(
 			Point(basePosX(), pos().y),
 			newState == State::kTalking ? _talkFont : _thinkFont,
 			text,
 			kTextDialog);
+		_talkText->id() = id(); // for debugging
 		_game.texts().add(_talkText, DisposeAfterUse::YES);
 	}
 

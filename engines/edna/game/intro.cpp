@@ -21,6 +21,7 @@
 
 #include "edna/edna.h"
 #include "edna/game/intro.h"
+#include "edna/input.h"
 
 #include "graphics/surface.h"
 #include "image/png.h"
@@ -76,6 +77,9 @@ Intro::~Intro() {
 void Intro::update() {
 	GameBase::update();
 
+	if (g_engine->input().wasMenuPressed())
+		g_engine->next()._room = kStartMenuRoomId;
+
 	switch (_stage) {
 	case Stage::FadeIn:
 		_fadeAlpha -= g_engine->getElapsed() / 1000.0f;
@@ -96,7 +100,7 @@ void Intro::update() {
 				_harvey.toggle(true);
 			}
 			else
-				g_engine->next()._room = 1; // startmenu
+				g_engine->next()._room = kStartMenuRoomId;
 		}
 		break;
 	case Stage::Harvey:

@@ -97,19 +97,14 @@ Error EdnaEngine::run() {
 	CursorMan.showMouse(false);
 	pushCursor(_assets->standardCursor());
 
+	_transition = {};
+
 	// If a savegame was selected from the launcher, load it
 	int saveSlot = ConfMan.getInt("save_slot");
 	if (saveSlot == -1)
-		new Intro(_game, true);
+		new Intro(_game, false);
 	else
 		(void)loadGameState(saveSlot);
-
-	_transition = {};
-	//_transition._room = 100101;
-	//_transition._walkIn = { 260, 520 };
-	_transition._room = 1;
-	_transition._walkIn = { 400, 500 };
-	_transition._walkInDir = Direction::Left;
 
 	_timeLastFrame = getMillis();
 	Common::Event e;
@@ -170,6 +165,11 @@ void EdnaEngine::createRoom(const GameTransition &transition) {
 	default:
 		error("Unimplemented game mode: %s", gameModeToString(room._gameMode));
 	}
+}
+
+bool EdnaEngine::canLoadGameStateCurrently(U32String *msg) {
+	const auto *game = dynamic_cast<Game *>(_game.get());
+	return game != nullptr && game->canOpenPauseMenu();
 }
 
 Error EdnaEngine::syncGame(Serializer &s) {
